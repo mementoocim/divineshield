@@ -221,17 +221,16 @@ function redirectDashboard($role) {
               ];
               foreach ($testCreds as $cred): ?>
                 <div onclick="document.getElementById('username').value='<?php echo $cred['user']; ?>';document.getElementById('password').value='<?php echo $cred['pass']; ?>';"
-                     style="display:flex; align-items:center; justify-content:space-between; padding:10px 14px; cursor:pointer; transition:background 0.15s;"
+                     style="display:flex; align-items:center; padding:10px 14px; cursor:pointer; transition:background 0.15s;"
                      onmouseover="this.style.background='rgba(255,255,255,0.04)'" onmouseout="this.style.background='transparent'">
                   <div style="display:flex; align-items:center; gap:10px;">
                     <span style="font-size:0.68rem; font-weight:700; color:<?php echo $cred['color']; ?>; background:<?php echo $cred['color']; ?>1a; padding:2px 8px; border-radius:999px;"><?php echo $cred['role']; ?></span>
                     <code style="font-size:0.78rem; color:var(--gray-300);"><?php echo $cred['user']; ?></code>
                   </div>
-                  <code style="font-size:0.78rem; color:var(--gray-500);"><?php echo $cred['pass']; ?></code>
                 </div>
               <?php endforeach; ?>
             </div>
-            <div style="padding: 8px 14px; border-top: 1px solid rgba(255,255,255,0.06); font-size: 0.68rem; color: var(--gray-500); text-align:center;">
+            <div style="padding: 8px 14px; border-top: 1px solid rgba(255,255,255,0.06); font-size: 0.68rem; color: var(--white); text-align:center;">
               Click any row to auto-fill credentials
             </div>
           </div>
