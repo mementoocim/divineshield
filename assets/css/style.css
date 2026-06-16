@@ -2024,7 +2024,7 @@ button.sidebar-link {
   gap: 32px;
 }
 
-.dashboard-card {
+.dashboard-card, .admin-panel {
   background: rgba(30, 41, 59, 0.6);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: var(--radius-lg);
@@ -2032,7 +2032,7 @@ button.sidebar-link {
   box-shadow: var(--shadow-sm);
 }
 
-.dashboard-card-header {
+.dashboard-card-header, .panel-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -2041,7 +2041,7 @@ button.sidebar-link {
   padding-bottom: 14px;
 }
 
-.dashboard-card-title {
+.dashboard-card-title, .panel-title {
   font-family: var(--font-head);
   font-size: 1.15rem;
   font-weight: 700;

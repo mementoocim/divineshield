@@ -49,9 +49,9 @@ $children = $stmt->fetchAll(PDO::FETCH_ASSOC);
 include 'includes/header.php';
 ?>
 
-<div class="admin-panel">
-    <div class="panel-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px;">
-        <h3 class="panel-title">Children Registry</h3>
+<div class="dashboard-card">
+    <div class="dashboard-card-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 14px; margin-bottom: 24px;">
+        <h3 class="dashboard-card-title" style="font-family: var(--font-head); font-size: 1.15rem; font-weight: 700; display: flex; align-items: center; gap: 10px; color: var(--white);"><i class="fas fa-children" style="color:var(--blue-400);"></i> Children Registry</h3>
         
         <!-- Search Form -->
         <form method="GET" action="children_records.php" style="display:flex; gap:8px;">
