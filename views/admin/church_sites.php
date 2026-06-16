@@ -404,7 +404,7 @@ include 'includes/header.php';
               </div>
               <div class="detail-item">
                 <label>Province &amp; Region</label>
-                <span><?php echo htmlspecialchars($viewSite['province'] . ' &middot; ' . $viewSite['region']); ?></span>
+                <span><?php echo htmlspecialchars($viewSite['province']); ?> &middot; <?php echo htmlspecialchars($viewSite['region']); ?></span>
               </div>
             </div>
 

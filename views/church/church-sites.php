@@ -71,7 +71,7 @@ include 'includes/header.php';
                             </div>
                             <div class="detail-item">
                                 <label>Province &amp; Region</label>
-                                <span><?php echo htmlspecialchars($mySite['province'] . ' &middot; ' . $mySite['region']); ?></span>
+                                <span><?php echo htmlspecialchars($mySite['province']); ?> &middot; <?php echo htmlspecialchars($mySite['region']); ?></span>
                             </div>
                         </div>
 
