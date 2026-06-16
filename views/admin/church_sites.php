@@ -272,7 +272,7 @@ $siteChildren = [];
 
 if ($action === 'view' && $id > 0) {
     // Fetch church site details
-    $stmt = $pdo->prepare("SELECT cs.*, u.username, u.first_name AS u_first, u.middle_name AS u_middle, u.last_name AS u_last, u.email, u.phone AS leader_phone, u.position_title 
+    $stmt = $pdo->prepare("SELECT cs.*, u.status AS leader_status, u.username, u.first_name AS u_first, u.middle_name AS u_middle, u.last_name AS u_last, u.email, u.phone AS leader_phone, u.position_title 
                            FROM church_sites cs 
                            JOIN users u ON cs.church_leader_id = u.id 
                            WHERE cs.id = ?");
@@ -407,6 +407,21 @@ include 'includes/header.php';
                 <span><?php echo htmlspecialchars($viewSite['province'] . ' &middot; ' . $viewSite['region']); ?></span>
               </div>
             </div>
+
+            <?php if ($viewSite['leader_status'] === 'pending'): ?>
+              <div style="background: rgba(251,191,36,0.05); padding: 20px; border-radius: 8px; border: 1px dashed var(--yellow-500); margin-top: 24px;">
+                <h4 style="color:var(--yellow-400); margin-bottom: 10px;"><i class="fas fa-exclamation-triangle"></i> Leader Registration Pending Approval</h4>
+                <p style="margin-bottom: 15px; color: var(--gray-300);">This church leader account is currently pending activation. Please verify the credentials and ministry details above before approving.</p>
+                <div style="display:flex; gap: 15px;">
+                  <a href="church_sites.php?action=approve_leader&id=<?php echo $viewSite['church_leader_id']; ?>" class="btn btn-success btn-sm" onclick="return confirm('Are you sure you want to approve this church leader account?');">
+                    <i class="fas fa-check"></i> Approve & Activate Account
+                  </a>
+                  <a href="church_sites.php?action=reject_leader&id=<?php echo $viewSite['church_leader_id']; ?>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to reject/disable this registration?');">
+                    <i class="fas fa-times"></i> Reject Account
+                  </a>
+                </div>
+              </div>
+            <?php endif; ?>
 
             <div style="border-top: 1px solid rgba(255,255,255,0.08); margin-top:24px; padding-top:24px;">
               <h4 style="font-family:var(--font-head); font-size:1rem; margin-bottom:16px;"><i class="fas fa-children" style="color:var(--blue-400); margin-right:8px;"></i> Children Submissions Registry</h4>

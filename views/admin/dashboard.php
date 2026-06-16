@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * DivineShield - Administrator Dashboard
  */
@@ -53,7 +53,11 @@ $totalPendingCount = $pendingLeaderCount + $pendingChildCount;
 // ──────────────────────────────────────────
 
 // Recent Pending Leaders
-$stmt = $pdo->query("SELECT id, username, first_name, last_name, email, created_at FROM users WHERE role = 'church_leader' AND status = 'pending' ORDER BY created_at DESC LIMIT 3");
+$stmt = $pdo->query("SELECT u.id, cs.id AS site_id, u.username, u.first_name, u.last_name, u.email, u.created_at 
+                     FROM users u 
+                     LEFT JOIN church_sites cs ON cs.church_leader_id = u.id 
+                     WHERE u.role = 'church_leader' AND u.status = 'pending' 
+                     ORDER BY u.created_at DESC LIMIT 3");
 $recentPendingLeaders = $stmt->fetchAll();
 
 // Recent Pending Submissions
@@ -167,7 +171,7 @@ include 'includes/header.php';
                         <p>Username: @<?php echo htmlspecialchars($leader['username']); ?> &middot; <?php echo htmlspecialchars($leader['email']); ?></p>
                       </div>
                       <div class="pending-actions">
-                        <a href="church_sites.php?action=view&id=<?php echo $leader['id']; ?>" class="btn-small btn-small-success">
+                        <a href="church_sites.php?action=view&id=<?php echo $leader['site_id']; ?>" class="btn-small btn-small-success">
                           <i class="fas fa-user-check"></i> Review
                         </a>
                       </div>
