@@ -55,25 +55,10 @@ $adminProfilePic = $stmtAdmin->fetchColumn();
 
       <!-- CONTENT WRAPPER -->
       <div class="admin-content">
-        
-        <!-- Under Construction / Development Card -->
-        <div class="dashboard-card" style="text-align: center; padding: 64px 32px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;">
-          <div class="logo-mark" style="width: 80px; height: 80px; font-size: 2.5rem; background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.2); box-shadow: none; margin: 0 auto;">
-            <i class="fas fa-child" style="color: var(--blue-400);"></i>
-          </div>
-          
-          <h2 style="font-family: var(--font-head); color: var(--white); font-size: 1.75rem; font-weight: 700;">Children Registry</h2>
-          <span class="badge badge-warning" style="font-size: 0.9rem; padding: 6px 16px; border-radius: 20px; font-weight: 600;"><i class="fas fa-hammer" style="margin-right: 6px;"></i> For Development</span>
-          
-          <p style="color: var(--gray-400); max-width: 500px; line-height: 1.6; font-size: 0.95rem;">
-            This module is currently scheduled for development. Once complete, it will provide administrative interfaces and tools to fully manage the unified roster of all qualified beneficiaries, including registration data, health classifications, and assigned feeding centers.
-          </p>
-          
-          <a href="dashboard.php" class="btn btn-outline" style="margin-top: 10px; border-color: rgba(255,255,255,0.1); color: var(--gray-300); padding: 10px 24px;">
-            <i class="fas fa-arrow-left" style="margin-right: 8px;"></i> Back to Dashboard
-          </a>
+        <div class="dashboard-card" style="padding: 24px;">
+          <h2 style="color: var(--white); margin-bottom: 8px;">Children Registry</h2>
+          <p style="color: var(--gray-400);">This page is under development.</p>
         </div>
-
       </div>
     </main>
 
