@@ -82,49 +82,10 @@ $stmtSubs = $pdo->prepare("SELECT * FROM children_submissions WHERE church_leade
 $stmtSubs->execute([$_SESSION['user_id']]);
 $mySubmissions = $stmtSubs->fetchAll();
 ?>
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-  <link rel="icon" type="image/png" href="../../assets/images/mainpi-logo.png" />
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Church Leader Dashboard – DivineShield</title>
-  <link rel="stylesheet" href="../../assets/css/style.css?v=8" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;600;700;800&display=swap"
-    rel="stylesheet" />
-</head>
-
-<body>
-
-  <div class="admin-layout">
-
-    <!-- SIDEBAR NAVIGATION -->
-    <?php include 'includes/sidebar.php'; ?>
-
-    <!-- MAIN CONTAINER -->
-    <main class="admin-main">
-
-      <!-- TOP NAVIGATION BAR -->
-      <header class="admin-topbar">
-        <div class="topbar-title">Church Site Leader Panel</div>
-
-        <div class="topbar-user">
-          <div class="user-badge-group">
-            <div class="user-badge-name"><?php echo htmlspecialchars($_SESSION['full_name'] ?? 'Church Pastor'); ?>
-            </div>
-            <div class="user-badge-role"><?php echo htmlspecialchars($mySite['church_name'] ?? 'Local Church'); ?></div>
-          </div>
-          <div class="logo-mark small"
-            style="background:linear-gradient(135deg, var(--blue-500), var(--blue-700)); color:var(--white);"><i
-              class="fas fa-church"></i></div>
-        </div>
-      </header>
-
-      <!-- CONTENT WRAPPER -->
-      <div class="admin-content">
+<?php
+$pageTitle = "Church Leader Dashboard";
+include 'includes/header.php';
+?>
 
         <?php if (!empty($success)): ?>
           <div class="auth-alert auth-alert-success" style="margin-bottom:24px;">
@@ -366,10 +327,4 @@ $mySubmissions = $stmtSubs->fetchAll();
           <?php endif; ?>
         </section>
 
-      </div>
-    </main>
-
-  </div>
-</body>
-
-</html>
+      <?php include 'includes/footer.php'; ?>

@@ -186,45 +186,10 @@ $adminUser = $stmtUser->fetch();
 
 $profilePic = $adminUser['profile_picture'] ?? '';
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <link rel="icon" type="image/png" href="../../assets/images/mainpi-logo.png" />
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Profile Settings – DivineShield</title>
-  <link rel="stylesheet" href="../../assets/css/style.css?v=8" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet" />
-</head>
-<body>
-
-  <div class="admin-layout">
-    
-    <!-- SIDEBAR NAVIGATION -->
-    <?php include 'includes/sidebar.php'; ?>
-
-    <!-- MAIN CONTAINER -->
-    <main class="admin-main">
-      
-      <!-- TOP NAVIGATION BAR -->
-      <header class="admin-topbar">
-        <div class="topbar-title">Profile &amp; Account Settings</div>
-        <div class="topbar-user">
-          <div class="user-badge-group">
-            <div class="user-badge-name"><?php echo htmlspecialchars($_SESSION['full_name'] ?? 'System Administrator'); ?></div>
-            <div class="user-badge-role">System Administrator</div>
-          </div>
-          <?php if (!empty($profilePic) && file_exists('../../' . $profilePic)): ?>
-            <img src="../../<?php echo htmlspecialchars($profilePic); ?>" alt="Profile" style="width:36px; height:36px; border-radius:50%; object-fit:cover; border:1px solid rgba(255,255,255,0.15);" />
-          <?php else: ?>
-            <div class="logo-mark small" style="background:linear-gradient(135deg, var(--yellow-400), var(--yellow-500)); color:var(--gray-900);"><i class="fas fa-user-shield"></i></div>
-          <?php endif; ?>
-        </div>
-      </header>
-
-      <!-- CONTENT WRAPPER -->
-      <div class="admin-content">
+<?php
+$pageTitle = "Profile Settings";
+include 'includes/header.php';
+?>
         
         <?php if (!empty($success)): ?>
           <div class="auth-alert auth-alert-success" style="margin-bottom:24px;">
@@ -374,10 +339,4 @@ $profilePic = $adminUser['profile_picture'] ?? '';
 
         </div>
 
-      </div>
-    </main>
-
-  </div>
-
-</body>
-</html>
+      <?php include 'includes/footer.php'; ?>

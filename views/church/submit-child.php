@@ -111,45 +111,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_child'])) {
     }
 }
 ?>
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-  <link rel="icon" type="image/png" href="../../assets/images/mainpi-logo.png" />
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Submit Child – DivineShield</title>
-    <link rel="stylesheet" href="../../assets/css/style.css?v=8" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;600;700;800&display=swap"
-        rel="stylesheet" />
-</head>
-
-<body>
-
-    <div class="admin-layout">
-        <?php include 'includes/sidebar.php'; ?>
-
-        <main class="admin-main">
-            <header class="admin-topbar">
-                <div class="topbar-title">Submit
-                    Beneficiary Request
-                </div>
-                <div class="topbar-user">
-                    <div class="user-badge-group">
-                        <div class="user-badge-name">
-                            <?php echo htmlspecialchars($_SESSION['full_name'] ?? 'Church Pastor'); ?></div>
-                        <div class="user-badge-role">
-                            <?php echo htmlspecialchars($mySite['church_name'] ?? 'Local Church'); ?></div>
-                    </div>
-                    <div class="logo-mark small"
-                        style="background:linear-gradient(135deg, var(--blue-500), var(--blue-700)); color:var(--white);">
-                        <i class="fas fa-church"></i></div>
-                </div>
-            </header>
-
-            <div class="admin-content">
+<?php
+$pageTitle = "Submit Child";
+include 'includes/header.php';
+?>
                 <?php if (!empty($success)): ?>
                     <div class="auth-alert auth-alert-success" style="margin-bottom:24px;">
                         <i class="fas fa-circle-check"></i>
