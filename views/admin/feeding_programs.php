@@ -20,6 +20,7 @@ $adminProfilePic = $stmtAdmin->fetchColumn();
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <link rel="icon" type="image/png" href="../../assets/images/mainpi-logo.png" />
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Feeding Programs – DivineShield</title>

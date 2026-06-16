@@ -115,6 +115,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_child'])) {
 <html lang="en">
 
 <head>
+  <link rel="icon" type="image/png" href="../../assets/images/mainpi-logo.png" />
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Submit Child – DivineShield</title>
