@@ -207,6 +207,36 @@ function redirectDashboard($role) {
             Church Leader without an account? <a href="register.php">Register Church Site</a>
           </div>
 
+          <!-- Testing Credentials Panel -->
+          <div style="margin-top: 20px; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; overflow: hidden;">
+            <div style="background: rgba(255,255,255,0.04); padding: 10px 14px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gray-400); border-bottom: 1px solid rgba(255,255,255,0.06);">
+              Testing Credentials
+            </div>
+            <div style="padding: 4px 0;">
+              <?php
+              $testCreds = [
+                ['role' => 'Admin',          'color' => '#60a5fa', 'user' => 'admin',    'pass' => 'admin123'],
+                ['role' => 'Encoder',        'color' => '#34d399', 'user' => 'encoder1', 'pass' => 'admin123'],
+                ['role' => 'Church Leader',  'color' => '#f59e0b', 'user' => 'rina123',  'pass' => 'rina123'],
+              ];
+              foreach ($testCreds as $cred): ?>
+                <div onclick="document.getElementById('username').value='<?php echo $cred['user']; ?>';document.getElementById('password').value='<?php echo $cred['pass']; ?>';"
+                     style="display:flex; align-items:center; justify-content:space-between; padding:10px 14px; cursor:pointer; transition:background 0.15s;"
+                     onmouseover="this.style.background='rgba(255,255,255,0.04)'" onmouseout="this.style.background='transparent'">
+                  <div style="display:flex; align-items:center; gap:10px;">
+                    <span style="font-size:0.68rem; font-weight:700; color:<?php echo $cred['color']; ?>; background:<?php echo $cred['color']; ?>1a; padding:2px 8px; border-radius:999px;"><?php echo $cred['role']; ?></span>
+                    <code style="font-size:0.78rem; color:var(--gray-300);"><?php echo $cred['user']; ?></code>
+                  </div>
+                  <code style="font-size:0.78rem; color:var(--gray-500);"><?php echo $cred['pass']; ?></code>
+                </div>
+              <?php endforeach; ?>
+            </div>
+            <div style="padding: 8px 14px; border-top: 1px solid rgba(255,255,255,0.06); font-size: 0.68rem; color: var(--gray-500); text-align:center;">
+              Click any row to auto-fill credentials
+            </div>
+          </div>
+
+
         <?php else: ?>
           <!-- ==========================================
                STEP 2: 4-DIGIT PIN MFA FORM (ADMINS ONLY)
