@@ -91,33 +91,30 @@ $id = intval($_GET['id'] ?? 0);
 
 if ($action === 'approve_leader' && $id > 0) {
     try {
-        // Fetch leader info for logging
-        $stmt = $pdo->prepare("SELECT username FROM users WHERE id = ? AND role = 'church_leader'");
+        $stmt = $pdo->prepare("SELECT username, first_name, last_name, email FROM users WHERE id = ? AND role = 'church_leader'");
         $stmt->execute([$id]);
         $leader = $stmt->fetch();
-        
+
         if ($leader) {
-            $username = $leader['username'];
-            
-            // Begin Transaction
             $pdo->beginTransaction();
-            
-            // Update user status
+
             $stmtUpdate = $pdo->prepare("UPDATE users SET status = 'active' WHERE id = ?");
             $stmtUpdate->execute([$id]);
-            
-            // Log audit
-            logAudit($pdo, $_SESSION['user_id'], 'ACCOUNT_ACTIVATED', "Manually approved and activated church leader: @$username (ID: $id)");
-            
+
+            logAudit($pdo, $_SESSION['user_id'], 'ACCOUNT_ACTIVATED', "Manually approved and activated church leader: @{$leader['username']} (ID: $id)");
+
             $pdo->commit();
-            $_SESSION['success_msg'] = "Pastor @$username's account has been successfully activated!";
+
+            // Send approval email
+            require_once '../../config/email_helper.php';
+            sendLeaderApprovalEmail($leader['email'], $leader['first_name'], $leader['last_name'], $leader['username']);
+
+            $_SESSION['success_msg'] = "Pastor @{$leader['username']}'s account has been successfully activated!";
         } else {
             $_SESSION['error_msg'] = "Church Leader account not found.";
         }
     } catch (Exception $e) {
-        if ($pdo->inTransaction()) {
-            $pdo->rollBack();
-        }
+        if ($pdo->inTransaction()) $pdo->rollBack();
         $_SESSION['error_msg'] = "Error approving leader: " . $e->getMessage();
     }
     header("Location: church_sites.php");
@@ -126,33 +123,30 @@ if ($action === 'approve_leader' && $id > 0) {
 
 if ($action === 'reject_leader' && $id > 0) {
     try {
-        // Fetch leader info for logging
-        $stmt = $pdo->prepare("SELECT username FROM users WHERE id = ? AND role = 'church_leader'");
+        $stmt = $pdo->prepare("SELECT username, first_name, last_name, email FROM users WHERE id = ? AND role = 'church_leader'");
         $stmt->execute([$id]);
         $leader = $stmt->fetch();
-        
+
         if ($leader) {
-            $username = $leader['username'];
-            
-            // Begin Transaction
             $pdo->beginTransaction();
-            
-            // Set status to 'inactive' to block login
+
             $stmtUpdate = $pdo->prepare("UPDATE users SET status = 'inactive' WHERE id = ?");
             $stmtUpdate->execute([$id]);
-            
-            // Log audit
-            logAudit($pdo, $_SESSION['user_id'], 'ACCOUNT_DEACTIVATED', "Rejected and disabled church leader: @$username (ID: $id)");
-            
+
+            logAudit($pdo, $_SESSION['user_id'], 'ACCOUNT_DEACTIVATED', "Rejected and disabled church leader: @{$leader['username']} (ID: $id)");
+
             $pdo->commit();
-            $_SESSION['success_msg'] = "Pastor @$username's account has been deactivated/rejected.";
+
+            // Send rejection email
+            require_once '../../config/email_helper.php';
+            sendLeaderRejectionEmail($leader['email'], $leader['first_name'], $leader['last_name'], $leader['username']);
+
+            $_SESSION['success_msg'] = "Pastor @{$leader['username']}'s account has been deactivated/rejected.";
         } else {
             $_SESSION['error_msg'] = "Church Leader account not found.";
         }
     } catch (Exception $e) {
-        if ($pdo->inTransaction()) {
-            $pdo->rollBack();
-        }
+        if ($pdo->inTransaction()) $pdo->rollBack();
         $_SESSION['error_msg'] = "Error rejecting leader: " . $e->getMessage();
     }
     header("Location: church_sites.php");
