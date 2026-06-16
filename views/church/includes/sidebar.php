@@ -17,19 +17,30 @@
     </a>
   </div>
 
+  <?php
+  // Active link state based on current page
+  $current = basename($_SERVER['PHP_SELF'] ?? 'dashboard.php');
+  $isDashboard = ($current === 'dashboard.php');
+  $isSubmit = ($current === 'submit-child.php');
+  $isSite = ($current === 'church-sites.php');
+  ?>
+
   <nav class="sidebar-menu">
-    <button onclick="switchTab('dashboard')" class="sidebar-link active" id="menu-dashboard">
+    <a href="dashboard.php" class="sidebar-link <?php echo $isDashboard ? 'active' : ''; ?>" id="menu-dashboard"
+      style="text-decoration:none; display:block;">
       <i class="fas fa-chart-pie"></i>
       <span>Dashboard</span>
-    </button>
-    <button onclick="switchTab('submit')" class="sidebar-link" id="menu-submit">
+    </a>
+    <a href="submit-child.php" class="sidebar-link <?php echo $isSubmit ? 'active' : ''; ?>" id="menu-submit"
+      style="text-decoration:none; display:block;">
       <i class="fas fa-child-reaching"></i>
       <span>Submit Child</span>
-    </button>
-    <button onclick="switchTab('site')" class="sidebar-link" id="menu-site">
+    </a>
+    <a href="church-sites.php" class="sidebar-link <?php echo $isSite ? 'active' : ''; ?>" id="menu-site"
+      style="text-decoration:none; display:block;">
       <i class="fas fa-church"></i>
       <span>Church Site</span>
-    </button>
+    </a>
   </nav>
 
   <div class="sidebar-footer">
