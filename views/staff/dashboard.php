@@ -101,7 +101,7 @@ include 'includes/header.php';
                             </td>
                             <td><?php echo htmlspecialchars($child['church_name']); ?></td>
                             <td>
-                                <?php if($child['suggested_status'] === 'Qualified'): ?>
+                                <?php if($child['suggested_status'] === 'qualified'): ?>
                                     <span class="status-badge success"><i class="fas fa-check-circle"></i> Qualified</span>
                                 <?php else: ?>
                                     <span class="status-badge error"><i class="fas fa-times-circle"></i> Disqualified</span>

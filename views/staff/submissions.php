@@ -295,7 +295,7 @@ include 'includes/header.php';
                             <td><?php echo $age; ?> yrs</td>
                             <td><?php echo htmlspecialchars($sub['initial_bmi_status']); ?></td>
                             <td>
-                                <?php if($sub['suggested_status'] === 'Qualified'): ?>
+                                <?php if($sub['suggested_status'] === 'qualified'): ?>
                                     <span class="status-badge success"><i class="fas fa-check-circle"></i> Qualified</span>
                                 <?php else: ?>
                                     <span class="status-badge error"><i class="fas fa-times-circle"></i> Disqualified</span>
