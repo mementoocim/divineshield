@@ -26,18 +26,15 @@
   ?>
 
   <nav class="sidebar-menu">
-    <a href="dashboard.php" class="sidebar-link <?php echo $isDashboard ? 'active' : ''; ?>" id="menu-dashboard"
-      style="text-decoration:none; display:block;">
+    <a href="dashboard.php" class="sidebar-link <?php echo $isDashboard ? 'active' : ''; ?>" id="menu-dashboard">
       <i class="fas fa-chart-pie"></i>
       <span>Dashboard</span>
     </a>
-    <a href="submit-child.php" class="sidebar-link <?php echo $isSubmit ? 'active' : ''; ?>" id="menu-submit"
-      style="text-decoration:none; display:block;">
+    <a href="submit-child.php" class="sidebar-link <?php echo $isSubmit ? 'active' : ''; ?>" id="menu-submit">
       <i class="fas fa-child-reaching"></i>
       <span>Submit Child</span>
     </a>
-    <a href="church-sites.php" class="sidebar-link <?php echo $isSite ? 'active' : ''; ?>" id="menu-site"
-      style="text-decoration:none; display:block;">
+    <a href="church-sites.php" class="sidebar-link <?php echo $isSite ? 'active' : ''; ?>" id="menu-site">
       <i class="fas fa-church"></i>
       <span>Church Site</span>
     </a>
