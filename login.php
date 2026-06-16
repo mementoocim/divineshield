@@ -231,7 +231,7 @@ function redirectDashboard($role) {
                 </div>
               <?php endforeach; ?>
             </div>
-            <div style="padding: 8px 14px; border-top: 1px solid rgba(255,255,255,0.06); font-size: 0.68rem; color: var(--gray-500); text-align:center;">
+            <div style="padding: 8px 14px; border-top: 1px solid rgba(255,255,255,0.06); font-size: 0.68rem; color: var(--white); text-align:center;">
               Click any row to auto-fill credentials
             </div>
           </div>
