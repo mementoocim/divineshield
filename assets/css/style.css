@@ -1815,20 +1815,22 @@ img { display: block; max-width: 100%; }
   position: sticky;
   top: 0;
   height: 100vh;
+  overscroll-behavior: contain;
 }
 
 .sidebar-header {
-  padding: 24px;
+  padding: 16px 24px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .sidebar-menu {
-  padding: 24px 16px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   flex: 1;
   overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 /* Custom scrollbar for sidebar menu */
@@ -1851,11 +1853,11 @@ img { display: block; max-width: 100%; }
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 16px;
+  padding: 10px 16px;
   border-radius: var(--radius-md);
   color: var(--gray-300);
   font-weight: 500;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   transition: all var(--transition);
   border: 1px solid transparent;
 }
@@ -1880,7 +1882,7 @@ button.sidebar-link {
 }
 
 .sidebar-footer {
-  padding: 24px;
+  padding: 16px 24px;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
