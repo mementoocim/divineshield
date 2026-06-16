@@ -248,7 +248,7 @@ include 'includes/header.php';
         <div class="panel-header" style="display:flex; justify-content:space-between; align-items:center;">
             <h3 class="panel-title">Assessment History: <?php echo htmlspecialchars($child['first_name'] . ' ' . $child['last_name']); ?></h3>
             <div style="display:flex; gap:10px;">
-                <a href="nutritional_monitoring.php?action=record&child_id=<?php echo $child['id']; ?>" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> New Assessment</a>
+                <a href="nutritional_monitoring.php?action=record&child_id=<?php echo $child['id']; ?>" class="btn btn-success btn-sm"><i class="fas fa-plus"></i> New Assessment</a>
                 <a href="nutritional_monitoring.php" class="btn btn-outline btn-sm">Back to List</a>
             </div>
         </div>
@@ -372,8 +372,8 @@ include 'includes/header.php';
                                 </td>
                                 <td class="text-muted"><?php echo $child['assessment_date'] ? date('M d, Y', strtotime($child['assessment_date'])) : '—'; ?></td>
                                 <td class="text-right" style="display:flex; gap:10px; justify-content:flex-end;">
-                                    <a href="nutritional_monitoring.php?action=record&child_id=<?php echo $child['child_id']; ?>" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Record BMI</a>
-                                    <a href="nutritional_monitoring.php?action=history&child_id=<?php echo $child['child_id']; ?>" class="btn btn-outline btn-sm"><i class="fas fa-history"></i> History</a>
+                                    <a href="nutritional_monitoring.php?action=record&child_id=<?php echo $child['child_id']; ?>" class="btn btn-success btn-sm"><i class="fas fa-plus"></i> Record BMI</a>
+                                    <a href="nutritional_monitoring.php?action=history&child_id=<?php echo $child['child_id']; ?>" class="btn btn-info btn-sm"><i class="fas fa-history"></i> History</a>
                                 </td>
                             </tr>
                             <?php endforeach; ?>

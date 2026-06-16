@@ -112,6 +112,36 @@ Used inside tables or detail views to indicate the state of a record.
 <span class="status-badge warning"><i class="fas fa-exclamation-circle"></i> Pending</span>
 ```
 
+## 7. Action & Row Buttons
+Standardize all interface action buttons by using standard utility class variants.
+
+* **Primary Action:** Solid blue button.
+  ```html
+  <button class="btn btn-primary"><i class="fas fa-plus"></i> Standard Action</button>
+  ```
+* **Secondary/Back Action:** Translucent white outline. Used for "Close View", "Return", "Back to...", or "Cancel" actions in headers or forms.
+  ```html
+  <!-- Inside card/panel headers, always use the btn-sm modifier -->
+  <a href="#" class="btn btn-outline btn-sm"><i class="fas fa-arrow-left"></i> Close View</a>
+  <a href="#" class="btn btn-outline btn-sm"><i class="fas fa-times"></i> Cancel</a>
+  ```
+* **Success Actions:** Translucent glassmorphic green button (e.g. Approve, Complete, Reactivate).
+  ```html
+  <a href="#" class="btn btn-success"><i class="fas fa-check"></i> Approve</a>
+  ```
+* **Danger Actions:** Translucent glassmorphic red button (e.g. Reject, Cancel, Delete).
+  ```html
+  <a href="#" class="btn btn-danger"><i class="fas fa-trash"></i> Delete</a>
+  ```
+* **Info/View Actions:** Translucent glassmorphic blue button (e.g. View Profile, Take Attendance).
+  ```html
+  <a href="#" class="btn btn-info"><i class="fas fa-eye"></i> View Details</a>
+  ```
+* **Table Row Size Modifier:** Always append the `.btn-sm` class modifier to shrink padding and font-size for table actions.
+  ```html
+  <a href="#" class="btn btn-info btn-sm"><i class="fas fa-eye"></i> View</a>
+  ```
+
 ### Important Design Rules
 1. Never use inline styles for colors if a CSS variable exists (e.g. use `var(--blue-400)` instead of `#60a5fa`).
 2. Dark themes rely heavily on subtle border colors. Use `rgba(255,255,255,0.1)` for borders and dividers instead of solid gray.

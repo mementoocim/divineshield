@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * DivineShield - Staff / Encoders Management
  */
@@ -182,7 +182,7 @@ include 'includes/header.php';
           <section class="dashboard-card detail-card" style="border-color:rgba(59,130,246,0.3); margin-bottom:32px;">
             <div class="detail-card-header">
               <div class="detail-card-title">Add Encoder Staff Account</div>
-              <a href="staff.php" class="btn btn-primary" style="padding: 8px 16px; font-size:0.8rem;"><i class="fas fa-times"></i> Cancel</a>
+              <a href="staff.php" class="btn btn-outline btn-sm"><i class="fas fa-times"></i> Cancel</a>
             </div>
 
             <form action="staff.php" method="POST" autocomplete="off" style="margin-top:16px;">
@@ -254,7 +254,7 @@ include 'includes/header.php';
             <div class="dashboard-card-title">Encoder Staff Registry
             </div>
             <?php if ($action !== 'add'): ?>
-              <a href="staff.php?action=add" class="btn btn-primary" style="padding: 8px 16px; font-size:0.8rem; background:var(--blue-600);"><i class="fas fa-user-plus"></i> Create Account</a>
+              <a href="staff.php?action=add" class="btn btn-primary btn-sm"><i class="fas fa-user-plus"></i> Create Account</a>
             <?php endif; ?>
           </div>
 
@@ -303,10 +303,16 @@ include 'includes/header.php';
                       </td>
                       <td>
                         <div style="display:flex; gap:8px;">
-                          <a href="staff.php?action=toggle_status&id=<?php echo $staff['id']; ?>" class="btn-small btn-small-success" style="<?php echo $staff['status'] === 'active' ? 'background:rgba(245, 158, 11, 0.15); color:#fcd34d; border-color:rgba(245, 158, 11, 0.25);' : ''; ?>" onclick="return confirm('Toggle status for this staff member?');">
-                            <i class="fas <?php echo $staff['status'] === 'active' ? 'fa-user-slash' : 'fa-user-check'; ?>"></i> <?php echo $staff['status'] === 'active' ? 'Deactivate' : 'Activate'; ?>
-                          </a>
-                          <a href="staff.php?action=delete_staff&id=<?php echo $staff['id']; ?>" class="btn-small btn-small-danger" onclick="return confirm('Are you sure you want to permanently delete this encoder account? This action is irreversible.');">
+                          <?php if ($staff['status'] === 'active'): ?>
+                            <a href="staff.php?action=toggle_status&id=<?php echo $staff['id']; ?>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to deactivate this staff member?');">
+                              <i class="fas fa-user-slash"></i> Deactivate
+                            </a>
+                          <?php else: ?>
+                            <a href="staff.php?action=toggle_status&id=<?php echo $staff['id']; ?>" class="btn btn-success btn-sm" onclick="return confirm('Are you sure you want to activate this staff member?');">
+                              <i class="fas fa-user-check"></i> Activate
+                            </a>
+                          <?php endif; ?>
+                          <a href="staff.php?action=delete_staff&id=<?php echo $staff['id']; ?>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to permanently delete this encoder account? This action is irreversible.');">
                             <i class="fas fa-trash-can"></i> Delete
                           </a>
                         </div>

@@ -29,6 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Collect Step 1 Info (Submits text names populated by JS)
     $churchName    = trim($_POST['church_name'] ?? '');
     $positionTitle = trim($_POST['position_title'] ?? '');
+    $streetAddress = trim($_POST['street_address'] ?? '');
     $region        = trim($_POST['region'] ?? '');
     $province      = trim($_POST['province'] ?? '');
     $city          = trim($_POST['city'] ?? '');
@@ -48,9 +49,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $confirmPassword = $_POST['confirm_password'] ?? '';
 
     // Validation checks
-    if (empty($churchName) || empty($positionTitle) || empty($region) || empty($city) || empty($barangay) ||
+    if (empty($churchName) || empty($positionTitle) || empty($streetAddress) || empty($region) || empty($city) || empty($barangay) ||
         empty($firstName) || empty($lastName) || empty($phone) || empty($email) || empty($username) || empty($password)) {
-        $error = 'All required fields must be filled. Make sure Region, City/Municipality, and Barangay are selected.';
+        $error = 'All required fields must be filled. Make sure Church Name, Street Address, Region, City/Municipality, and Barangay are specified.';
     } elseif ($password !== $confirmPassword) {
         $error = 'Passwords do not match.';
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -89,10 +90,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 // Insert Church Site
                 $provVal = empty($province) ? $city : $province;
-                $addrVal = "$barangay, $city, $region";
                 
                 $stmt = $pdo->prepare("INSERT INTO church_sites (church_leader_id, church_name, address, region, province, city_municipality, barangay, contact_number) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-                $stmt->execute([$leaderId, $churchName, $addrVal, $region, $provVal, $city, $barangay, $phone]);
+                $stmt->execute([$leaderId, $churchName, $streetAddress, $region, $provVal, $city, $barangay, $phone]);
 
                 // Audit log
                 $leaderName = trim($firstName . ' ' . $lastName);
@@ -187,6 +187,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
               <div class="auth-input-wrapper">
                 <i class="fas fa-church"></i>
                 <input type="text" id="church_name" name="church_name" class="auth-input" placeholder="e.g. Grace Gospel Church" value="<?php echo htmlspecialchars($_POST['church_name'] ?? ''); ?>" required />
+              </div>
+            </div>
+
+            <div class="auth-form-group">
+              <label for="street_address">Street Address / Landmark *</label>
+              <div class="auth-input-wrapper">
+                <i class="fas fa-map-location-dot"></i>
+                <input type="text" id="street_address" name="street_address" class="auth-input" placeholder="e.g. 123 Mabini St. or Purok 4" value="<?php echo htmlspecialchars($_POST['street_address'] ?? ''); ?>" required />
               </div>
             </div>
 
@@ -420,6 +428,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         isOfflineMode: isOfflineMode,
         church_name: document.getElementById("church_name").value,
         position_title: document.getElementById("position_title").value,
+        street_address: document.getElementById("street_address").value,
         province: document.getElementById("province").value,
         first_name: document.getElementById("first_name").value,
         middle_name: document.getElementById("middle_name").value,
@@ -456,6 +465,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Restore simple text fields instantly
         document.getElementById("church_name").value = data.church_name || "";
         document.getElementById("position_title").value = data.position_title || "";
+        document.getElementById("street_address").value = data.street_address || "";
         document.getElementById("province").value = data.province || "";
         document.getElementById("first_name").value = data.first_name || "";
         document.getElementById("middle_name").value = data.middle_name || "";

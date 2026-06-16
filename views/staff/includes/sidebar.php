@@ -38,7 +38,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
     </a>
     <a href="attendance.php" class="sidebar-link <?php echo $currentPage === 'attendance.php' ? 'active' : ''; ?>">
       <i class="fas fa-clipboard-user"></i>
-      <span>Attendance & RFID</span>
+      <span>Attendance Monitoring</span>
     </a>
 
     <!-- SYSTEM -->

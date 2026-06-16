@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * DivineShield - Staff / Encoder Submissions Review
  */
@@ -133,14 +133,14 @@ include 'includes/header.php';
     $sub = $stmt->fetch(PDO::FETCH_ASSOC);
     
     if (!$sub) {
-        echo "<div class='empty-state'><h4>Submission not found.</h4><a href='submissions.php' class='btn btn-secondary'>Go Back</a></div>";
+        echo "<div class='empty-state'><h4>Submission not found.</h4><a href='submissions.php' class='btn btn-outline'>Go Back</a></div>";
     } else {
         $age = date_diff(date_create($sub['birthdate']), date_create('today'))->y;
     ?>
     <div class="admin-panel">
         <div class="panel-header" style="display:flex; justify-content:space-between; align-items:center;">
             <h3 class="panel-title">Review Submission #<?php echo $sub['id']; ?></h3>
-            <a href="submissions.php" class="btn btn-secondary btn-sm"><i class="fas fa-arrow-left"></i> Back to List</a>
+            <a href="submissions.php" class="btn btn-outline btn-sm"><i class="fas fa-arrow-left"></i> Back to List</a>
         </div>
         <div class="panel-body">
             
@@ -178,7 +178,7 @@ include 'includes/header.php';
                         <!-- Approve Form -->
                         <form method="POST" action="submissions.php" onsubmit="return confirm('Are you sure you want to APPROVE this child? They will be permanently added to the registry.');">
                             <input type="hidden" name="submission_id" value="<?php echo $sub['id']; ?>">
-                            <button type="submit" name="approve_submission" class="btn btn-primary"><i class="fas fa-check"></i> Approve & Register Child</button>
+                            <button type="submit" name="approve_submission" class="btn btn-success"><i class="fas fa-check"></i> Approve & Register Child</button>
                         </form>
                         
                         <!-- Reject Button triggers modal -->
@@ -202,7 +202,7 @@ include 'includes/header.php';
                                 </div>
                             </div>
                             <div style="padding:20px; background:rgba(0,0,0,0.2); text-align:right;">
-                                <button type="button" class="btn btn-secondary" onclick="document.getElementById('rejectModal').style.display='none';">Cancel</button>
+                                <button type="button" class="btn btn-outline" onclick="document.getElementById('rejectModal').style.display='none';">Cancel</button>
                                 <button type="submit" name="reject_submission" class="btn btn-danger" style="margin-left:10px;">Confirm Rejection</button>
                             </div>
                         </form>
@@ -302,7 +302,7 @@ include 'includes/header.php';
                             </td>
                             <td class="text-muted"><?php echo date('M d, Y', strtotime($sub['created_at'])); ?></td>
                             <td class="text-right">
-                                <a href="submissions.php?action=view&id=<?php echo $sub['id']; ?>" class="btn-small" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:var(--blue-300); padding:6px 12px; border-radius:6px; text-decoration:none; display:inline-flex; align-items:center; gap:6px; font-weight:500;">
+                                <a href="submissions.php?action=view&id=<?php echo $sub['id']; ?>" class="btn btn-info btn-sm">
                                     <i class="fas fa-eye"></i> <?php echo $tab === 'pending' ? 'Review' : 'View'; ?>
                                 </a>
                             </td>

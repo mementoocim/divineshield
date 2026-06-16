@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * DivineShield - Church Sites & Leaders Management
  */
@@ -19,6 +19,60 @@ $adminProfilePic = $stmtAdmin->fetchColumn();
 
 $success = '';
 $error = '';
+
+// Helper function to format address without city/barangay duplication
+function formatChurchAddress($address, $barangay, $city, $province) {
+    $parts = [];
+    if (!empty($address)) {
+        foreach (explode(',', $address) as $p) {
+            $trimmed = trim($p);
+            if (!empty($trimmed)) {
+                $parts[] = $trimmed;
+            }
+        }
+    }
+    if (!empty($barangay)) $parts[] = trim($barangay);
+    if (!empty($city)) $parts[] = trim($city);
+    if (!empty($province)) $parts[] = trim($province);
+    
+    $seen = [];
+    $unique = [];
+    foreach ($parts as $part) {
+        $lower = strtolower($part);
+        if (!in_array($lower, $seen)) {
+            $seen[] = $lower;
+            $unique[] = $part;
+        }
+    }
+    return implode(', ', $unique);
+}
+
+// Helper to extract clean street address (strip redundant location tokens)
+function cleanStreetAddress($address, $barangay, $city, $province) {
+    if (empty($address)) return 'N/A';
+    $addrParts = array_map('trim', explode(',', $address));
+    $cleanParts = [];
+    $redundantTokens = [
+        strtolower(trim($barangay)),
+        strtolower(trim($city)),
+        strtolower(trim($province))
+    ];
+    
+    foreach ($addrParts as $part) {
+        $lowerPart = strtolower($part);
+        $isRedundant = false;
+        foreach ($redundantTokens as $token) {
+            if (!empty($token) && ($lowerPart === $token || strpos($lowerPart, $token) !== false || strpos($token, $lowerPart) !== false)) {
+                $isRedundant = true;
+                break;
+            }
+        }
+        if (!$isRedundant) {
+            $cleanParts[] = $part;
+        }
+    }
+    return empty($cleanParts) ? 'N/A' : implode(', ', $cleanParts);
+}
 
 if (isset($_SESSION['success_msg'])) {
     $success = $_SESSION['success_msg'];
@@ -313,7 +367,7 @@ include 'includes/header.php';
           <section class="dashboard-card detail-card">
             <div class="detail-card-header">
               <div class="detail-card-title">Site Profile: <?php echo htmlspecialchars($viewSite['church_name']); ?></div>
-              <a href="church_sites.php" class="btn btn-primary" style="padding: 8px 16px; font-size:0.8rem;"><i class="fas fa-arrow-left"></i> Close View</a>
+              <a href="church_sites.php" class="btn btn-outline btn-sm"><i class="fas fa-arrow-left"></i> Close View</a>
             </div>
 
             <div class="detail-grid">
@@ -338,7 +392,7 @@ include 'includes/header.php';
             <div class="detail-grid" style="border-top:1px solid rgba(255,255,255,0.05); padding-top:20px;">
               <div class="detail-item">
                 <label>Street Address</label>
-                <span><?php echo htmlspecialchars($viewSite['address']); ?></span>
+                <span><?php echo htmlspecialchars(cleanStreetAddress($viewSite['address'], $viewSite['barangay'], $viewSite['city_municipality'], $viewSite['province'])); ?></span>
               </div>
               <div class="detail-item">
                 <label>Barangay</label>
@@ -471,10 +525,10 @@ include 'includes/header.php';
                               <td><?php echo date('M d, Y', strtotime($child['created_at'])); ?></td>
                               <td>
                                 <div style="display:flex; gap:8px;">
-                                  <a href="church_sites.php?action=approve_child&id=<?php echo $child['id']; ?>&site_id=<?php echo $viewSite['id']; ?>" class="btn-small btn-small-success" onclick="return confirm('Are you sure you want to approve this child submission?');">
+                                  <a href="church_sites.php?action=approve_child&id=<?php echo $child['id']; ?>&site_id=<?php echo $viewSite['id']; ?>" class="btn btn-success btn-sm" onclick="return confirm('Are you sure you want to approve this child submission?');">
                                     <i class="fas fa-check"></i> Approve
                                   </a>
-                                  <a href="church_sites.php?action=reject_child&id=<?php echo $child['id']; ?>&site_id=<?php echo $viewSite['id']; ?>" class="btn-small btn-small-danger" onclick="return confirm('Are you sure you want to reject this child submission?');">
+                                  <a href="church_sites.php?action=reject_child&id=<?php echo $child['id']; ?>&site_id=<?php echo $viewSite['id']; ?>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to reject this child submission?');">
                                     <i class="fas fa-times"></i> Reject
                                   </a>
                                 </div>
@@ -577,7 +631,7 @@ include 'includes/header.php';
                         <td>
                           <strong><?php echo htmlspecialchars($pLeader['church_name'] ?? 'No Site Created'); ?></strong>
                           <div style="font-size:0.8rem; color:var(--gray-400); margin-top:2px;">
-                            Address: <?php echo htmlspecialchars($pLeader['address'] ?? 'N/A'); ?><br>
+                            Address: <?php echo htmlspecialchars(cleanStreetAddress($pLeader['address'] ?? '', $pLeader['barangay'] ?? '', $pLeader['city_municipality'] ?? '', $pLeader['province'] ?? '')); ?><br>
                             Contact: <?php echo htmlspecialchars($pLeader['contact_number'] ?? 'N/A'); ?>
                           </div>
                         </td>
@@ -589,10 +643,10 @@ include 'includes/header.php';
                         <td><?php echo date('M d, Y h:i A', strtotime($pLeader['created_at'])); ?></td>
                         <td>
                           <div style="display:flex; gap:8px;">
-                            <a href="church_sites.php?action=approve_leader&id=<?php echo $pLeader['id']; ?>" class="btn-small btn-small-success" onclick="return confirm('Are you sure you want to approve this church leader account?');">
+                            <a href="church_sites.php?action=approve_leader&id=<?php echo $pLeader['id']; ?>" class="btn btn-success btn-sm" onclick="return confirm('Are you sure you want to approve this church leader account?');">
                               <i class="fas fa-check"></i> Approve
                             </a>
-                            <a href="church_sites.php?action=reject_leader&id=<?php echo $pLeader['id']; ?>" class="btn-small btn-small-danger" onclick="return confirm('Are you sure you want to reject/disable this registration?');">
+                            <a href="church_sites.php?action=reject_leader&id=<?php echo $pLeader['id']; ?>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to reject/disable this registration?');">
                               <i class="fas fa-times"></i> Reject
                             </a>
                           </div>
@@ -654,7 +708,7 @@ include 'includes/header.php';
                         </td>
                         <td>
                           <span style="font-size:0.85rem; line-height: 1.4;">
-                            <?php echo htmlspecialchars($site['address'] . ', ' . $site['barangay'] . ', ' . $site['city_municipality'] . ', ' . $site['province']); ?>
+                            <?php echo htmlspecialchars(formatChurchAddress($site['address'], $site['barangay'], $site['city_municipality'], $site['province'])); ?>
                           </span>
                         </td>
                         <td>
@@ -663,7 +717,7 @@ include 'includes/header.php';
                           </span>
                         </td>
                         <td>
-                          <a href="church_sites.php?action=view&id=<?php echo $site['id']; ?>" class="btn-small btn-small-success" style="background:rgba(59, 130, 246, 0.15); color:#93c5fd; border-color:rgba(59, 130, 246, 0.25);">
+                          <a href="church_sites.php?action=view&id=<?php echo $site['id']; ?>" class="btn btn-info btn-sm">
                             <i class="fas fa-eye"></i> View Profile
                           </a>
                         </td>
@@ -720,7 +774,7 @@ include 'includes/header.php';
                         <td>
                           <strong><?php echo htmlspecialchars($rLeader['church_name'] ?? 'No Site Created'); ?></strong>
                           <div style="font-size:0.8rem; color:var(--gray-400); margin-top:2px;">
-                            Address: <?php echo htmlspecialchars($rLeader['address'] ?? 'N/A'); ?><br>
+                            Address: <?php echo htmlspecialchars(cleanStreetAddress($rLeader['address'] ?? '', $rLeader['barangay'] ?? '', $rLeader['city_municipality'] ?? '', $rLeader['province'] ?? '')); ?><br>
                             Contact: <?php echo htmlspecialchars($rLeader['contact_number'] ?? 'N/A'); ?>
                           </div>
                         </td>
@@ -732,7 +786,7 @@ include 'includes/header.php';
                         <td><?php echo date('M d, Y h:i A', strtotime($rLeader['created_at'])); ?></td>
                         <td>
                           <div style="display:flex; gap:8px;">
-                            <a href="church_sites.php?action=approve_leader&id=<?php echo $rLeader['id']; ?>" class="btn-small btn-small-success" onclick="return confirm('Are you sure you want to reactivate this church leader account?');">
+                            <a href="church_sites.php?action=approve_leader&id=<?php echo $rLeader['id']; ?>" class="btn btn-success btn-sm" onclick="return confirm('Are you sure you want to reactivate this church leader account?');">
                               <i class="fas fa-check"></i> Reactivate
                             </a>
                           </div>

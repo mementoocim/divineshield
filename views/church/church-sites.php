@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * DivineShield - Church Leader Portal - Church Site Profile
  */
@@ -27,8 +27,7 @@ include 'includes/header.php';
                     <div class="detail-card-header">
                         <div class="detail-card-title">Feeding Site Profile:
                             <?php echo htmlspecialchars($mySite['church_name'] ?? 'Local Church'); ?></div>
-                        <a href="dashboard.php" class="btn btn-primary" style="padding: 8px 16px; font-size:0.8rem;"><i
-                                class="fas fa-arrow-left"></i> Return</a>
+                        <a href="dashboard.php" class="btn btn-outline btn-sm"><i class="fas fa-arrow-left"></i> Return</a>
                     </div>
 
                     <?php if (!$mySite): ?>

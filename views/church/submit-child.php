@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * DivineShield - Church Leader Portal - Submit Beneficiary
  */
@@ -132,10 +132,8 @@ include 'includes/header.php';
                 <section class="dashboard-card detail-card"
                     style="border-color:rgba(59,130,246,0.3); margin-bottom:32px;">
                     <div class="detail-card-header">
-                        <div class="detail-card-title">Register Beneficiary
-                            Request</div>
-                        <a href="dashboard.php" class="btn btn-primary" style="padding: 8px 16px; font-size:0.8rem;"><i
-                                class="fas fa-arrow-left"></i> Return</a>
+                        <div class="detail-card-title">Register Beneficiary Request</div>
+                        <a href="dashboard.php" class="btn btn-outline btn-sm"><i class="fas fa-arrow-left"></i> Return</a>
                     </div>
 
                     <form action="submit-child.php" method="POST" autocomplete="off" style="margin-top:16px;">
