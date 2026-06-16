@@ -108,10 +108,7 @@ $mySubmissions = $stmtSubs->fetchAll();
 
       <!-- TOP NAVIGATION BAR -->
       <header class="admin-topbar">
-        <div class="topbar-title">
-          <i class="fas fa-house-chimney-user" style="margin-right:10px; color:var(--blue-400);"></i> Church Site Leader
-          Panel
-        </div>
+        <div class="topbar-title">Church Site Leader Panel</div>
 
         <div class="topbar-user">
           <div class="user-badge-group">
@@ -203,8 +200,7 @@ $mySubmissions = $stmtSubs->fetchAll();
           <!-- Column 1: Announcements from Admin -->
           <div class="dashboard-card" style="flex: 1.5;">
             <div class="dashboard-card-header">
-              <div class="dashboard-card-title"><i class="fas fa-bullhorn" style="color:var(--blue-400);"></i>
-                Announcements &amp; Broadcasts</div>
+              <div class="dashboard-card-title">Announcements &amp; Broadcasts</div>
               <span class="badge badge-info">Latest Info</span>
             </div>
             <div class="activity-list" style="margin-top:16px;">
@@ -237,8 +233,7 @@ $mySubmissions = $stmtSubs->fetchAll();
           <!-- Column 2: Scheduled Feeding sessions -->
           <div class="dashboard-card" style="flex: 1;">
             <div class="dashboard-card-header">
-              <div class="dashboard-card-title"><i class="fas fa-calendar-days" style="color:var(--teal-400);"></i>
-                Feeding Programs</div>
+              <div class="dashboard-card-title">Feeding Programs</div>
               <span class="badge badge-success">Upcoming</span>
             </div>
             <div class="pending-list" style="margin-top:16px;">
@@ -281,8 +276,7 @@ $mySubmissions = $stmtSubs->fetchAll();
         <!-- Roster List of Submitted Children -->
         <section class="dashboard-card" style="margin-top:32px;">
           <div class="dashboard-card-header">
-            <div class="dashboard-card-title"><i class="fas fa-list-check" style="color:var(--blue-400);"></i> My Child
-              Beneficiary Submissions</div>
+            <div class="dashboard-card-title">My Child Beneficiary Submissions</div>
             <a href="submit-child.php" class="btn btn-primary"
               style="padding: 8px 16px; font-size:0.8rem; background:var(--blue-600); text-decoration:none;">
               <i class="fas fa-plus"></i> Submit Child

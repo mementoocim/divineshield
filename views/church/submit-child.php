@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * DivineShield - Church Leader Portal - Submit Beneficiary
  */
@@ -132,8 +132,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_child'])) {
 
         <main class="admin-main">
             <header class="admin-topbar">
-                <div class="topbar-title">
-                    <i class="fas fa-child-reaching" style="margin-right:10px; color:var(--blue-400);"></i> Submit
+                <div class="topbar-title">Submit
                     Beneficiary Request
                 </div>
                 <div class="topbar-user">
@@ -167,7 +166,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_child'])) {
                 <section class="dashboard-card detail-card"
                     style="border-color:rgba(59,130,246,0.3); margin-bottom:32px;">
                     <div class="detail-card-header">
-                        <div class="detail-card-title"><i class="fas fa-child-reaching"></i> Register Beneficiary
+                        <div class="detail-card-title">Register Beneficiary
                             Request</div>
                         <a href="dashboard.php" class="btn btn-primary" style="padding: 8px 16px; font-size:0.8rem;"><i
                                 class="fas fa-arrow-left"></i> Return</a>

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * DivineShield - Staff / Encoders Management
  */
@@ -178,7 +178,7 @@ $staffList = $stmtStaff->fetchAll();
       
       <!-- TOP NAVIGATION BAR -->
       <header class="admin-topbar">
-        <div class="topbar-title"><i class="fas fa-user-gear" style="margin-right:10px; color:var(--blue-400);"></i> Staff &amp; Encoders</div>
+        <div class="topbar-title">Staff &amp; Encoders</div>
         <div class="topbar-user">
           <div class="user-badge-group">
             <div class="user-badge-name"><?php echo htmlspecialchars($_SESSION['full_name'] ?? 'System Administrator'); ?></div>
@@ -215,7 +215,7 @@ $staffList = $stmtStaff->fetchAll();
         <?php if ($action === 'add'): ?>
           <section class="dashboard-card detail-card" style="border-color:rgba(59,130,246,0.3); margin-bottom:32px;">
             <div class="detail-card-header">
-              <div class="detail-card-title"><i class="fas fa-user-plus"></i> Add Encoder Staff Account</div>
+              <div class="detail-card-title">Add Encoder Staff Account</div>
               <a href="staff.php" class="btn btn-primary" style="padding: 8px 16px; font-size:0.8rem;"><i class="fas fa-times"></i> Cancel</a>
             </div>
 
@@ -285,8 +285,7 @@ $staffList = $stmtStaff->fetchAll();
              ========================================== -->
         <section class="dashboard-card">
           <div class="dashboard-card-header">
-            <div class="dashboard-card-title">
-              <i class="fas fa-user-group"></i> Encoder Staff Registry
+            <div class="dashboard-card-title">Encoder Staff Registry
             </div>
             <?php if ($action !== 'add'): ?>
               <a href="staff.php?action=add" class="btn btn-primary" style="padding: 8px 16px; font-size:0.8rem; background:var(--blue-600);"><i class="fas fa-user-plus"></i> Create Account</a>

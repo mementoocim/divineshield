@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * DivineShield - Church Leader Portal - Church Site Profile
  */
@@ -43,8 +43,7 @@ $mySite = $stmtSite->fetch();
         <main class="admin-main">
             <!-- TOP NAVIGATION BAR -->
             <header class="admin-topbar">
-                <div class="topbar-title">
-                    <i class="fas fa-church" style="margin-right:10px; color:var(--blue-400);"></i> Church Site Profile
+                <div class="topbar-title">Church Site Profile
                 </div>
 
                 <div class="topbar-user">
@@ -63,7 +62,7 @@ $mySite = $stmtSite->fetch();
             <div class="admin-content">
                 <section class="dashboard-card detail-card">
                     <div class="detail-card-header">
-                        <div class="detail-card-title"><i class="fas fa-church"></i> Feeding Site Profile:
+                        <div class="detail-card-title">Feeding Site Profile:
                             <?php echo htmlspecialchars($mySite['church_name'] ?? 'Local Church'); ?></div>
                         <a href="dashboard.php" class="btn btn-primary" style="padding: 8px 16px; font-size:0.8rem;"><i
                                 class="fas fa-arrow-left"></i> Return</a>

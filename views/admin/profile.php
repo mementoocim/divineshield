@@ -208,7 +208,7 @@ $profilePic = $adminUser['profile_picture'] ?? '';
       
       <!-- TOP NAVIGATION BAR -->
       <header class="admin-topbar">
-        <div class="topbar-title"><i class="fas fa-user-gear" style="margin-right:10px; color:var(--blue-400);"></i> Profile &amp; Account Settings</div>
+        <div class="topbar-title">Profile &amp; Account Settings</div>
         <div class="topbar-user">
           <div class="user-badge-group">
             <div class="user-badge-name"><?php echo htmlspecialchars($_SESSION['full_name'] ?? 'System Administrator'); ?></div>
@@ -246,7 +246,7 @@ $profilePic = $adminUser['profile_picture'] ?? '';
           <div style="flex: 1; display: flex; flex-direction: column; gap: 32px;">
             <div class="dashboard-card">
               <div class="dashboard-card-header">
-                <div class="dashboard-card-title"><i class="fas fa-camera" style="color:var(--blue-400);"></i> Profile Photo</div>
+                <div class="dashboard-card-title">Profile Photo</div>
               </div>
               <div style="text-align: center; padding: 32px 24px;">
                 <div style="position: relative; width: 140px; height: 140px; margin: 0 auto 20px;">
@@ -280,7 +280,7 @@ $profilePic = $adminUser['profile_picture'] ?? '';
             <!-- 3. MFA PIN CARD -->
             <section class="dashboard-card" style="margin-bottom: 0;">
               <div class="dashboard-card-header">
-                <div class="dashboard-card-title"><i class="fas fa-shield-halved" style="color:var(--teal-400);"></i> Two-Step MFA PIN Settings</div>
+                <div class="dashboard-card-title">Two-Step MFA PIN Settings</div>
                 <span class="badge badge-warning">Required for Login</span>
               </div>
               
@@ -304,7 +304,7 @@ $profilePic = $adminUser['profile_picture'] ?? '';
             <!-- 1. PERSONAL DETAILS CARD -->
             <section class="dashboard-card" style="margin-bottom: 0;">
               <div class="dashboard-card-header">
-                <div class="dashboard-card-title"><i class="fas fa-id-card" style="color:var(--blue-400);"></i> Personal Details</div>
+                <div class="dashboard-card-title">Personal Details</div>
               </div>
               
               <form action="profile.php" method="POST" autocomplete="off" style="margin-top:16px;">
@@ -343,7 +343,7 @@ $profilePic = $adminUser['profile_picture'] ?? '';
             <!-- 2. PASSWORD SECURITY CARD -->
             <section class="dashboard-card" style="margin-bottom: 0;">
               <div class="dashboard-card-header">
-                <div class="dashboard-card-title"><i class="fas fa-key" style="color:var(--yellow-400);"></i> Change Account Password</div>
+                <div class="dashboard-card-title">Change Account Password</div>
               </div>
               
               <form action="profile.php" method="POST" autocomplete="off" style="margin-top:16px;">

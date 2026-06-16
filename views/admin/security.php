@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * DivineShield - Security
  */
@@ -39,7 +39,7 @@ $adminProfilePic = $stmtAdmin->fetchColumn();
       
       <!-- TOP NAVIGATION BAR -->
       <header class="admin-topbar">
-        <div class="topbar-title"><i class="fas fa-shield-halved" style="margin-right:10px; color:var(--blue-400);"></i> Security Gate</div>
+        <div class="topbar-title">Security Gate</div>
         <div class="topbar-user">
           <div class="user-badge-group">
             <div class="user-badge-name"><?php echo htmlspecialchars($_SESSION['full_name'] ?? 'System Administrator'); ?></div>

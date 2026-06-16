@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * DivineShield - System Audit Logs
  */
@@ -98,7 +98,7 @@ $logs = $stmtLogs->fetchAll();
       
       <!-- TOP NAVIGATION BAR -->
       <header class="admin-topbar">
-        <div class="topbar-title"><i class="fas fa-scroll" style="margin-right:10px; color:var(--blue-400);"></i> System Audit Logs</div>
+        <div class="topbar-title">System Audit Logs</div>
         <div class="topbar-user">
           <div class="user-badge-group">
             <div class="user-badge-name"><?php echo htmlspecialchars($_SESSION['full_name'] ?? 'System Administrator'); ?></div>
@@ -156,8 +156,7 @@ $logs = $stmtLogs->fetchAll();
         <!-- Audit Logs Listing Card -->
         <section class="dashboard-card">
           <div class="dashboard-card-header">
-            <div class="dashboard-card-title">
-              <i class="fas fa-receipt"></i> System Activity Log Entries
+            <div class="dashboard-card-title">System Activity Log Entries
             </div>
             <span style="font-size:0.75rem; color:var(--gray-400); background:rgba(255,255,255,0.06); padding:4px 10px; border-radius:999px;">
               Total: <?php echo number_format($totalLogs); ?> rows

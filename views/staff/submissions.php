@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * DivineShield - Staff / Encoder Submissions Review
  */
@@ -259,8 +259,7 @@ include 'includes/header.php';
     <!-- Main Table Card -->
     <div class="dashboard-card">
         <div class="dashboard-card-header">
-            <div class="dashboard-card-title">
-                <i class="fas fa-file-contract" style="color:var(--blue-400);"></i> Children Submissions
+            <div class="dashboard-card-title">Children Submissions
             </div>
             <span style="font-size:0.75rem; font-weight:700; background:rgba(255,255,255,0.05); color:var(--gray-300); padding:4px 10px; border-radius:999px;">
                 <?php echo ucfirst($tab); ?> Registry

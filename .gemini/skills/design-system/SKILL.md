@@ -114,7 +114,32 @@ Used inside tables or detail views to indicate the state of a record.
 
 ### Important Design Rules
 1. Never use inline styles for colors if a CSS variable exists (e.g. use `var(--blue-400)` instead of `#60a5fa`).
-2. Always pair FontAwesome icons (`<i class="fas fa-*"></i>`) with text to provide visual cues.
-3. Dark themes rely heavily on subtle border colors. Use `rgba(255,255,255,0.1)` for borders and dividers instead of solid gray.
+2. Dark themes rely heavily on subtle border colors. Use `rgba(255,255,255,0.1)` for borders and dividers instead of solid gray.
+3. **Icon usage policy — critical:**
+   - **No icons in titles.** Do NOT add `<i class="fas ...">` icons inside `.topbar-title`, `.dashboard-card-title`, `.detail-card-title`, or `.panel-title` elements. Titles must be plain text only.
+   - **Icons belong in buttons.** Use FontAwesome icons inside `<button>` and `<a class="btn">` elements to give action context (e.g. `<i class="fas fa-plus"></i> Add Item`).
+   - **Icons belong in badges, alerts, and status indicators.** Status badges, auth alerts, and stat box icons are the only non-button places where icons are appropriate.
+   - **Icons belong in informational list items.** Using subtle inline icons next to metadata (e.g. a calendar icon before a date) inside list items is acceptable.
 
+```html
+<!-- ✅ CORRECT: Icon in a button -->
+<button class="btn btn-primary"><i class="fas fa-plus"></i> Add Record</button>
 
+<!-- ✅ CORRECT: Icon in a status badge -->
+<span class="status-badge success"><i class="fas fa-check-circle"></i> Qualified</span>
+
+<!-- ✅ CORRECT: Icon in a stat box -->
+<div class="stat-box-icon"><i class="fas fa-folder-open"></i></div>
+
+<!-- ❌ WRONG: Icon in a card title -->
+<div class="dashboard-card-title"><i class="fas fa-list"></i> Submissions</div>
+
+<!-- ✅ CORRECT: Clean card title, no icon -->
+<div class="dashboard-card-title">Submissions</div>
+
+<!-- ❌ WRONG: Icon in topbar title -->
+<div class="topbar-title"><i class="fas fa-chart-line"></i> Analytics</div>
+
+<!-- ✅ CORRECT: Clean topbar title -->
+<div class="topbar-title">Analytics</div>
+```

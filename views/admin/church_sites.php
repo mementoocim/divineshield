@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * DivineShield - Church Sites & Leaders Management
  */
@@ -288,7 +288,7 @@ $rejectedLeaders = $stmtRejected->fetchAll();
       
       <!-- TOP NAVIGATION BAR -->
       <header class="admin-topbar">
-        <div class="topbar-title"><i class="fas fa-church" style="margin-right:10px; color:var(--blue-400);"></i> Church Sites &amp; Leaders</div>
+        <div class="topbar-title">Church Sites &amp; Leaders</div>
         <div class="topbar-user">
           <div class="user-badge-group">
             <div class="user-badge-name"><?php echo htmlspecialchars($_SESSION['full_name'] ?? 'System Administrator'); ?></div>
@@ -346,7 +346,7 @@ $rejectedLeaders = $stmtRejected->fetchAll();
         <?php if ($viewSite): ?>
           <section class="dashboard-card detail-card">
             <div class="detail-card-header">
-              <div class="detail-card-title"><i class="fas fa-church"></i> Site Profile: <?php echo htmlspecialchars($viewSite['church_name']); ?></div>
+              <div class="detail-card-title">Site Profile: <?php echo htmlspecialchars($viewSite['church_name']); ?></div>
               <a href="church_sites.php" class="btn btn-primary" style="padding: 8px 16px; font-size:0.8rem;"><i class="fas fa-arrow-left"></i> Close View</a>
             </div>
 
@@ -580,8 +580,7 @@ $rejectedLeaders = $stmtRejected->fetchAll();
             <?php else: ?>
               <section class="dashboard-card" style="margin-bottom:32px; border-color:rgba(245,158,11,0.25);">
               <div class="dashboard-card-header">
-                <div class="dashboard-card-title" style="color:var(--yellow-400);">
-                  <i class="fas fa-triangle-exclamation"></i> Pending Church Leader Registrations
+                <div class="dashboard-card-title" style="color:var(--yellow-400);">Pending Church Leader Registrations
                 </div>
                 <span style="font-size:0.75rem; font-weight:700; background:rgba(245,158,11,0.15); color:var(--yellow-400); padding:4px 10px; border-radius:999px;">
                   Action Required
@@ -648,8 +647,7 @@ $rejectedLeaders = $stmtRejected->fetchAll();
                  ========================================== -->
             <section class="dashboard-card">
             <div class="dashboard-card-header">
-              <div class="dashboard-card-title">
-                <i class="fas fa-church"></i> Registered Church Sites &amp; Leaders
+              <div class="dashboard-card-title">Registered Church Sites &amp; Leaders
               </div>
               <span style="font-size:0.75rem; color:var(--gray-400); background:rgba(255,255,255,0.06); padding:4px 10px; border-radius:999px;">
                 Active Registry
@@ -725,8 +723,7 @@ $rejectedLeaders = $stmtRejected->fetchAll();
           <?php else: ?>
             <section class="dashboard-card" style="border-color:rgba(239,68,68,0.25);">
               <div class="dashboard-card-header">
-                <div class="dashboard-card-title" style="color:var(--red-500);">
-                  <i class="fas fa-ban"></i> Rejected &amp; Disabled Church Leaders
+                <div class="dashboard-card-title" style="color:var(--red-500);">Rejected &amp; Disabled Church Leaders
                 </div>
                 <span style="font-size:0.75rem; font-weight:700; background:rgba(239,68,68,0.15); color:var(--red-500); padding:4px 10px; border-radius:999px;">
                   Deactivated Registry

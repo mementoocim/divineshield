@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * DivineShield - Administrator Dashboard
  */
@@ -95,8 +95,7 @@ $recentLogs = $stmt->fetchAll();
       
       <!-- TOP NAVIGATION BAR -->
       <header class="admin-topbar">
-        <div class="topbar-title">
-          <i class="fas fa-desktop" style="margin-right:10px; color:var(--blue-400);"></i> Dashboard Overview
+        <div class="topbar-title">Dashboard Overview
         </div>
         
         <div class="topbar-user">
@@ -179,8 +178,7 @@ $recentLogs = $stmt->fetchAll();
           <!-- Column 1: Pending Approvals Quick View -->
           <div class="dashboard-card">
             <div class="dashboard-card-header">
-              <div class="dashboard-card-title">
-                <i class="fas fa-circle-exclamation"></i> Pending Registrations &amp; Submissions
+              <div class="dashboard-card-title">Pending Registrations &amp; Submissions
               </div>
               <span style="font-size:0.75rem; color:var(--gray-400); font-weight:600; background:rgba(255,255,255,0.06); padding:4px 10px; border-radius:999px;">
                 Needs Action
@@ -242,8 +240,7 @@ $recentLogs = $stmt->fetchAll();
           <!-- Column 2: Recent System Activity Logs -->
           <div class="dashboard-card">
             <div class="dashboard-card-header">
-              <div class="dashboard-card-title">
-                <i class="fas fa-scroll"></i> Recent Security Gateway Activity
+              <div class="dashboard-card-title">Recent Security Gateway Activity
               </div>
               <a href="audit_logs.php" style="font-size:0.8rem; color:var(--blue-400); font-weight:600;">
                 View All <i class="fas fa-arrow-right" style="font-size:0.75rem; margin-left:4px;"></i>
