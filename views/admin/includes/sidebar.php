@@ -18,7 +18,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
     </a>
   </div>
 
-  <nav class="sidebar-menu">
+  <nav class="sidebar-menu" id="adminSidebarMenu">
     <!-- CORE -->
     <div class="sidebar-section-label" style="margin-top:0;">Core</div>
     <a href="dashboard.php" class="sidebar-link <?php echo $currentPage === 'dashboard.php' ? 'active' : ''; ?>">
@@ -91,3 +91,24 @@ $currentPage = basename($_SERVER['PHP_SELF']);
     </a>
   </div>
 </aside>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const sidebarMenu = document.getElementById("adminSidebarMenu");
+    if (sidebarMenu) {
+        // Restore scroll position
+        const scrollPos = sessionStorage.getItem("admin_sidebar_scroll");
+        if (scrollPos) {
+            sidebarMenu.scrollTop = parseInt(scrollPos, 10);
+        }
+
+        // Save scroll position when a link is clicked
+        const links = sidebarMenu.querySelectorAll(".sidebar-link");
+        links.forEach(link => {
+            link.addEventListener("click", function() {
+                sessionStorage.setItem("admin_sidebar_scroll", sidebarMenu.scrollTop);
+            });
+        });
+    }
+});
+</script>

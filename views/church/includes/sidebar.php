@@ -25,7 +25,7 @@
   $isSite = ($current === 'church-sites.php');
   ?>
 
-  <nav class="sidebar-menu">
+  <nav class="sidebar-menu" id="churchSidebarMenu">
     <!-- CORE -->
     <div class="sidebar-section-label" style="margin-top:0;">Core</div>
     <a href="dashboard.php" class="sidebar-link <?php echo $isDashboard ? 'active' : ''; ?>" id="menu-dashboard">
@@ -55,3 +55,24 @@
     </a>
   </div>
 </aside>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const sidebarMenu = document.getElementById("churchSidebarMenu");
+    if (sidebarMenu) {
+        // Restore scroll position
+        const scrollPos = sessionStorage.getItem("church_sidebar_scroll");
+        if (scrollPos) {
+            sidebarMenu.scrollTop = parseInt(scrollPos, 10);
+        }
+
+        // Save scroll position when a link is clicked
+        const links = sidebarMenu.querySelectorAll(".sidebar-link");
+        links.forEach(link => {
+            link.addEventListener("click", function() {
+                sessionStorage.setItem("church_sidebar_scroll", sidebarMenu.scrollTop);
+            });
+        });
+    }
+});
+</script>
