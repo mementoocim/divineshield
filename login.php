@@ -200,7 +200,7 @@ function redirectDashboard($role) {
               </div>
             </div>
 
-            <button type="submit" class="btn btn-primary auth-submit-btn"><i class="fas fa-sign-in-alt"></i> Verify Credentials</button>
+            <button type="submit" class="btn btn-primary auth-submit-btn">Verify Credentials</button>
           </form>
 
           <div class="auth-footer">
@@ -211,7 +211,7 @@ function redirectDashboard($role) {
           <!-- ==========================================
                STEP 2: 4-DIGIT PIN MFA FORM (ADMINS ONLY)
                ========================================== -->
-          <h2 class="auth-card-title"><i class="fas fa-shield-halved" style="color:var(--yellow-400);"></i> Two-Factor PIN Verification</h2>
+          <h2 class="auth-card-title">Two-Factor PIN Verification</h2>
           <p style="color:var(--gray-300); font-size:0.875rem; margin-bottom: 20px; line-height: 1.5;">
             An administrator login requires a secondary security PIN. Please enter your 4-digit security PIN below:
           </p>
@@ -233,14 +233,10 @@ function redirectDashboard($role) {
               <input type="text" name="pin4" class="pin-digit-input" maxlength="1" pattern="[0-9]" required autocomplete="off" />
             </div>
 
-            <button type="submit" class="btn btn-primary auth-submit-btn" style="background:var(--yellow-500); border-color:var(--yellow-500); color:var(--gray-900);">
-              <i class="fas fa-user-shield"></i> Confirm Identity
-            </button>
+            <button type="submit" class="btn btn-primary auth-submit-btn" style="background:var(--yellow-500); border-color:var(--yellow-500); color:var(--gray-900);">Confirm Identity</button>
             
             <div style="text-align: center; margin-top: 20px;">
-              <a href="login.php?cancel_mfa=1" class="btn btn-outline" style="border-color:rgba(255,255,255,0.15); color:var(--gray-400); width:100%; justify-content:center; padding: 10px;">
-                <i class="fas fa-arrow-left"></i> Cancel and Sign Out
-              </a>
+              <a href="login.php?cancel_mfa=1" class="btn btn-outline" style="border-color:rgba(255,255,255,0.15); color:var(--gray-400); width:100%; justify-content:center; padding: 10px;">Cancel and Sign Out</a>
             </div>
           </form>
 

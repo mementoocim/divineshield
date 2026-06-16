@@ -271,9 +271,7 @@ $profilePic = $adminUser['profile_picture'] ?? '';
                   
                   <input type="file" id="profile_pic_input" name="profile_pic" accept="image/*" required style="display:none;" onchange="document.getElementById('profile-upload-form').submit();" />
                   
-                  <button type="button" class="btn btn-primary" style="padding: 10px 18px; width: 100%; justify-content: center; background: rgba(59, 130, 246, 0.15); color: #93c5fd; border-color: rgba(59, 130, 246, 0.25);" onclick="document.getElementById('profile_pic_input').click();">
-                    <i class="fas fa-camera-rotate"></i> Change Profile Picture
-                  </button>
+                  <button type="button" class="btn btn-primary" style="padding: 10px 18px; width: 100%; justify-content: center; background: rgba(59, 130, 246, 0.15); color: #93c5fd; border-color: rgba(59, 130, 246, 0.25);" onclick="document.getElementById('profile_pic_input').click();">Change Profile Picture</button>
                 </form>
               </div>
             </div>
@@ -293,7 +291,7 @@ $profilePic = $adminUser['profile_picture'] ?? '';
                   <p style="font-size:0.75rem; color:var(--gray-400); margin-top:8px;">Enter a secure 4-digit code (e.g. 1234) used to bypass the gateway after signing in with standard credentials.</p>
                 </div>
 
-                <button type="submit" class="btn btn-primary" style="padding:10px 20px; background:var(--teal-500);"><i class="fas fa-shield"></i> Update Security PIN</button>
+                <button type="submit" class="btn btn-primary" style="padding:10px 20px; background:var(--teal-500);">Update Security PIN</button>
               </form>
             </section>
           </div>
@@ -336,7 +334,7 @@ $profilePic = $adminUser['profile_picture'] ?? '';
                   </div>
                 </div>
 
-                <button type="submit" class="btn btn-primary" style="padding:10px 20px; background:var(--blue-600);"><i class="fas fa-floppy-disk"></i> Update Personal Details</button>
+                <button type="submit" class="btn btn-primary" style="padding:10px 20px; background:var(--blue-600);">Update Personal Details</button>
               </form>
             </section>
 
@@ -365,7 +363,7 @@ $profilePic = $adminUser['profile_picture'] ?? '';
                   </div>
                 </div>
 
-                <button type="submit" class="btn btn-primary" style="padding:10px 20px; background:var(--yellow-500); color:var(--gray-900); font-weight:700;"><i class="fas fa-lock"></i> Update Password</button>
+                <button type="submit" class="btn btn-primary" style="padding:10px 20px; background:var(--yellow-500); color:var(--gray-900); font-weight:700;">Update Password</button>
               </form>
             </section>
 
