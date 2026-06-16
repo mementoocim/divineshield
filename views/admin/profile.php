@@ -243,34 +243,59 @@ $profilePic = $adminUser['profile_picture'] ?? '';
         <div class="dashboard-row" style="align-items: flex-start; gap: 32px;">
           
           <!-- Column 1: Avatar Showcase Card -->
-          <div class="dashboard-card" style="flex: 1; text-align: center; padding: 32px 24px;">
-            <div style="position: relative; width: 140px; height: 140px; margin: 0 auto 20px;">
-              <?php if (!empty($profilePic) && file_exists('../../' . $profilePic)): ?>
-                <img src="../../<?php echo htmlspecialchars($profilePic); ?>" alt="Profile Photo" style="width: 140px; height: 140px; border-radius: 50%; object-fit: cover; border: 4px solid rgba(255,255,255,0.1);" />
-              <?php else: ?>
-                <div class="logo-mark" style="width: 140px; height: 140px; font-size: 4rem; border-radius: 50%; margin: 0; background: linear-gradient(135deg, var(--yellow-400), var(--yellow-500)); color: var(--gray-900);">
-                  <i class="fas fa-user-shield"></i>
-                </div>
-              <?php endif; ?>
-            </div>
-            
-            <h3 style="font-family: var(--font-head); color: var(--white); font-size: 1.25rem; font-weight: 700; margin-bottom: 4px;">
-              <?php echo htmlspecialchars($adminUser['first_name'] . ' ' . $adminUser['last_name']); ?>
-            </h3>
-            <p style="font-size: 0.8rem; color: var(--gray-400); text-transform: uppercase; font-weight: 600; letter-spacing: 0.05em; margin-bottom: 24px;">
-              @<?php echo htmlspecialchars($adminUser['username']); ?> &middot; System Administrator
-            </p>
-
-            <form action="profile.php" method="POST" enctype="multipart/form-data" style="border-top: 1px solid rgba(255,255,255,0.06); padding-top: 24px;">
-              <input type="hidden" name="upload_picture" value="1" />
-              <div class="auth-form-group" style="text-align: left; margin-bottom: 16px;">
-                <label style="margin-bottom: 8px;">Upload Profile Image (Max 2MB)</label>
-                <input type="file" name="profile_pic" accept="image/*" required style="font-size: 0.8rem; color: var(--gray-300);" />
+          <div style="flex: 1; display: flex; flex-direction: column; gap: 32px;">
+            <div class="dashboard-card">
+              <div class="dashboard-card-header">
+                <div class="dashboard-card-title"><i class="fas fa-camera" style="color:var(--blue-400);"></i> Profile Photo</div>
               </div>
-              <button type="submit" class="btn btn-primary" style="padding: 10px 18px; width: 100%; justify-content: center; background: rgba(59, 130, 246, 0.15); color: #93c5fd; border-color: rgba(59, 130, 246, 0.25);">
-                <i class="fas fa-upload"></i> Save Photo
-              </button>
-            </form>
+              <div style="text-align: center; padding: 32px 24px;">
+                <div style="position: relative; width: 140px; height: 140px; margin: 0 auto 20px;">
+                  <?php if (!empty($profilePic) && file_exists('../../' . $profilePic)): ?>
+                    <img src="../../<?php echo htmlspecialchars($profilePic); ?>" alt="Profile Photo" style="width: 140px; height: 140px; border-radius: 50%; object-fit: cover; border: 4px solid rgba(255,255,255,0.1);" />
+                  <?php else: ?>
+                    <div class="logo-mark" style="width: 140px; height: 140px; font-size: 4rem; border-radius: 50%; margin: 0; background: linear-gradient(135deg, var(--yellow-400), var(--yellow-500)); color: var(--gray-900);">
+                      <i class="fas fa-user-shield"></i>
+                    </div>
+                  <?php endif; ?>
+                </div>
+                
+                <h3 style="font-family: var(--font-head); color: var(--white); font-size: 1.25rem; font-weight: 700; margin-bottom: 4px;">
+                  <?php echo htmlspecialchars($adminUser['first_name'] . ' ' . $adminUser['last_name']); ?>
+                </h3>
+                <p style="font-size: 0.8rem; color: var(--gray-400); text-transform: uppercase; font-weight: 600; letter-spacing: 0.05em; margin-bottom: 24px;">
+                  @<?php echo htmlspecialchars($adminUser['username']); ?> &middot; System Administrator
+                </p>
+
+                <form id="profile-upload-form" action="profile.php" method="POST" enctype="multipart/form-data" style="border-top: 1px solid rgba(255,255,255,0.06); padding-top: 24px;">
+                  <input type="hidden" name="upload_picture" value="1" />
+                  
+                  <input type="file" id="profile_pic_input" name="profile_pic" accept="image/*" required style="display:none;" onchange="document.getElementById('profile-upload-form').submit();" />
+                  
+                  <button type="button" class="btn btn-primary" style="padding: 10px 18px; width: 100%; justify-content: center; background: rgba(59, 130, 246, 0.15); color: #93c5fd; border-color: rgba(59, 130, 246, 0.25);" onclick="document.getElementById('profile_pic_input').click();">
+                    <i class="fas fa-camera-rotate"></i> Change Profile Picture
+                  </button>
+                </form>
+              </div>
+            </div>
+            <!-- 3. MFA PIN CARD -->
+            <section class="dashboard-card" style="margin-bottom: 0;">
+              <div class="dashboard-card-header">
+                <div class="dashboard-card-title"><i class="fas fa-shield-halved" style="color:var(--teal-400);"></i> Two-Step MFA PIN Settings</div>
+                <span class="badge badge-warning">Required for Login</span>
+              </div>
+              
+              <form action="profile.php" method="POST" autocomplete="off" style="margin-top:16px;">
+                <input type="hidden" name="change_pin" value="1" />
+                
+                <div class="auth-form-group" style="margin-bottom:20px;">
+                  <label>MFA Gateway Verification PIN *</label>
+                  <input type="password" name="new_pin" maxlength="4" value="<?php echo htmlspecialchars($adminUser['admin_pin'] ?? ''); ?>" placeholder="4-digit numeric code" class="auth-input" style="padding-left:16px; width:150px; font-size:1.1rem; letter-spacing:0.3em; text-align:center;" required />
+                  <p style="font-size:0.75rem; color:var(--gray-400); margin-top:8px;">Enter a secure 4-digit code (e.g. 1234) used to bypass the gateway after signing in with standard credentials.</p>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="padding:10px 20px; background:var(--teal-500);"><i class="fas fa-shield"></i> Update Security PIN</button>
+              </form>
+            </section>
           </div>
 
           <!-- Column 2: Configuration Options Forms -->
@@ -344,25 +369,7 @@ $profilePic = $adminUser['profile_picture'] ?? '';
               </form>
             </section>
 
-            <!-- 3. MFA PIN CARD -->
-            <section class="dashboard-card" style="margin-bottom: 0;">
-              <div class="dashboard-card-header">
-                <div class="dashboard-card-title"><i class="fas fa-shield-halved" style="color:var(--teal-400);"></i> Two-Step MFA PIN Settings</div>
-                <span class="badge badge-warning">Required for Login</span>
-              </div>
-              
-              <form action="profile.php" method="POST" autocomplete="off" style="margin-top:16px;">
-                <input type="hidden" name="change_pin" value="1" />
-                
-                <div class="auth-form-group" style="margin-bottom:20px;">
-                  <label>MFA Gateway Verification PIN *</label>
-                  <input type="password" name="new_pin" maxlength="4" value="<?php echo htmlspecialchars($adminUser['admin_pin'] ?? ''); ?>" placeholder="4-digit numeric code" class="auth-input" style="padding-left:16px; width:150px; font-size:1.1rem; letter-spacing:0.3em; text-align:center;" required />
-                  <p style="font-size:0.75rem; color:var(--gray-400); margin-top:8px;">Enter a secure 4-digit code (e.g. 1234) used to bypass the gateway after signing in with standard credentials.</p>
-                </div>
 
-                <button type="submit" class="btn btn-primary" style="padding:10px 20px; background:var(--teal-500);"><i class="fas fa-shield"></i> Update Security PIN</button>
-              </form>
-            </section>
 
           </div>
 

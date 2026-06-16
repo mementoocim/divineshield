@@ -280,10 +280,10 @@ if ($_SESSION['user_id'] > 0) {
               </div>
               <div class="activity-list" style="margin-top:16px;">
                 <?php if (empty($announcements)): ?>
-                  <div class="empty-state" style="padding:24px 0;">
-                    <i class="fas fa-message"></i>
-                    <p>No announcements broadcasted to church sites yet.</p>
-                  </div>
+                  <div class="empty-state" style="padding: 40px; text-align: center;">
+    <i class="fas fa-question-circle empty-icon" style="font-size: 3rem; color:var(--gray-500); margin-bottom: 16px;"></i>
+    <h4 style="color: var(--white); margin-bottom: 8px;">Nothing to display</h4>
+</div>
                 <?php else: ?>
                   <?php foreach ($announcements as $announce): ?>
                     <div class="activity-item" style="padding-bottom:12px; border-bottom:1px solid rgba(255,255,255,0.05); margin-bottom:12px;">
@@ -309,10 +309,10 @@ if ($_SESSION['user_id'] > 0) {
               </div>
               <div class="pending-list" style="margin-top:16px;">
                 <?php if (empty($schedules)): ?>
-                  <div class="empty-state" style="padding:24px 0;">
-                    <i class="fas fa-calendar-xmark"></i>
-                    <p>No upcoming feeding programs scheduled for this site.</p>
-                  </div>
+                  <div class="empty-state" style="padding: 40px; text-align: center;">
+    <i class="fas fa-question-circle empty-icon" style="font-size: 3rem; color:var(--gray-500); margin-bottom: 16px;"></i>
+    <h4 style="color: var(--white); margin-bottom: 8px;">Nothing to display</h4>
+</div>
                 <?php else: ?>
                   <?php foreach ($schedules as $sched): ?>
                     <div class="pending-item" style="margin-bottom:12px; align-items:flex-start;">
@@ -344,10 +344,10 @@ if ($_SESSION['user_id'] > 0) {
             </div>
 
             <?php if (empty($mySubmissions)): ?>
-              <div class="empty-state">
-                <i class="fas fa-child"></i>
-                <p>No child submissions found. Click the button above to register a beneficiary request.</p>
-              </div>
+              <div class="empty-state" style="padding: 40px; text-align: center;">
+    <i class="fas fa-question-circle empty-icon" style="font-size: 3rem; color:var(--gray-500); margin-bottom: 16px;"></i>
+    <h4 style="color: var(--white); margin-bottom: 8px;">Nothing to display</h4>
+</div>
             <?php else: ?>
               <div class="dark-table-wrap">
                 <table class="dark-table">
@@ -546,10 +546,10 @@ if ($_SESSION['user_id'] > 0) {
             </div>
 
             <?php if (!$mySite): ?>
-              <div class="empty-state">
-                <i class="fas fa-circle-exclamation" style="color:var(--red-500);"></i>
-                <p>Feeding site profile records could not be resolved in the cloud gateway.</p>
-              </div>
+              <div class="empty-state" style="padding: 40px; text-align: center;">
+    <i class="fas fa-question-circle empty-icon" style="font-size: 3rem; color:var(--gray-500); margin-bottom: 16px;"></i>
+    <h4 style="color: var(--white); margin-bottom: 8px;">Nothing to display</h4>
+</div>
             <?php else: ?>
               <div class="detail-grid">
                 <div class="detail-item">

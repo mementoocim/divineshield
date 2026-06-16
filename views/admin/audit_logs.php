@@ -165,10 +165,10 @@ $logs = $stmtLogs->fetchAll();
           </div>
 
           <?php if (empty($logs)): ?>
-            <div class="empty-state">
-              <i class="fas fa-receipt"></i>
-              <p>No activity logs match the selected filter conditions.</p>
-            </div>
+            <div class="empty-state" style="padding: 40px; text-align: center;">
+    <i class="fas fa-question-circle empty-icon" style="font-size: 3rem; color:var(--gray-500); margin-bottom: 16px;"></i>
+    <h4 style="color: var(--white); margin-bottom: 8px;">Nothing to display</h4>
+</div>
           <?php else: ?>
             <div class="dark-table-wrap">
               <table class="dark-table">

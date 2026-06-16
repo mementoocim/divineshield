@@ -408,10 +408,10 @@ $rejectedLeaders = $stmtRejected->fetchAll();
               ?>
               
               <?php if (empty($siteChildren)): ?>
-                <div class="empty-state" style="padding: 24px 0;">
-                  <i class="fas fa-child"></i>
-                  <p>No child submissions recorded for this feeding site.</p>
-                </div>
+                <div class="empty-state" style="padding: 40px; text-align: center;">
+    <i class="fas fa-question-circle empty-icon" style="font-size: 3rem; color:var(--gray-500); margin-bottom: 16px;"></i>
+    <h4 style="color: var(--white); margin-bottom: 8px;">Nothing to display</h4>
+</div>
               <?php else: ?>
                 <!-- Child Pill Tab Bar -->
                 <div class="pill-tabs" style="margin-bottom: 20px;">
@@ -435,10 +435,10 @@ $rejectedLeaders = $stmtRejected->fetchAll();
                 <!-- APPROVED CHILDREN PANEL -->
                 <div id="child-tab-approved" class="child-tab-panel active">
                   <?php if (empty($approvedChildren)): ?>
-                    <div class="empty-state" style="padding: 24px 0;">
-                      <i class="fas fa-circle-check" style="color:var(--green-500); font-size:1.5rem; margin-bottom:8px;"></i>
-                      <p>No approved child submissions found for this site.</p>
-                    </div>
+                    <div class="empty-state" style="padding: 40px; text-align: center;">
+    <i class="fas fa-question-circle empty-icon" style="font-size: 3rem; color:var(--gray-500); margin-bottom: 16px;"></i>
+    <h4 style="color: var(--white); margin-bottom: 8px;">Nothing to display</h4>
+</div>
                   <?php else: ?>
                     <div class="dark-table-wrap">
                       <table class="dark-table">
@@ -474,10 +474,10 @@ $rejectedLeaders = $stmtRejected->fetchAll();
                 <!-- PENDING CHILDREN PANEL -->
                 <div id="child-tab-pending" class="child-tab-panel" style="display:none;">
                   <?php if (empty($pendingChildren)): ?>
-                    <div class="empty-state" style="padding: 24px 0;">
-                      <i class="fas fa-circle-check" style="color:var(--green-500); font-size:1.5rem; margin-bottom:8px;"></i>
-                      <p>All clear! No pending child submissions awaiting review.</p>
-                    </div>
+                    <div class="empty-state" style="padding: 40px; text-align: center;">
+    <i class="fas fa-question-circle empty-icon" style="font-size: 3rem; color:var(--gray-500); margin-bottom: 16px;"></i>
+    <h4 style="color: var(--white); margin-bottom: 8px;">Nothing to display</h4>
+</div>
                   <?php else: ?>
                     <div class="dark-table-wrap">
                       <table class="dark-table">
@@ -524,10 +524,10 @@ $rejectedLeaders = $stmtRejected->fetchAll();
                 <!-- REJECTED CHILDREN PANEL -->
                 <div id="child-tab-rejected" class="child-tab-panel" style="display:none;">
                   <?php if (empty($rejectedChildren)): ?>
-                    <div class="empty-state" style="padding: 24px 0;">
-                      <i class="fas fa-ban" style="font-size:1.5rem; margin-bottom:8px;"></i>
-                      <p>No rejected child submissions found for this site.</p>
-                    </div>
+                    <div class="empty-state" style="padding: 40px; text-align: center;">
+    <i class="fas fa-question-circle empty-icon" style="font-size: 3rem; color:var(--gray-500); margin-bottom: 16px;"></i>
+    <h4 style="color: var(--white); margin-bottom: 8px;">Nothing to display</h4>
+</div>
                   <?php else: ?>
                     <div class="dark-table-wrap">
                       <table class="dark-table">
@@ -572,10 +572,10 @@ $rejectedLeaders = $stmtRejected->fetchAll();
                  ========================================== -->
             <?php if (empty($pendingLeaders)): ?>
               <div class="dashboard-card">
-                <div class="empty-state">
-                  <i class="fas fa-circle-check" style="color:var(--green-500); font-size:2rem; margin-bottom:12px;"></i>
-                  <p>All clear! There are no pending church leader registrations awaiting approval.</p>
-                </div>
+                <div class="empty-state" style="padding: 40px; text-align: center;">
+    <i class="fas fa-question-circle empty-icon" style="font-size: 3rem; color:var(--gray-500); margin-bottom: 16px;"></i>
+    <h4 style="color: var(--white); margin-bottom: 8px;">Nothing to display</h4>
+</div>
               </div>
             <?php else: ?>
               <section class="dashboard-card" style="margin-bottom:32px; border-color:rgba(245,158,11,0.25);">
@@ -657,10 +657,10 @@ $rejectedLeaders = $stmtRejected->fetchAll();
             </div>
 
             <?php if (empty($allSites)): ?>
-              <div class="empty-state">
-                <i class="fas fa-church"></i>
-                <p>No approved church sites exist in the system database yet.</p>
-              </div>
+              <div class="empty-state" style="padding: 40px; text-align: center;">
+    <i class="fas fa-question-circle empty-icon" style="font-size: 3rem; color:var(--gray-500); margin-bottom: 16px;"></i>
+    <h4 style="color: var(--white); margin-bottom: 8px;">Nothing to display</h4>
+</div>
             <?php else: ?>
               <div class="dark-table-wrap">
                 <table class="dark-table">
@@ -717,10 +717,10 @@ $rejectedLeaders = $stmtRejected->fetchAll();
           <!-- REJECTED CHURCH LEADERS CARD -->
           <?php if (empty($rejectedLeaders)): ?>
             <div class="dashboard-card">
-              <div class="empty-state">
-                <i class="fas fa-ban" style="font-size:2rem; margin-bottom:12px;"></i>
-                <p>No rejected or disabled church leader accounts found.</p>
-              </div>
+              <div class="empty-state" style="padding: 40px; text-align: center;">
+    <i class="fas fa-question-circle empty-icon" style="font-size: 3rem; color:var(--gray-500); margin-bottom: 16px;"></i>
+    <h4 style="color: var(--white); margin-bottom: 8px;">Nothing to display</h4>
+</div>
             </div>
           <?php else: ?>
             <section class="dashboard-card" style="border-color:rgba(239,68,68,0.25);">

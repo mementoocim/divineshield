@@ -191,10 +191,10 @@ $recentLogs = $stmt->fetchAll();
               
               <!-- 1. Pending Church Leader Registrations -->
               <?php if (empty($recentPendingLeaders) && empty($recentPendingChildren)): ?>
-                <div class="empty-state">
-                  <i class="fas fa-circle-check" style="color:var(--green-500); font-size:2rem; margin-bottom:12px;"></i>
-                  <p>All clear! There are no pending leaders or child submissions requiring review.</p>
-                </div>
+                <div class="empty-state" style="padding: 40px; text-align: center;">
+    <i class="fas fa-question-circle empty-icon" style="font-size: 3rem; color:var(--gray-500); margin-bottom: 16px;"></i>
+    <h4 style="color: var(--white); margin-bottom: 8px;">Nothing to display</h4>
+</div>
               <?php endif; ?>
 
               <?php if (!empty($recentPendingLeaders)): ?>
@@ -252,10 +252,10 @@ $recentLogs = $stmt->fetchAll();
 
             <div class="activity-list">
               <?php if (empty($recentLogs)): ?>
-                <div class="empty-state">
-                  <i class="fas fa-receipt"></i>
-                  <p>No logged actions found in the system registry.</p>
-                </div>
+                <div class="empty-state" style="padding: 40px; text-align: center;">
+    <i class="fas fa-question-circle empty-icon" style="font-size: 3rem; color:var(--gray-500); margin-bottom: 16px;"></i>
+    <h4 style="color: var(--white); margin-bottom: 8px;">Nothing to display</h4>
+</div>
               <?php else: ?>
                 <?php foreach ($recentLogs as $log): ?>
                   <div class="activity-item">
