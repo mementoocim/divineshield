@@ -26,14 +26,22 @@
   ?>
 
   <nav class="sidebar-menu">
+    <!-- CORE -->
+    <div class="sidebar-section-label" style="margin-top:0;">Core</div>
     <a href="dashboard.php" class="sidebar-link <?php echo $isDashboard ? 'active' : ''; ?>" id="menu-dashboard">
       <i class="fas fa-chart-pie"></i>
       <span>Dashboard</span>
     </a>
+
+    <!-- PROGRAM -->
+    <div class="sidebar-section-label">Program</div>
     <a href="submit-child.php" class="sidebar-link <?php echo $isSubmit ? 'active' : ''; ?>" id="menu-submit">
       <i class="fas fa-child-reaching"></i>
       <span>Submit Child</span>
     </a>
+
+    <!-- SITE -->
+    <div class="sidebar-section-label">Site</div>
     <a href="church-sites.php" class="sidebar-link <?php echo $isSite ? 'active' : ''; ?>" id="menu-site">
       <i class="fas fa-church"></i>
       <span>Church Site</span>

@@ -19,10 +19,19 @@ $currentPage = basename($_SERVER['PHP_SELF']);
   </div>
 
   <nav class="sidebar-menu">
+    <!-- CORE -->
+    <div class="sidebar-section-label" style="margin-top:0;">Core</div>
     <a href="dashboard.php" class="sidebar-link <?php echo $currentPage === 'dashboard.php' ? 'active' : ''; ?>">
       <i class="fas fa-chart-pie"></i>
       <span>Dashboard</span>
     </a>
+    <a href="analytics.php" class="sidebar-link <?php echo $currentPage === 'analytics.php' ? 'active' : ''; ?>">
+      <i class="fas fa-chart-line"></i>
+      <span>Analytics</span>
+    </a>
+
+    <!-- ADMINISTRATION -->
+    <div class="sidebar-section-label">Administration</div>
     <a href="church_sites.php" class="sidebar-link <?php echo $currentPage === 'church_sites.php' ? 'active' : ''; ?>">
       <i class="fas fa-church"></i>
       <span>Church Sites</span>
@@ -31,6 +40,9 @@ $currentPage = basename($_SERVER['PHP_SELF']);
       <i class="fas fa-user-gear"></i>
       <span>Staff / Encoders</span>
     </a>
+
+    <!-- BENEFICIARIES & PROGRAMS -->
+    <div class="sidebar-section-label">Program & Registry</div>
     <a href="children_registry.php" class="sidebar-link <?php echo $currentPage === 'children_registry.php' ? 'active' : ''; ?>">
       <i class="fas fa-child"></i>
       <span>Children Registry</span>
@@ -43,10 +55,9 @@ $currentPage = basename($_SERVER['PHP_SELF']);
       <i class="fas fa-utensils"></i>
       <span>Feeding Programs</span>
     </a>
-    <a href="analytics.php" class="sidebar-link <?php echo $currentPage === 'analytics.php' ? 'active' : ''; ?>">
-      <i class="fas fa-chart-line"></i>
-      <span>Analytics</span>
-    </a>
+
+    <!-- TOOLS & SYSTEM -->
+    <div class="sidebar-section-label">Tools & Security</div>
     <a href="reports.php" class="sidebar-link <?php echo $currentPage === 'reports.php' ? 'active' : ''; ?>">
       <i class="fas fa-file-invoice"></i>
       <span>Reports</span>

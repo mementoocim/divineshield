@@ -15,6 +15,8 @@ $currentPage = basename($_SERVER['PHP_SELF']);
   </div>
 
   <nav class="sidebar-menu">
+    <!-- CORE -->
+    <div class="sidebar-section-label" style="margin-top:0;">Core</div>
     <a href="dashboard.php" class="sidebar-link <?php echo $currentPage === 'dashboard.php' ? 'active' : ''; ?>">
       <i class="fas fa-chart-pie"></i>
       <span>Dashboard</span>
@@ -23,6 +25,9 @@ $currentPage = basename($_SERVER['PHP_SELF']);
       <i class="fas fa-inbox"></i>
       <span>Submission Review</span>
     </a>
+
+    <!-- BENEFICIARIES -->
+    <div class="sidebar-section-label">Beneficiaries</div>
     <a href="children_records.php" class="sidebar-link <?php echo $currentPage === 'children_records.php' ? 'active' : ''; ?>">
       <i class="fas fa-child"></i>
       <span>Children Records</span>
@@ -35,6 +40,9 @@ $currentPage = basename($_SERVER['PHP_SELF']);
       <i class="fas fa-clipboard-user"></i>
       <span>Attendance & RFID</span>
     </a>
+
+    <!-- SYSTEM -->
+    <div class="sidebar-section-label">Account</div>
     <a href="profile.php" class="sidebar-link <?php echo $currentPage === 'profile.php' ? 'active' : ''; ?>">
       <i class="fas fa-user-pen"></i>
       <span>Profile Settings</span>
