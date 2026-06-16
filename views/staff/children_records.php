@@ -49,33 +49,36 @@ $children = $stmt->fetchAll(PDO::FETCH_ASSOC);
 include 'includes/header.php';
 ?>
 
-<div class="dashboard-card">
-    <div class="dashboard-card-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 14px; margin-bottom: 24px;">
-        <h3 class="dashboard-card-title" style="font-family: var(--font-head); font-size: 1.15rem; font-weight: 700; display: flex; align-items: center; gap: 10px; color: var(--white);"><i class="fas fa-children" style="color:var(--blue-400);"></i> Children Registry</h3>
-        
-        <!-- Search Form -->
-        <form method="GET" action="children_records.php" style="display:flex; gap:8px;">
-            <input type="hidden" name="status" value="<?php echo htmlspecialchars($status_filter); ?>">
-            <input type="text" name="search" placeholder="Search by name or site..." 
-                   value="<?php echo htmlspecialchars($search); ?>" 
-                   style="padding:6px 12px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:4px; color:var(--white); outline:none;">
-            <button type="submit" class="btn btn-primary btn-sm" style="padding:6px 12px;">Search</button>
-            <?php if (!empty($search) || $status_filter !== 'all'): ?>
-                <a href="children_records.php" class="btn btn-outline btn-sm" style="padding:6px 12px; display:inline-flex; align-items:center;">Clear</a>
-            <?php endif; ?>
-        </form>
+<!-- Search & Filters Row -->
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:15px;">
+    <!-- Pill Tabs -->
+    <div class="pill-tabs" style="margin-bottom:0; border-bottom:none; padding-bottom:0;">
+        <a href="children_records.php?status=all&search=<?php echo urlencode($search); ?>" 
+           class="pill-tab <?php echo $status_filter === 'all' ? 'active' : ''; ?>">All</a>
+        <a href="children_records.php?status=active&search=<?php echo urlencode($search); ?>" 
+           class="pill-tab <?php echo $status_filter === 'active' ? 'active' : ''; ?>"><i class="fas fa-check-circle" style="font-size:0.8rem; margin-right:4px;"></i> Active</a>
+        <a href="children_records.php?status=graduated&search=<?php echo urlencode($search); ?>" 
+           class="pill-tab <?php echo $status_filter === 'graduated' ? 'active' : ''; ?>"><i class="fas fa-graduation-cap" style="font-size:0.8rem; margin-right:4px;"></i> Graduated</a>
+        <a href="children_records.php?status=inactive&search=<?php echo urlencode($search); ?>" 
+           class="pill-tab <?php echo $status_filter === 'inactive' ? 'active' : ''; ?>"><i class="fas fa-times-circle" style="font-size:0.8rem; margin-right:4px;"></i> Inactive</a>
     </div>
 
-    <!-- Status Tabs -->
-    <div style="display:flex; gap:10px; margin-bottom:20px; padding:0 20px; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:10px;">
-        <a href="children_records.php?status=all&search=<?php echo urlencode($search); ?>" 
-           class="btn btn-sm <?php echo $status_filter === 'all' ? 'btn-primary' : 'btn-outline'; ?>" style="padding:5px 12px; border-radius:4px;">All</a>
-        <a href="children_records.php?status=active&search=<?php echo urlencode($search); ?>" 
-           class="btn btn-sm <?php echo $status_filter === 'active' ? 'btn-primary' : 'btn-outline'; ?>" style="padding:5px 12px; border-radius:4px;">Active</a>
-        <a href="children_records.php?status=graduated&search=<?php echo urlencode($search); ?>" 
-           class="btn btn-sm <?php echo $status_filter === 'graduated' ? 'btn-primary' : 'btn-outline'; ?>" style="padding:5px 12px; border-radius:4px;">Graduated</a>
-        <a href="children_records.php?status=inactive&search=<?php echo urlencode($search); ?>" 
-           class="btn btn-sm <?php echo $status_filter === 'inactive' ? 'btn-primary' : 'btn-outline'; ?>" style="padding:5px 12px; border-radius:4px;">Inactive</a>
+    <!-- Search Form -->
+    <form method="GET" action="children_records.php" style="display:flex; gap:8px; align-items:center;">
+        <input type="hidden" name="status" value="<?php echo htmlspecialchars($status_filter); ?>">
+        <input type="text" name="search" placeholder="Search by name or site..." 
+               value="<?php echo htmlspecialchars($search); ?>" 
+               style="padding:8px 16px; background:rgba(30, 41, 59, 0.6); border:1px solid rgba(255,255,255,0.08); border-radius:999px; color:var(--white); outline:none; font-size:0.85rem;">
+        <button type="submit" class="btn btn-primary" style="padding:8px 20px; border-radius:999px; font-size:0.85rem; height:36px; display:inline-flex; align-items:center; justify-content:center;">Search</button>
+        <?php if (!empty($search) || $status_filter !== 'all'): ?>
+            <a href="children_records.php" class="btn btn-outline" style="padding:8px 20px; border-radius:999px; font-size:0.85rem; height:36px; display:inline-flex; align-items:center; justify-content:center;">Clear</a>
+        <?php endif; ?>
+    </form>
+</div>
+
+<div class="dashboard-card">
+    <div class="dashboard-card-header" style="border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 14px; margin-bottom: 24px;">
+        <h3 class="dashboard-card-title" style="font-family: var(--font-head); font-size: 1.15rem; font-weight: 700; display: flex; align-items: center; gap: 10px; color: var(--white);"><i class="fas fa-children" style="color:var(--blue-400);"></i> Children Registry</h3>
     </div>
 
     <div class="panel-body" style="padding:0;">
