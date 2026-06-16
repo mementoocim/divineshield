@@ -31,7 +31,7 @@ if (empty($staffFullName)) {
       <!-- TOP NAVIGATION BAR -->
       <header class="admin-topbar">
         <div class="topbar-title">
-          <i class="fas fa-desktop" style="margin-right:10px; color:var(--blue-400);"></i> <?php echo isset($pageTitle) ? htmlspecialchars($pageTitle) : 'Staff Dashboard'; ?>
+          <?php echo isset($pageTitle) ? htmlspecialchars($pageTitle) : 'Staff Dashboard'; ?>
         </div>
         
         <div class="topbar-user">
