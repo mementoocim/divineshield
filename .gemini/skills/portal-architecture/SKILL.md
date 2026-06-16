@@ -54,3 +54,6 @@ Render it using this HTML block to correctly support the design system's fallbac
   <?php endif; ?>
 </div>
 ```
+
+## 3. Git Operations Guideline
+* **CRITICAL RULE**: Do not automatically commit or push code changes (e.g. `git commit`, `git push`) until the user explicitly requests or gives permission to do so. Always wait for user instruction first.
