@@ -1,21 +1,145 @@
 <?php
 /**
- * Shared Admin Sidebar Navigation Template
+ * Shared Admin Sidebar Navigation Template - Brand New Premium Glassmorphic Redesign
  */
 $currentPage = basename($_SERVER['PHP_SELF']);
 ?>
 <style>
+/* BRAND NEW PREMIUM GLASS SIDEBAR FOR ADMIN */
+.admin-sidebar {
+  background: rgba(10, 15, 30, 0.85) !important;
+  backdrop-filter: blur(28px) !important;
+  -webkit-backdrop-filter: blur(28px) !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.06) !important;
+  box-shadow: 10px 0 30px rgba(0, 0, 0, 0.3);
+}
+
+.sidebar-header {
+  padding: 24px 24px 20px !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+.logo-mark {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+  box-shadow: 0 0 16px rgba(59, 130, 246, 0.4) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.brand-main {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  background: linear-gradient(120deg, #ffffff 30%, #93c5fd 90%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.brand-sub {
+  color: #60a5fa !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase;
+}
+
 #adminSidebarMenu {
-  gap: 12px !important;
+  padding: 20px 14px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
 }
-#adminSidebarMenu .sidebar-link {
-  padding: 14px 18px !important;
-}
+
 #adminSidebarMenu .sidebar-section-label {
-  margin-top: 22px !important;
-  margin-bottom: 8px !important;
+  font-size: 0.65rem !important;
+  font-weight: 800 !important;
+  color: #3b82f6 !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase;
+  margin-top: 18px !important;
+  margin-bottom: 6px !important;
+  padding-left: 12px !important;
+  opacity: 0.8;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+#adminSidebarMenu .sidebar-section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(59, 130, 246, 0.15), transparent);
+}
+
+#adminSidebarMenu .sidebar-link {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 11px 16px !important;
+  border-radius: 12px !important;
+  color: #94a3b8 !important;
+  font-weight: 500 !important;
+  font-size: 0.85rem !important;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  border: 1px solid transparent !important;
+  position: relative;
+  overflow: hidden;
+  background: transparent;
+}
+
+#adminSidebarMenu .sidebar-link i {
+  width: 18px;
+  font-size: 0.95rem;
+  color: #64748b;
+  transition: all 0.25s ease;
+}
+
+/* Hover State */
+#adminSidebarMenu .sidebar-link:hover {
+  color: #f1f5f9 !important;
+  background: rgba(255, 255, 255, 0.03) !important;
+  border-color: rgba(255, 255, 255, 0.05) !important;
+  transform: translateX(4px);
+}
+#adminSidebarMenu .sidebar-link:hover i {
+  color: #3b82f6;
+  transform: scale(1.1);
+}
+
+/* Active State */
+#adminSidebarMenu .sidebar-link.active {
+  color: #ffffff !important;
+  background: linear-gradient(90deg, rgba(59, 130, 246, 0.12) 0%, rgba(59, 130, 246, 0.02) 100%) !important;
+  border-color: rgba(59, 130, 246, 0.25) !important;
+  font-weight: 600 !important;
+  box-shadow: inset 4px 0 0 #3b82f6;
+}
+#adminSidebarMenu .sidebar-link.active i {
+  color: #3b82f6 !important;
+}
+
+/* Footer & Logout */
+.sidebar-footer {
+  padding: 18px 20px !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+.sidebar-footer .sidebar-link {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 12px 16px !important;
+  border-radius: 12px !important;
+  font-weight: 600 !important;
+  font-size: 0.85rem !important;
+  transition: all 0.25s ease !important;
+  border: 1px solid transparent !important;
+}
+.sidebar-footer .sidebar-link:hover {
+  background: rgba(239, 68, 68, 0.08) !important;
+  border-color: rgba(239, 68, 68, 0.15) !important;
+  transform: translateX(4px);
 }
 </style>
+
 <!-- SIDEBAR NAVIGATION -->
 <aside class="admin-sidebar">
   <div class="sidebar-header">
