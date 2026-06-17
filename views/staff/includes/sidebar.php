@@ -1,146 +1,6 @@
 <?php
-/**
- * Shared Staff Sidebar Navigation Template - Brand New Premium Glassmorphic Redesign
- */
 $currentPage = basename($_SERVER['PHP_SELF']);
 ?>
-<style>
-/* BRAND NEW PREMIUM GLASS SIDEBAR FOR STAFF */
-.admin-sidebar {
-  background: rgba(10, 15, 30, 0.85) !important;
-  backdrop-filter: blur(28px) !important;
-  -webkit-backdrop-filter: blur(28px) !important;
-  border-right: 1px solid rgba(255, 255, 255, 0.06) !important;
-  box-shadow: 10px 0 30px rgba(0, 0, 0, 0.3);
-}
-
-.sidebar-header {
-  padding: 24px 24px 20px !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
-}
-
-.logo-mark {
-  background: linear-gradient(135deg, #10b981 0%, #047857 100%) !important;
-  box-shadow: 0 0 16px rgba(16, 185, 129, 0.4) !important;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.brand-main {
-  font-family: 'Poppins', sans-serif;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  background: linear-gradient(120deg, #ffffff 30%, #a7f3d0 90%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.brand-sub {
-  color: #34d399 !important;
-  font-weight: 700 !important;
-  letter-spacing: 0.12em !important;
-  text-transform: uppercase;
-}
-
-#staffSidebarMenu {
-  padding: 20px 14px !important;
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 12px !important;
-}
-
-#staffSidebarMenu .sidebar-section-label {
-  font-size: 0.65rem !important;
-  font-weight: 800 !important;
-  color: #10b981 !important;
-  letter-spacing: 0.12em !important;
-  text-transform: uppercase;
-  margin-top: 18px !important;
-  margin-bottom: 6px !important;
-  padding-left: 12px !important;
-  opacity: 0.8;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-#staffSidebarMenu .sidebar-section-label::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: linear-gradient(90deg, rgba(16, 185, 129, 0.15), transparent);
-}
-
-#staffSidebarMenu .sidebar-link {
-  display: flex !important;
-  align-items: center !important;
-  gap: 12px !important;
-  padding: 14px 18px !important;
-  border-radius: 12px !important;
-  color: #94a3b8 !important;
-  font-weight: 500 !important;
-  font-size: 0.88rem !important;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
-  border: 1px solid transparent !important;
-  position: relative;
-  overflow: hidden;
-  background: transparent;
-}
-
-#staffSidebarMenu .sidebar-link i {
-  width: 18px;
-  font-size: 0.95rem;
-  color: #64748b;
-  transition: all 0.25s ease;
-}
-
-/* Hover State */
-#staffSidebarMenu .sidebar-link:hover {
-  color: #f1f5f9 !important;
-  background: rgba(255, 255, 255, 0.03) !important;
-  border-color: rgba(255, 255, 255, 0.05) !important;
-  transform: translateX(4px);
-}
-#staffSidebarMenu .sidebar-link:hover i {
-  color: #10b981;
-  transform: scale(1.1);
-}
-
-/* Active State */
-#staffSidebarMenu .sidebar-link.active {
-  color: #ffffff !important;
-  background: linear-gradient(90deg, rgba(16, 185, 129, 0.12) 0%, rgba(16, 185, 129, 0.02) 100%) !important;
-  border-color: rgba(16, 185, 129, 0.25) !important;
-  font-weight: 600 !important;
-  box-shadow: inset 4px 0 0 #10b981;
-}
-#staffSidebarMenu .sidebar-link.active i {
-  color: #10b981 !important;
-}
-
-/* Footer & Logout */
-.sidebar-footer {
-  padding: 18px 20px !important;
-  border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
-}
-
-.sidebar-footer .sidebar-link {
-  display: flex !important;
-  align-items: center !important;
-  gap: 12px !important;
-  padding: 12px 16px !important;
-  border-radius: 12px !important;
-  font-weight: 600 !important;
-  font-size: 0.85rem !important;
-  transition: all 0.25s ease !important;
-  border: 1px solid transparent !important;
-}
-.sidebar-footer .sidebar-link:hover {
-  background: rgba(239, 68, 68, 0.08) !important;
-  border-color: rgba(239, 68, 68, 0.15) !important;
-  transform: translateX(4px);
-}
-</style>
-
-<!-- SIDEBAR NAVIGATION -->
 <aside class="admin-sidebar" id="staffSidebar">
   <div class="sidebar-header">
     <a href="dashboard.php" class="nav-brand" style="pointer-events: none;">
@@ -169,6 +29,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
       <i class="fas fa-calendar-check"></i>
       <span>My Attendance</span>
     </a>
+
 
     <!-- SYSTEM -->
     <div class="sidebar-section-label">Account</div>
@@ -227,3 +88,4 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 });
 </script>
+
