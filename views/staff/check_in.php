@@ -75,17 +75,36 @@ if (!$isValidToken) {
 
 // 4. Check if already checked in today
 $userId = $_SESSION['user_id'];
-$stmtCheck = $pdo->prepare("SELECT * FROM staff_attendance WHERE user_id = ? AND DATE(check_in_time) = CURRENT_DATE");
+$stmtCheck = $pdo->prepare("SELECT * FROM staff_attendance WHERE user_id = ? AND DATE(check_in_time) = CURRENT_DATE ORDER BY check_in_time DESC LIMIT 1");
 $stmtCheck->execute([$userId]);
 $alreadyChecked = $stmtCheck->fetch();
 
 $checkInTime = '';
-$status = '';
+$checkOutTime = '';
+$status = ''; // 'success_in', 'success_out', 'already_logged'
+
 if ($alreadyChecked) {
     $checkInTime = date('h:i A', strtotime($alreadyChecked['check_in_time']));
-    $status = 'already_logged';
+    if (empty($alreadyChecked['check_out_time'])) {
+        // Log Check-Out
+        try {
+            $stmtUpdate = $pdo->prepare("UPDATE staff_attendance SET check_out_time = NOW() WHERE id = ?");
+            $stmtUpdate->execute([$alreadyChecked['id']]);
+
+            logAudit($pdo, $userId, 'STAFF_CHECK_OUT', "Staff member @{$_SESSION['username']} checked out successfully via QR code.");
+            
+            $checkOutTime = date('h:i A');
+            $status = 'success_out';
+        } catch (Exception $e) {
+            renderErrorCard("Database Connection Error", "Could not record check-out: " . $e->getMessage());
+            exit;
+        }
+    } else {
+        $checkOutTime = date('h:i A', strtotime($alreadyChecked['check_out_time']));
+        $status = 'already_logged';
+    }
 } else {
-    // 5. Log Attendance
+    // 5. Log Attendance Check-In
     try {
         $ip = $_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN';
         $stmtInsert = $pdo->prepare("INSERT INTO staff_attendance (user_id, ip_address) VALUES (?, ?)");
@@ -94,7 +113,7 @@ if ($alreadyChecked) {
         logAudit($pdo, $userId, 'STAFF_CHECK_IN', "Staff member @{$_SESSION['username']} checked in successfully via QR code.");
 
         $checkInTime = date('h:i A');
-        $status = 'success';
+        $status = 'success_in';
     } catch (Exception $e) {
         renderErrorCard("Database Connection Error", "Could not record check-in: " . $e->getMessage());
         exit;
@@ -303,18 +322,24 @@ if ($alreadyChecked) {
 <body>
   <div class="card">
 
-    <?php if ($status === 'success'): ?>
+    <?php if ($status === 'success_in'): ?>
       <div class="icon-ring success">
         <i class="fas fa-circle-check"></i>
       </div>
       <h1>Check-In Logged!</h1>
-      <p class="subtitle">Your attendance has been successfully recorded for today.</p>
+      <p class="subtitle">Your check-in attendance has been successfully recorded.</p>
+    <?php elseif ($status === 'success_out'): ?>
+      <div class="icon-ring success" style="border-color: rgba(59,130,246,0.5); color: #60a5fa; box-shadow: 0 0 28px rgba(59,130,246,0.22); animation: none;">
+        <i class="fas fa-right-from-bracket"></i>
+      </div>
+      <h1>Check-Out Logged!</h1>
+      <p class="subtitle">Your check-out attendance has been successfully recorded.</p>
     <?php else: ?>
       <div class="icon-ring info">
         <i class="fas fa-user-check"></i>
       </div>
       <h1>Already Logged</h1>
-      <p class="subtitle">You have already recorded your attendance earlier today.</p>
+      <p class="subtitle">You have already recorded your check-in and check-out today.</p>
     <?php endif; ?>
 
     <!-- Date chip -->
@@ -331,11 +356,15 @@ if ($alreadyChecked) {
       </div>
       <div class="detail-row">
         <span class="detail-label">Log Status</span>
-        <span class="badge present"><i class="fas fa-check-double"></i> Present</span>
+        <span class="badge present"><i class="fas fa-check-double"></i> <?php echo ($status === 'success_in') ? 'Checked In' : (($status === 'success_out') ? 'Checked Out' : 'Completed'); ?></span>
       </div>
       <div class="detail-row">
         <span class="detail-label">Check-In Time</span>
-        <span class="detail-value mono"><?php echo $checkInTime; ?></span>
+        <span class="detail-value mono"><?php echo $checkInTime ?: '—'; ?></span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Check-Out Time</span>
+        <span class="detail-value mono"><?php echo $checkOutTime ?: '—'; ?></span>
       </div>
     </div>
 

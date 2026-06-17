@@ -87,3 +87,14 @@ try {
     }
 }
 
+// Auto schema update: Add check_out_time to staff_attendance table
+try {
+    $pdo->query("SELECT check_out_time FROM staff_attendance LIMIT 1");
+} catch (PDOException $e) {
+    try {
+        $pdo->exec("ALTER TABLE staff_attendance ADD COLUMN check_out_time TIMESTAMP NULL DEFAULT NULL AFTER check_in_time");
+    } catch (Exception $ex) {
+        // Fail silently
+    }
+}
+

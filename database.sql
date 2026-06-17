@@ -391,6 +391,7 @@ CREATE TABLE `staff_attendance` (
   `id` int(11) NOT NULL,
   `user_id` int(11) NOT NULL,
   `check_in_time` timestamp NOT NULL DEFAULT current_timestamp(),
+  `check_out_time` timestamp NULL DEFAULT NULL,
   `ip_address` varchar(45) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

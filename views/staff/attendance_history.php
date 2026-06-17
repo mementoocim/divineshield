@@ -125,8 +125,9 @@ include 'includes/header.php';
                 <table class="dark-table">
                     <thead>
                         <tr>
-                            <th>Check-In Date</th>
+                            <th>Date</th>
                             <th>Check-In Time</th>
+                            <th>Check-Out Time</th>
                             <th>Logging Status</th>
                             <th>IP Address</th>
                         </tr>
@@ -138,10 +139,16 @@ include 'includes/header.php';
                                 <?php echo date('M d, Y', strtotime($log['check_in_time'])); ?>
                             </td>
                             <td style="font-family: monospace; color:var(--white);">
-                                <?php echo date('h:i:s A', strtotime($log['check_in_time'])); ?>
+                                <?php echo date('h:i A', strtotime($log['check_in_time'])); ?>
+                            </td>
+                            <td style="font-family: monospace; color:var(--white);">
+                                <?php echo $log['check_out_time'] ? date('h:i A', strtotime($log['check_out_time'])) : '<span class="text-muted">—</span>'; ?>
                             </td>
                             <td>
-                                <span class="status-badge success" style="font-weight:600;"><i class="fas fa-circle-check"></i> Present</span>
+                                <span class="status-badge <?php echo $log['check_out_time'] ? 'success' : 'warning'; ?>" style="font-weight:600;">
+                                    <i class="fas <?php echo $log['check_out_time'] ? 'fa-circle-check' : 'fa-clock'; ?>"></i> 
+                                    <?php echo $log['check_out_time'] ? 'Completed' : 'Checked In'; ?>
+                                </span>
                             </td>
                             <td class="text-muted" style="font-family: monospace; font-size: 0.82rem;">
                                 <?php echo htmlspecialchars($log['ip_address'] ?? '—'); ?>

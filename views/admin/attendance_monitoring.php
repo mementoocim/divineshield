@@ -237,7 +237,9 @@ include 'includes/header.php';
         <?php if ($tab === 'staff'): ?>
           <thead>
             <tr>
-              <th>Timestamp</th>
+              <th>Date</th>
+              <th>Check-In Time</th>
+              <th>Check-Out Time</th>
               <th>Staff / Encoder</th>
               <th>Email</th>
               <th>IP Address</th>
@@ -246,8 +248,14 @@ include 'includes/header.php';
           <tbody>
             <?php foreach ($records as $record): ?>
               <tr>
-                <td style="font-size:0.82rem; white-space:nowrap; color:var(--gray-400);">
-                  <?php echo date('M d, Y h:i:s A', strtotime($record['check_in_time'])); ?>
+                <td style="font-size:0.82rem; white-space:nowrap; color:var(--white); font-weight:600;">
+                  <?php echo date('M d, Y', strtotime($record['check_in_time'])); ?>
+                </td>
+                <td style="font-size:0.82rem; white-space:nowrap; color:var(--gray-300); font-family: monospace;">
+                  <?php echo date('h:i A', strtotime($record['check_in_time'])); ?>
+                </td>
+                <td style="font-size:0.82rem; white-space:nowrap; color:var(--gray-300); font-family: monospace;">
+                  <?php echo $record['check_out_time'] ? date('h:i A', strtotime($record['check_out_time'])) : '<span class="text-muted">—</span>'; ?>
                 </td>
                 <td>
                   <strong style="color:var(--white);"><?php echo htmlspecialchars($record['first_name'] . ' ' . $record['last_name']); ?></strong>
