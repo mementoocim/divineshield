@@ -172,7 +172,7 @@ include 'includes/header.php';
       <?php
       // Fetch today's check-ins for encoders
       $stmtCheckIns = $pdo->query("
-          SELECT sa.check_in_time, sa.ip_address, u.username, u.first_name, u.last_name, u.email
+          SELECT sa.check_in_time, sa.check_out_time, sa.ip_address, u.username, u.first_name, u.last_name, u.email
           FROM staff_attendance sa
           JOIN users u ON sa.user_id = u.id
           WHERE DATE(sa.check_in_time) = CURRENT_DATE
@@ -195,6 +195,7 @@ include 'includes/header.php';
               <tr>
                 <th>Staff Member</th>
                 <th>Check-in Time</th>
+                <th>Check-out Time</th>
                 <th>IP Address</th>
               </tr>
             </thead>
@@ -210,6 +211,9 @@ include 'includes/header.php';
                   </td>
                   <td style="font-family: monospace; color:var(--teal-400); font-weight:600;">
                     <?php echo date('h:i:s A', strtotime($log['check_in_time'])); ?>
+                  </td>
+                  <td style="font-family: monospace; color:var(--blue-400); font-weight:600;">
+                    <?php echo $log['check_out_time'] ? date('h:i:s A', strtotime($log['check_out_time'])) : '<span class="text-muted">—</span>'; ?>
                   </td>
                   <td style="font-family: monospace; font-size:0.8rem; color:var(--gray-400);">
                     <?php echo htmlspecialchars($log['ip_address'] ?? '—'); ?>
