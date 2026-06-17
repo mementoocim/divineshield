@@ -4,6 +4,7 @@
  */
 
 require_once 'db.php';
+require_once 'config/email_helper.php';
 session_start();
 
 // Redirect if logged in
@@ -20,13 +21,11 @@ if (isset($_SESSION['user_id'])) {
 
 $error = '';
 $success = '';
-$startStep = 1; // Default to step 1
+$startStep = 1;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // If submission failed, default back to step 3 so they can fix credentials
     $startStep = 3;
 
-    // Collect Step 1 Info (Submits text names populated by JS)
     $churchName    = trim($_POST['church_name'] ?? '');
     $positionTitle = trim($_POST['position_title'] ?? '');
     $streetAddress = trim($_POST['street_address'] ?? '');
@@ -35,7 +34,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $city          = trim($_POST['city'] ?? '');
     $barangay      = trim($_POST['barangay'] ?? '');
 
-    // Collect Step 2 Info
     $firstName    = trim($_POST['first_name'] ?? '');
     $middleName   = trim($_POST['middle_name'] ?? '');
     $lastName     = trim($_POST['last_name'] ?? '');
@@ -43,12 +41,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email        = trim($_POST['email'] ?? '');
     $adminMessage = trim($_POST['admin_message'] ?? '');
 
-    // Collect Step 3 Info
     $username        = trim($_POST['username'] ?? '');
     $password        = $_POST['password'] ?? '';
     $confirmPassword = $_POST['confirm_password'] ?? '';
 
-    // Validation checks
     if (empty($churchName) || empty($positionTitle) || empty($streetAddress) || empty($region) || empty($city) || empty($barangay) ||
         empty($firstName) || empty($lastName) || empty($phone) || empty($email) || empty($username) || empty($password)) {
         $error = 'All required fields must be filled. Make sure Church Name, Street Address, Region, City/Municipality, and Barangay are specified.';
@@ -60,14 +56,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'Password must be at least 6 characters.';
     } else {
         try {
-            // Check username
             $stmt = $pdo->prepare("SELECT id FROM users WHERE username = ?");
             $stmt->execute([$username]);
             if ($stmt->fetch()) {
                 $error = 'Username is already taken.';
             }
 
-            // Check email
             if (empty($error)) {
                 $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ?");
                 $stmt->execute([$email]);
@@ -79,28 +73,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (empty($error)) {
                 $pdo->beginTransaction();
 
-                // Hash password
                 $passwordHash = password_hash($password, PASSWORD_DEFAULT);
 
-                // Insert User (status is 'pending' by default, includes position_title and admin_message)
                 $stmt = $pdo->prepare("INSERT INTO users (username, password_hash, role, position_title, first_name, middle_name, last_name, email, phone, admin_message, status) VALUES (?, ?, 'church_leader', ?, ?, ?, ?, ?, ?, ?, 'pending')");
                 $stmt->execute([$username, $passwordHash, $positionTitle, $firstName, empty($middleName) ? null : $middleName, $lastName, $email, $phone, $adminMessage]);
-                
+
                 $leaderId = $pdo->lastInsertId();
 
-                // Insert Church Site
                 $provVal = empty($province) ? $city : $province;
-                
+
                 $stmt = $pdo->prepare("INSERT INTO church_sites (church_leader_id, church_name, address, region, province, city_municipality, barangay, contact_number) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
                 $stmt->execute([$leaderId, $churchName, $streetAddress, $region, $provVal, $city, $barangay, $phone]);
 
-                // Audit log
                 $leaderName = trim($firstName . ' ' . $lastName);
                 logAudit($pdo, $leaderId, 'USER_REGISTER', "Pastor $leaderName registered church site: $churchName (Pending approval)");
 
                 $pdo->commit();
+
+                // Notify admin of the new pending registration
+                sendAdminNewRegistrationEmail(
+                    $firstName,
+                    $lastName,
+                    $email,
+                    $phone,
+                    $positionTitle,
+                    $username,
+                    $churchName,
+                    $streetAddress,
+                    $region,
+                    $city,
+                    $barangay,
+                    $adminMessage
+                );
+
                 $success = 'Your registration was submitted successfully! Please wait for administrator approval.';
-                $startStep = 1; // reset step on success
+                $startStep = 1;
                 $_POST = [];
             }
         } catch (Exception $e) {
@@ -401,7 +408,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     let isOfflineMode = false;
     let isRestoring = true;
 
-    // Load step on initialization
     document.addEventListener("DOMContentLoaded", async () => {
       isRestoring = true;
       showStep(currentStep);
@@ -411,12 +417,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       isRestoring = false;
     });
 
-    // Clear saved storage on PHP success session
     <?php if (!empty($success)): ?>
       localStorage.removeItem("divineshield_register_data");
     <?php endif; ?>
 
-    // --- Form State Persistence Functions ---
     function saveFormData() {
       if (isRestoring) return;
       const regionSelect = document.getElementById("region_select");
@@ -461,8 +465,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
       try {
         const data = JSON.parse(raw);
-
-        // Restore simple text fields instantly
         document.getElementById("church_name").value = data.church_name || "";
         document.getElementById("position_title").value = data.position_title || "";
         document.getElementById("street_address").value = data.street_address || "";
@@ -475,7 +477,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         document.getElementById("admin_message").value = data.admin_message || "";
         document.getElementById("username").value = data.username || "";
 
-        // Restore wizard step instantly
         if (data.currentStep && data.currentStep >= 1 && data.currentStep <= 3) {
           showStep(data.currentStep);
         }
@@ -524,12 +525,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     function setupPersistence() {
       const form = document.getElementById("wizardForm");
-      // Save data as the user interacts with the form
       form.addEventListener("input", saveFormData);
       form.addEventListener("change", saveFormData);
     }
 
-    // --- Dynamic Locations (PSGC API Integration) ---
     async function initLocations() {
       const regionSelect = document.getElementById("region_select");
       const citySelect = document.getElementById("city_select");
@@ -540,11 +539,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!response.ok) throw new Error("API failed");
         
         const regions = await response.json();
-        
-        // Sort regions alphabetically by name
         regions.sort((a, b) => a.name.localeCompare(b.name));
         
-        // Populate regions
         regionSelect.innerHTML = '<option value="" disabled selected>Select region...</option>';
         regions.forEach(r => {
           const opt = document.createElement("option");
@@ -554,10 +550,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           regionSelect.appendChild(opt);
         });
 
-        // Restore saved dropdown values asynchronously
         await restoreLocationState();
 
-        // Check if PHP POST has data (fallback validation case)
         const prevRegion = "<?php echo $_POST['region'] ?? ''; ?>";
         if (prevRegion && !localStorage.getItem("divineshield_register_data")) {
           const matchingOpt = Array.from(regionSelect.options).find(o => o.dataset.name === prevRegion);
@@ -572,13 +566,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         enableOfflineFallback();
       }
 
-      // Bind Change Events
       regionSelect.addEventListener("change", async () => {
         if (isOfflineMode) return;
         const regionCode = regionSelect.value;
         const selectedOpt = regionSelect.options[regionSelect.selectedIndex];
         document.getElementById("region").value = selectedOpt.dataset.name;
-
         await loadCities(regionCode);
         saveFormData();
       });
@@ -588,7 +580,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         const cityCode = citySelect.value;
         const selectedOpt = citySelect.options[citySelect.selectedIndex];
         document.getElementById("city").value = selectedOpt.dataset.name;
-
         await loadBarangays(cityCode);
         saveFormData();
       });
@@ -681,14 +672,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       }
     }
 
-    // Swaps Select dropdowns to Text fields in case of network failures / local development offline
     function enableOfflineFallback() {
       if (isOfflineMode) return;
       isOfflineMode = true;
       
       console.log("Applying offline text inputs fallback.");
 
-      // Swapping Region Select
       const regionContainer = document.getElementById("regionFieldContainer");
       regionContainer.innerHTML = `
         <i class="fas fa-map"></i>
@@ -714,7 +703,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </select>
       `;
 
-      // Swapping City Select
       const cityContainer = document.getElementById("cityFieldContainer");
       const prevCityValue = document.getElementById("city").value || "<?php echo $_POST['city'] ?? ''; ?>";
       cityContainer.innerHTML = `
@@ -722,7 +710,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <input type="text" id="city_select" name="city" class="auth-input" placeholder="e.g. Quezon City" value="${prevCityValue}" required />
       `;
 
-      // Swapping Barangay Select
       const barangayContainer = document.getElementById("barangayFieldContainer");
       const prevBarangayValue = document.getElementById("barangay").value || "<?php echo $_POST['barangay'] ?? ''; ?>";
       barangayContainer.innerHTML = `
@@ -730,7 +717,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <input type="text" id="barangay_select" name="barangay" class="auth-input" placeholder="e.g. Batasan Hills" value="${prevBarangayValue}" required />
       `;
 
-      // Remove the hidden fields if they conflict with the raw input submits
       const hiddenRegion = document.getElementById("region");
       const hiddenCity = document.getElementById("city");
       const hiddenBarangay = document.getElementById("barangay");
@@ -738,22 +724,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       if (hiddenCity) hiddenCity.remove();
       if (hiddenBarangay) hiddenBarangay.remove();
 
-      // Bind simple region update to raw POST if region select is toggled in offline mode
       const regionSelect = document.getElementById("region_select");
       regionSelect.addEventListener("change", () => {
-        regionSelect.name = "region"; // Ensure this submits region name directly
+        regionSelect.name = "region";
         saveFormData();
       });
     }
 
-    // --- Stepper Controls ---
     function showStep(step) {
-      // Hide all panels
       document.querySelectorAll(".wizard-panel").forEach(panel => panel.classList.remove("active"));
-      // Show requested panel
       document.getElementById("panel" + step).classList.add("active");
 
-      // Update stepper indicator circles
       for (let i = 1; i <= 3; i++) {
         const indicator = document.getElementById("stepIndicator" + i);
         if (i < step) {
@@ -765,21 +746,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
       }
 
-      // Update Line Fill
       const lineFill = document.getElementById("stepperLineFill");
       if (step === 1) lineFill.style.width = "0%";
       if (step === 2) lineFill.style.width = "50%";
       if (step === 3) lineFill.style.width = "100%";
 
       currentStep = step;
-      saveFormData(); // Save current step
+      saveFormData();
       document.querySelector(".auth-card").scrollIntoView({ behavior: 'smooth' });
     }
 
     function nextStep(step) {
       const currentPanel = document.getElementById("panel" + (step - 1));
-      
-      // Select the correct inputs inside current step panel
       const selects = currentPanel.querySelectorAll("select");
       const inputs = currentPanel.querySelectorAll("input");
       
@@ -800,7 +778,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       });
 
       if (!allValid) return;
-
       showStep(step);
     }
 
@@ -808,11 +785,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       showStep(step);
     }
 
-    // Toggle Password Visibility
     const setupTogglePassword = (inputId, toggleIconId) => {
       const passwordInput = document.getElementById(inputId);
       const toggleIcon = document.getElementById(toggleIconId);
-
       toggleIcon.addEventListener("click", () => {
         const type = passwordInput.getAttribute("type") === "password" ? "text" : "password";
         passwordInput.setAttribute("type", type);
@@ -824,7 +799,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     setupTogglePassword("password", "togglePassword");
     setupTogglePassword("confirm_password", "toggleConfirmPassword");
 
-    // Password Strength Checker
     const passwordInput = document.getElementById("password");
     const strengthFill = document.getElementById("strengthFill");
     const strengthText = document.getElementById("strengthText");
