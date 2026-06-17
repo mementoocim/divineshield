@@ -187,7 +187,7 @@ function sendAdminNewRegistrationEmail(
     return false;
 
   try {
-    $mail->addAddress('balmacedamico028@gmail.com', 'DivineShield Administrator');
+    $mail->addAddress('maramagkimberly98@gmail.com', 'DivineShield Administrator');
     $mail->Subject = 'New Church Leader Registration Pending Approval';
 
     $adminMessageRow = !empty($adminMessage)
