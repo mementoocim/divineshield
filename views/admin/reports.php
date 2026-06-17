@@ -314,20 +314,11 @@ include 'includes/header.php';
       <input type="date" name="date_end" class="auth-input" value="<?php echo htmlspecialchars($dateEnd); ?>" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px;">
     </div>
 
-    <div style="flex:0.6; min-width:110px;">
-      <label style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">File Format</label>
-      <select name="format" class="auth-select" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px; width:100%;">
-        <option value="csv" <?php echo $format === 'csv' ? 'selected' : ''; ?>>CSV (.csv)</option>
-        <option value="excel" <?php echo $format === 'excel' ? 'selected' : ''; ?>>Excel (.xls)</option>
-        <option value="print" <?php echo $format === 'print' ? 'selected' : ''; ?>>Print / PDF</option>
-      </select>
-    </div>
-
     <div style="display:flex; gap:10px; width:auto;">
       <button type="submit" class="btn btn-primary" style="padding:10px 20px; font-size:0.85rem; height:46px;">
         <i class="fas fa-rotate"></i> Generate Preview
       </button>
-      <?php if ($siteId || !empty($dateStart) || !empty($dateEnd) || $type !== 'all' || $format !== 'csv'): ?>
+      <?php if ($siteId || !empty($dateStart) || !empty($dateEnd) || $type !== 'all'): ?>
         <a href="reports.php" class="btn btn-outline" style="padding:10px 20px; font-size:0.85rem; height:46px; border-color:rgba(255,255,255,0.1); color:var(--gray-300); align-items:center;">
           <i class="fas fa-filter-circle-xmark"></i> Reset
         </a>
@@ -344,9 +335,22 @@ include 'includes/header.php';
     </div>
     
     <?php if (!empty($previewRows)): ?>
-      <a href="reports.php?action=export&report_type=<?php echo urlencode($type); ?>&site_id=<?php echo urlencode($siteId ?? ''); ?>&date_start=<?php echo urlencode($dateStart); ?>&date_end=<?php echo urlencode($dateEnd); ?>&format=<?php echo urlencode($format); ?>" class="btn btn-success btn-sm" <?php echo $format === 'print' ? 'target="_blank"' : ''; ?>>
-        <i class="fas fa-download"></i> <?php echo ($format === 'print') ? 'Print Report' : (($format === 'excel') ? 'Export to Excel' : 'Export to CSV'); ?>
-      </a>
+      <div class="dropdown" style="position: relative; display: inline-block;">
+        <button class="btn btn-success btn-sm dropdown-toggle" type="button" style="display:inline-flex; align-items:center; gap:8px;">
+          <i class="fas fa-file-export"></i> Export Report <i class="fas fa-chevron-down" style="font-size:0.75rem;"></i>
+        </button>
+        <div class="dropdown-content" style="display: none; position: absolute; right: 0; background-color: #0f172a; min-width: 170px; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.55); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; z-index: 100; margin-top: 4px; overflow: hidden;">
+          <a href="reports.php?action=export&report_type=<?php echo urlencode($type); ?>&site_id=<?php echo urlencode($siteId ?? ''); ?>&date_start=<?php echo urlencode($dateStart); ?>&date_end=<?php echo urlencode($dateEnd); ?>&format=csv" style="color: var(--white); padding: 12px 16px; text-decoration: none; display: block; font-size: 0.82rem; border-bottom: 1px solid rgba(255,255,255,0.06); transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.04)'" onmouseout="this.style.background='transparent'">
+            <i class="fas fa-file-csv" style="color:#818cf8; width:16px; margin-right: 8px;"></i> Export to CSV
+          </a>
+          <a href="reports.php?action=export&report_type=<?php echo urlencode($type); ?>&site_id=<?php echo urlencode($siteId ?? ''); ?>&date_start=<?php echo urlencode($dateStart); ?>&date_end=<?php echo urlencode($dateEnd); ?>&format=excel" style="color: var(--white); padding: 12px 16px; text-decoration: none; display: block; font-size: 0.82rem; border-bottom: 1px solid rgba(255,255,255,0.06); transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.04)'" onmouseout="this.style.background='transparent'">
+            <i class="fas fa-file-excel" style="color:#34d399; width:16px; margin-right: 8px;"></i> Export to Excel
+          </a>
+          <a href="reports.php?action=export&report_type=<?php echo urlencode($type); ?>&site_id=<?php echo urlencode($siteId ?? ''); ?>&date_start=<?php echo urlencode($dateStart); ?>&date_end=<?php echo urlencode($dateEnd); ?>&format=print" target="_blank" style="color: var(--white); padding: 12px 16px; text-decoration: none; display: block; font-size: 0.82rem; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.04)'" onmouseout="this.style.background='transparent'">
+            <i class="fas fa-print" style="color:#60a5fa; width:16px; margin-right: 8px;"></i> Print / Save PDF
+          </a>
+        </div>
+      </div>
     <?php endif; ?>
   </div>
 
@@ -522,5 +526,21 @@ include 'includes/header.php';
     <?php endif; ?>
   </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const toggleBtn = document.querySelector('.dropdown-toggle');
+  const dropdownContent = document.querySelector('.dropdown-content');
+  if (toggleBtn && dropdownContent) {
+    toggleBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      dropdownContent.style.display = dropdownContent.style.display === 'block' ? 'none' : 'block';
+    });
+    document.addEventListener('click', function() {
+      dropdownContent.style.display = 'none';
+    });
+  }
+});
+</script>
 
 <?php include 'includes/footer.php'; ?>
