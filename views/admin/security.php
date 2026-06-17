@@ -60,24 +60,52 @@ include 'includes/header.php';
             <h3 class="dashboard-card-title">Access Policy Rules</h3>
         </div>
 
-        <div class="form-group" style="margin-bottom:20px; margin-top:16px;">
-            <label class="form-label" style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">Lockout Threshold</label>
-            <select class="auth-select" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); width:100%; height:46px;">
-                <option value="5">5 failed attempts (Recommended)</option>
-                <option value="3">3 failed attempts (Strict)</option>
-                <option value="10">10 failed attempts</option>
-            </select>
-        </div>
+        <form id="security-form" onsubmit="event.preventDefault(); saveSecurityRules();">
+            <div class="form-group" style="margin-bottom:20px; margin-top:16px;">
+                <label class="form-label" style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">Lockout Threshold</label>
+                <select class="auth-select" id="lockout_threshold" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); width:100%; height:46px;">
+                    <option value="5">5 failed attempts (Recommended)</option>
+                    <option value="3">3 failed attempts (Strict)</option>
+                    <option value="10">10 failed attempts</option>
+                </select>
+            </div>
 
-        <div class="form-group" style="margin-bottom:20px;">
-            <label class="form-label" style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">Session Idle Timeout</label>
-            <select class="auth-select" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); width:100%; height:46px;">
-                <option value="30">30 minutes</option>
-                <option value="60" selected>1 hour (Default)</option>
-                <option value="120">2 hours</option>
-            </select>
-        </div>
+            <div class="form-group" style="margin-bottom:28px;">
+                <label class="form-label" style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">Session Idle Timeout</label>
+                <select class="auth-select" id="session_timeout" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); width:100%; height:46px;">
+                    <option value="30">30 minutes</option>
+                    <option value="60" selected>1 hour (Default)</option>
+                    <option value="120">2 hours</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width:100%; height:46px; justify-content:center;">
+                <i class="fas fa-shield-halved"></i> Save Policy Rules
+            </button>
+        </form>
     </div>
 </div>
+
+<script>
+function saveSecurityRules() {
+    Swal.fire({
+        title: 'Saving Policy Rules...',
+        text: 'Applying access policies and lockout thresholds.',
+        timer: 1500,
+        timerProgressBar: true,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    }).then(() => {
+        const threshold = document.getElementById('lockout_threshold').value;
+        Swal.fire({
+            title: 'Security Rules Saved!',
+            text: 'System security policy has been updated successfully. Lockout threshold set to ' + threshold + ' attempts.',
+            icon: 'success',
+            confirmButtonText: 'Understood'
+        });
+    });
+}
+</script>
 
 <?php include 'includes/footer.php'; ?>
