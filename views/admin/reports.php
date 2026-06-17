@@ -123,20 +123,17 @@ if (isset($_GET['action']) && $_GET['action'] === 'export') {
         $headers = ['First Name', 'Last Name', 'Gender', 'Birthdate', 'Church Site', 'Status', 'Guardian Name', 'Registration Date'];
 
     } elseif ($type === 'qualification') {
-        $sql = "SELECT cs.barangay, cs.church_name, sub.first_name, sub.last_name, sub.gender, 
-                       sub.birthdate, sub.initial_bmi, sub.initial_bmi_status, sub.suggested_status, sub.submission_status
+        $sql = "SELECT cs.barangay, cs.church_name, 
+                       SUM(CASE WHEN sub.suggested_status = 'qualified' THEN 1 ELSE 0 END) AS qualified_count,
+                       SUM(CASE WHEN sub.suggested_status = 'disqualified' THEN 1 ELSE 0 END) AS disqualified_count
                 FROM children_submissions sub
                 JOIN church_sites cs ON sub.church_site_id = cs.id WHERE 1=1";
         if (!empty($barangayFilter)) {
             $sql .= " AND cs.barangay = ?";
             $params[] = $barangayFilter;
         }
-        if (!empty($qualFilter)) {
-            $sql .= " AND sub.suggested_status = ?";
-            $params[] = $qualFilter;
-        }
-        $sql .= " ORDER BY cs.barangay ASC, sub.last_name ASC";
-        $headers = ['Barangay', 'Church Site', 'First Name', 'Last Name', 'Gender', 'Birthdate', 'Initial BMI', 'Initial BMI Status', 'Qualification Suggested', 'Submission Status'];
+        $sql .= " GROUP BY cs.barangay, cs.church_name ORDER BY cs.barangay ASC, cs.church_name ASC";
+        $headers = ['Barangay', 'Church Site', 'Qualified Beneficiaries', 'Disqualified Beneficiaries'];
     }
 
     $stmt = $pdo->prepare($sql);
@@ -325,19 +322,16 @@ if ($type === 'all') {
     $previewRows = $stmt->fetchAll();
 
 } elseif ($type === 'qualification') {
-    $sql = "SELECT cs.barangay, cs.church_name, sub.first_name, sub.last_name, sub.gender, 
-                   sub.birthdate, sub.initial_bmi, sub.initial_bmi_status, sub.suggested_status, sub.submission_status
+    $sql = "SELECT cs.barangay, cs.church_name, 
+                   SUM(CASE WHEN sub.suggested_status = 'qualified' THEN 1 ELSE 0 END) AS qualified_count,
+                   SUM(CASE WHEN sub.suggested_status = 'disqualified' THEN 1 ELSE 0 END) AS disqualified_count
             FROM children_submissions sub
             JOIN church_sites cs ON sub.church_site_id = cs.id WHERE 1=1";
     if (!empty($barangayFilter)) {
         $sql .= " AND cs.barangay = ?";
         $previewParams[] = $barangayFilter;
     }
-    if (!empty($qualFilter)) {
-        $sql .= " AND sub.suggested_status = ?";
-        $previewParams[] = $qualFilter;
-    }
-    $sql .= " ORDER BY cs.barangay ASC, sub.last_name ASC LIMIT 50";
+    $sql .= " GROUP BY cs.barangay, cs.church_name ORDER BY cs.barangay ASC, cs.church_name ASC LIMIT 50";
     $stmt = $pdo->prepare($sql);
     $stmt->execute($previewParams);
     $previewRows = $stmt->fetchAll();
@@ -511,37 +505,22 @@ include 'includes/header.php';
             <thead>
               <tr>
                 <th>Barangay</th>
-                <th>Beneficiary Name</th>
-                <th>Gender</th>
-                <th>Age</th>
-                <th>Initial BMI (Status)</th>
-                <th>Qualification</th>
-                <th>Submission Status</th>
                 <th>Church Site</th>
+                <th>Qualified Count</th>
+                <th>Disqualified Count</th>
               </tr>
             </thead>
             <tbody>
               <?php foreach ($previewRows as $row): ?>
-                <?php $age = date_diff(date_create($row['birthdate']), date_create('today'))->y; ?>
                 <tr>
                   <td class="fw-semibold text-white"><?php echo htmlspecialchars($row['barangay']); ?></td>
-                  <td class="text-white"><?php echo htmlspecialchars($row['first_name'] . ' ' . $row['last_name']); ?></td>
-                  <td style="text-transform: capitalize;"><?php echo htmlspecialchars($row['gender']); ?></td>
-                  <td><?php echo $age; ?> yrs</td>
-                  <td><?php echo $row['initial_bmi']; ?> (<?php echo htmlspecialchars($row['initial_bmi_status']); ?>)</td>
-                  <td>
-                    <?php if ($row['suggested_status'] === 'qualified'): ?>
-                      <span class="status-badge success"><i class="fas fa-check-circle"></i> Qualified</span>
-                    <?php else: ?>
-                      <span class="status-badge error"><i class="fas fa-times-circle"></i> Disqualified</span>
-                    <?php endif; ?>
-                  </td>
-                  <td>
-                    <span style="text-transform:capitalize; font-size:0.82rem;" class="status-badge <?php echo ($row['submission_status'] === 'approved') ? 'success' : (($row['submission_status'] === 'pending') ? 'warning' : 'error'); ?>">
-                      <?php echo htmlspecialchars($row['submission_status']); ?>
-                    </span>
-                  </td>
                   <td><?php echo htmlspecialchars($row['church_name']); ?></td>
+                  <td>
+                    <span class="status-badge success"><?php echo intval($row['qualified_count']); ?> Qualified</span>
+                  </td>
+                  <td>
+                    <span class="status-badge error"><?php echo intval($row['disqualified_count']); ?> Disqualified</span>
+                  </td>
                 </tr>
               <?php endforeach; ?>
             </tbody>
@@ -728,7 +707,7 @@ function toggleFilterFields() {
   if (type === 'qualification') {
     siteWrapper.style.display = 'none';
     barangayWrapper.style.display = 'block';
-    qualWrapper.style.display = 'block';
+    qualWrapper.style.display = 'none';
     startWrapper.style.display = 'none';
     endWrapper.style.display = 'none';
   } else {
