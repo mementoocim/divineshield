@@ -21,7 +21,7 @@ $adminProfilePic = $stmtAdmin->fetchColumn();
 $stmtSites = $pdo->query("SELECT id, church_name FROM church_sites ORDER BY church_name ASC");
 $churchSites = $stmtSites->fetchAll();
 
-// Get filter inputs
+// Get filter inputs - Default to 'all'
 $type = $_GET['report_type'] ?? 'all';
 $siteId = isset($_GET['site_id']) && $_GET['site_id'] !== '' ? intval($_GET['site_id']) : null;
 $dateStart = $_GET['date_start'] ?? '';
@@ -102,6 +102,19 @@ if (isset($_GET['action']) && $_GET['action'] === 'export') {
         }
         $sql .= " ORDER BY c.last_name ASC, c.first_name ASC";
         $headers = ['First Name', 'Last Name', 'Gender', 'Birthdate', 'Church Site', 'Status', 'Guardian Name'];
+        
+    } elseif ($type === 'beneficiaries_monthly') {
+        $sql = "SELECT c.first_name, c.last_name, c.gender, c.birthdate, 
+                       cs.church_name, c.status, c.guardian_name, c.created_at
+                FROM children c
+                JOIN church_sites cs ON c.church_site_id = cs.id 
+                WHERE c.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)";
+        if ($siteId) {
+            $sql .= " AND c.church_site_id = ?";
+            $params[] = $siteId;
+        }
+        $sql .= " ORDER BY c.created_at DESC";
+        $headers = ['First Name', 'Last Name', 'Gender', 'Birthdate', 'Church Site', 'Status', 'Guardian Name', 'Registration Date'];
     }
 
     $stmt = $pdo->prepare($sql);
@@ -273,6 +286,21 @@ if ($type === 'all') {
     $stmt = $pdo->prepare($sql);
     $stmt->execute($previewParams);
     $previewRows = $stmt->fetchAll();
+    
+} elseif ($type === 'beneficiaries_monthly') {
+    $sql = "SELECT c.first_name, c.last_name, c.gender, c.birthdate, 
+                   cs.church_name, c.status, c.guardian_name, c.created_at
+            FROM children c
+            JOIN church_sites cs ON c.church_site_id = cs.id 
+            WHERE c.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)";
+    if ($siteId) {
+        $sql .= " AND c.church_site_id = ?";
+        $previewParams[] = $siteId;
+    }
+    $sql .= " ORDER BY c.created_at DESC LIMIT 50";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($previewParams);
+    $previewRows = $stmt->fetchAll();
 }
 
 $pageTitle = "Reports Generator";
@@ -289,6 +317,7 @@ include 'includes/header.php';
         <option value="nutritional" <?php echo $type === 'nutritional' ? 'selected' : ''; ?>>Nutritional Monitoring (BMI Records)</option>
         <option value="attendance" <?php echo $type === 'attendance' ? 'selected' : ''; ?>>Program Attendance Ledger</option>
         <option value="beneficiaries" <?php echo $type === 'beneficiaries' ? 'selected' : ''; ?>>Beneficiary Demographics &amp; Registry</option>
+        <option value="beneficiaries_monthly" <?php echo $type === 'beneficiaries_monthly' ? 'selected' : ''; ?>>New Registrations (Last 30 Days)</option>
       </select>
     </div>
 
@@ -507,6 +536,43 @@ include 'includes/header.php';
                   <td><?php echo $age; ?> yrs</td>
                   <td><?php echo htmlspecialchars($row['church_name']); ?></td>
                   <td><?php echo htmlspecialchars($row['guardian_name']); ?></td>
+                  <td>
+                    <?php if ($row['status'] === 'active'): ?>
+                      <span class="status-badge success"><i class="fas fa-check-circle"></i> Active</span>
+                    <?php elseif ($row['status'] === 'graduated'): ?>
+                      <span class="status-badge warning" style="background:rgba(59,130,246,0.15); color:#60a5fa; border-color:rgba(59,130,246,0.3);"><i class="fas fa-graduation-cap"></i> Graduated</span>
+                    <?php else: ?>
+                      <span class="status-badge error"><i class="fas fa-times-circle"></i> Inactive</span>
+                    <?php endif; ?>
+                  </td>
+                </tr>
+              <?php endforeach; ?>
+            </tbody>
+
+          <?php elseif ($type === 'beneficiaries_monthly'): ?>
+            <thead>
+              <tr>
+                <th>Beneficiary Name</th>
+                <th>Gender</th>
+                <th>Birthdate</th>
+                <th>Age</th>
+                <th>Church Site</th>
+                <th>Guardian Info</th>
+                <th>Registration Date</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <?php foreach ($previewRows as $row): ?>
+                <?php $age = date_diff(date_create($row['birthdate']), date_create('today'))->y; ?>
+                <tr>
+                  <td class="fw-semibold text-white"><?php echo htmlspecialchars($row['first_name'] . ' ' . $row['last_name']); ?></td>
+                  <td style="text-transform: capitalize;"><?php echo htmlspecialchars($row['gender']); ?></td>
+                  <td><?php echo date('M d, Y', strtotime($row['birthdate'])); ?></td>
+                  <td><?php echo $age; ?> yrs</td>
+                  <td><?php echo htmlspecialchars($row['church_name']); ?></td>
+                  <td><?php echo htmlspecialchars($row['guardian_name']); ?></td>
+                  <td style="color:var(--gray-400); font-size:0.82rem;"><?php echo date('M d, Y h:i A', strtotime($row['created_at'])); ?></td>
                   <td>
                     <?php if ($row['status'] === 'active'): ?>
                       <span class="status-badge success"><i class="fas fa-check-circle"></i> Active</span>
