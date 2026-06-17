@@ -64,7 +64,7 @@
   </nav>
 
   <div class="sidebar-footer">
-    <a href="logout.php" class="sidebar-link" style="color:var(--red-500); border-color:transparent;">
+    <a href="logout.php" class="sidebar-link logout-btn-trigger" style="color:var(--red-500); border-color:transparent;">
       <i class="fas fa-sign-out-alt"></i>
       <span>Sign Out</span>
     </a>
@@ -86,6 +86,27 @@ document.addEventListener("DOMContentLoaded", function() {
         links.forEach(link => {
             link.addEventListener("click", function() {
                 sessionStorage.setItem("church_sidebar_scroll", sidebarMenu.scrollTop);
+            });
+        });
+    }
+
+    // Logout sweet alert confirmation
+    const logoutBtn = document.querySelector('.logout-btn-trigger');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "You will be signed out of your leader session.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, sign out',
+                cancelButtonText: 'Cancel',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = logoutBtn.getAttribute('href');
+                }
             });
         });
     }

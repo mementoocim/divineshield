@@ -286,31 +286,89 @@ if ($action === 'view' && $id > 0) {
 // ──────────────────────────────────────────
 // 2. FETCH ALL REGISTERED CHURCH SITES & LEADERS
 // ──────────────────────────────────────────
-$stmtSites = $pdo->query("SELECT cs.*, u.username, u.first_name AS u_first, u.middle_name AS u_middle, u.last_name AS u_last, u.status AS leader_status 
-                           FROM church_sites cs 
-                           JOIN users u ON cs.church_leader_id = u.id 
-                           WHERE u.status = 'active'
-                           ORDER BY cs.created_at DESC");
+$search = trim($_GET['search'] ?? '');
+$regionFilter = $_GET['region'] ?? '';
+
+// Fetch all unique regions for filter dropdown
+$stmtRegions = $pdo->query("SELECT DISTINCT region FROM church_sites WHERE region IS NOT NULL AND region != '' ORDER BY region ASC");
+$uniqueRegions = $stmtRegions->fetchAll(PDO::FETCH_COLUMN);
+
+$siteQuery = "SELECT cs.*, u.username, u.first_name AS u_first, u.middle_name AS u_middle, u.last_name AS u_last, u.status AS leader_status 
+              FROM church_sites cs 
+              JOIN users u ON cs.church_leader_id = u.id 
+              WHERE u.status = 'active'";
+$siteParams = [];
+
+if (!empty($search)) {
+    $siteQuery .= " AND (cs.church_name LIKE ? OR u.first_name LIKE ? OR u.last_name LIKE ? OR u.username LIKE ?)";
+    $likeSearch = '%' . $search . '%';
+    $siteParams[] = $likeSearch;
+    $siteParams[] = $likeSearch;
+    $siteParams[] = $likeSearch;
+    $siteParams[] = $likeSearch;
+}
+if (!empty($regionFilter)) {
+    $siteQuery .= " AND cs.region = ?";
+    $siteParams[] = $regionFilter;
+}
+$siteQuery .= " ORDER BY cs.created_at DESC";
+
+$stmtSites = $pdo->prepare($siteQuery);
+$stmtSites->execute($siteParams);
 $allSites = $stmtSites->fetchAll();
 
 // ──────────────────────────────────────────
 // 3. FETCH PENDING CHURCH LEADER ACCOUNTS
 // ──────────────────────────────────────────
-$stmtPending = $pdo->query("SELECT u.*, cs.id AS site_id, cs.church_name, cs.address, cs.region, cs.province, cs.city_municipality, cs.barangay, cs.contact_number 
-                            FROM users u 
-                            LEFT JOIN church_sites cs ON u.id = cs.church_leader_id 
-                            WHERE u.role = 'church_leader' AND u.status = 'pending' 
-                            ORDER BY u.created_at DESC");
+$pendingQuery = "SELECT u.*, cs.id AS site_id, cs.church_name, cs.address, cs.region, cs.province, cs.city_municipality, cs.barangay, cs.contact_number 
+                 FROM users u 
+                 LEFT JOIN church_sites cs ON u.id = cs.church_leader_id 
+                 WHERE u.role = 'church_leader' AND u.status = 'pending'";
+$pendingParams = [];
+
+if (!empty($search)) {
+    $pendingQuery .= " AND (cs.church_name LIKE ? OR u.first_name LIKE ? OR u.last_name LIKE ? OR u.username LIKE ?)";
+    $likeSearch = '%' . $search . '%';
+    $pendingParams[] = $likeSearch;
+    $pendingParams[] = $likeSearch;
+    $pendingParams[] = $likeSearch;
+    $pendingParams[] = $likeSearch;
+}
+if (!empty($regionFilter)) {
+    $pendingQuery .= " AND cs.region = ?";
+    $pendingParams[] = $regionFilter;
+}
+$pendingQuery .= " ORDER BY u.created_at DESC";
+
+$stmtPending = $pdo->prepare($pendingQuery);
+$stmtPending->execute($pendingParams);
 $pendingLeaders = $stmtPending->fetchAll();
 
 // ──────────────────────────────────────────
 // 4. FETCH REJECTED CHURCH LEADER ACCOUNTS
 // ──────────────────────────────────────────
-$stmtRejected = $pdo->query("SELECT u.*, cs.id AS site_id, cs.church_name, cs.address, cs.region, cs.province, cs.city_municipality, cs.barangay, cs.contact_number 
-                             FROM users u 
-                             LEFT JOIN church_sites cs ON u.id = cs.church_leader_id 
-                             WHERE u.role = 'church_leader' AND u.status = 'inactive' 
-                             ORDER BY u.created_at DESC");
+$rejectedQuery = "SELECT u.*, cs.id AS site_id, cs.church_name, cs.address, cs.region, cs.province, cs.city_municipality, cs.barangay, cs.contact_number 
+                  FROM users u 
+                  LEFT JOIN church_sites cs ON u.id = cs.church_leader_id 
+                  WHERE u.role = 'church_leader' AND u.status = 'inactive'";
+$rejectedParams = [];
+
+if (!empty($search)) {
+    $rejectedQuery .= " AND (cs.church_name LIKE ? OR u.first_name LIKE ? OR u.last_name LIKE ? OR u.username LIKE ?)";
+    $likeSearch = '%' . $search . '%';
+    $rejectedParams[] = $likeSearch;
+    $rejectedParams[] = $likeSearch;
+    $rejectedParams[] = $likeSearch;
+    $rejectedParams[] = $likeSearch;
+}
+if (!empty($regionFilter)) {
+    $rejectedQuery .= " AND cs.region = ?";
+    $rejectedParams[] = $regionFilter;
+}
+$rejectedQuery .= " ORDER BY u.created_at DESC";
+
+$stmtRejected = $pdo->prepare($rejectedQuery);
+$stmtRejected->execute($rejectedParams);
 $rejectedLeaders = $stmtRejected->fetchAll();
 
 ?>
@@ -335,7 +393,7 @@ include 'includes/header.php';
 
         <?php if (!$viewSite): ?>
           <!-- Pill Tab Bar -->
-          <div class="pill-tabs">
+          <div class="pill-tabs" style="margin-bottom: 24px;">
             <button class="pill-tab main-pill-tab active" onclick="switchTab('registered')">
               <i class="fas fa-church"></i> Registered Sites (<?php echo count($allSites); ?>)
             </button>
@@ -352,6 +410,40 @@ include 'includes/header.php';
               <?php endif; ?>
             </button>
           </div>
+
+          <!-- Search & Filters Bar conforming to design system -->
+          <section class="dashboard-card" style="margin-bottom:24px; padding: 20px 28px;">
+            <form action="church_sites.php" method="GET" style="display:flex; flex-wrap:wrap; gap:16px; align-items:flex-end;">
+              
+              <div style="flex:1.2; min-width:200px;">
+                <label style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">Search</label>
+                <input type="text" name="search" class="auth-input" placeholder="Search site, leader name, username..." value="<?php echo htmlspecialchars($search); ?>" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px;">
+              </div>
+
+              <div style="flex:1; min-width:150px;">
+                <label style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">Region</label>
+                <select name="region" class="auth-select" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px;">
+                  <option value="">-- All Regions --</option>
+                  <?php foreach ($uniqueRegions as $reg): ?>
+                    <option value="<?php echo htmlspecialchars($reg); ?>" <?php echo $regionFilter === $reg ? 'selected' : ''; ?>>
+                      <?php echo htmlspecialchars($reg); ?>
+                    </option>
+                  <?php endforeach; ?>
+                </select>
+              </div>
+
+              <div style="display:flex; gap:10px; width:auto;">
+                <button type="submit" class="btn btn-primary" style="padding:10px 20px; font-size:0.85rem; height:46px;">
+                  <i class="fas fa-filter"></i> Apply Filters
+                </button>
+                <?php if (!empty($search) || !empty($regionFilter)): ?>
+                  <a href="church_sites.php" class="btn btn-outline" style="padding:10px 20px; font-size:0.85rem; height:46px; border-color:rgba(255,255,255,0.1); color:var(--gray-300); align-items:center;">
+                    <i class="fas fa-filter-circle-xmark"></i> Clear
+                  </a>
+                <?php endif; ?>
+              </div>
+            </form>
+          </section>
         <?php endif; ?>
 
         <!-- ==========================================
@@ -407,10 +499,10 @@ include 'includes/header.php';
                 <h4 style="color:var(--yellow-400); margin-bottom: 10px;"><i class="fas fa-exclamation-triangle"></i> Leader Registration Pending Approval</h4>
                 <p style="margin-bottom: 15px; color: var(--gray-300);">This church leader account is currently pending activation. Please verify the credentials and ministry details above before approving.</p>
                 <div style="display:flex; gap: 15px;">
-                  <a href="church_sites.php?action=approve_leader&id=<?php echo $viewSite['church_leader_id']; ?>" class="btn btn-success btn-sm" onclick="return confirm('Are you sure you want to approve this church leader account?');">
+                  <a href="church_sites.php?action=approve_leader&id=<?php echo $viewSite['church_leader_id']; ?>" class="btn btn-success btn-sm" onclick="event.preventDefault(); Swal.fire({ title: 'Approve Leader?', text: 'Are you sure you want to approve this church leader account?', icon: 'question', showCancelButton: true, confirmButtonText: 'Yes, approve', cancelButtonText: 'Cancel', reverseButtons: true }).then((result) => { if (result.isConfirmed) { window.location.href = this.href; } });">
                     <i class="fas fa-check"></i> Approve & Activate Account
                   </a>
-                  <a href="church_sites.php?action=reject_leader&id=<?php echo $viewSite['church_leader_id']; ?>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to reject/disable this registration?');">
+                  <a href="church_sites.php?action=reject_leader&id=<?php echo $viewSite['church_leader_id']; ?>" class="btn btn-danger btn-sm" onclick="event.preventDefault(); Swal.fire({ title: 'Reject Leader?', text: 'Are you sure you want to reject/disable this registration?', icon: 'warning', showCancelButton: true, confirmButtonText: 'Yes, reject', cancelButtonText: 'Cancel', reverseButtons: true }).then((result) => { if (result.isConfirmed) { window.location.href = this.href; } });">
                     <i class="fas fa-times"></i> Reject Account
                   </a>
                 </div>
@@ -534,10 +626,10 @@ include 'includes/header.php';
                               <td><?php echo date('M d, Y', strtotime($child['created_at'])); ?></td>
                               <td>
                                 <div style="display:flex; gap:8px;">
-                                  <a href="church_sites.php?action=approve_child&id=<?php echo $child['id']; ?>&site_id=<?php echo $viewSite['id']; ?>" class="btn btn-success btn-sm" onclick="return confirm('Are you sure you want to approve this child submission?');">
+                                  <a href="church_sites.php?action=approve_child&id=<?php echo $child['id']; ?>&site_id=<?php echo $viewSite['id']; ?>" class="btn btn-success btn-sm" onclick="event.preventDefault(); Swal.fire({ title: 'Approve Child Submission?', text: 'Are you sure you want to approve this child submission?', icon: 'question', showCancelButton: true, confirmButtonText: 'Yes, approve', cancelButtonText: 'Cancel', reverseButtons: true }).then((result) => { if (result.isConfirmed) { window.location.href = this.href; } });">
                                     <i class="fas fa-check"></i> Approve
                                   </a>
-                                  <a href="church_sites.php?action=reject_child&id=<?php echo $child['id']; ?>&site_id=<?php echo $viewSite['id']; ?>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to reject this child submission?');">
+                                  <a href="church_sites.php?action=reject_child&id=<?php echo $child['id']; ?>&site_id=<?php echo $viewSite['id']; ?>" class="btn btn-danger btn-sm" onclick="event.preventDefault(); Swal.fire({ title: 'Reject Child Submission?', text: 'Are you sure you want to reject this child submission?', icon: 'warning', showCancelButton: true, confirmButtonText: 'Yes, reject', cancelButtonText: 'Cancel', reverseButtons: true }).then((result) => { if (result.isConfirmed) { window.location.href = this.href; } });">
                                     <i class="fas fa-times"></i> Reject
                                   </a>
                                 </div>
@@ -652,10 +744,10 @@ include 'includes/header.php';
                         <td><?php echo date('M d, Y h:i A', strtotime($pLeader['created_at'])); ?></td>
                         <td>
                           <div style="display:flex; gap:8px;">
-                            <a href="church_sites.php?action=approve_leader&id=<?php echo $pLeader['id']; ?>" class="btn btn-success btn-sm" onclick="return confirm('Are you sure you want to approve this church leader account?');">
+                            <a href="church_sites.php?action=approve_leader&id=<?php echo $pLeader['id']; ?>" class="btn btn-success btn-sm" onclick="event.preventDefault(); Swal.fire({ title: 'Approve Leader?', text: 'Are you sure you want to approve this church leader account?', icon: 'question', showCancelButton: true, confirmButtonText: 'Yes, approve', cancelButtonText: 'Cancel', reverseButtons: true }).then((result) => { if (result.isConfirmed) { window.location.href = this.href; } });">
                               <i class="fas fa-check"></i> Approve
                             </a>
-                            <a href="church_sites.php?action=reject_leader&id=<?php echo $pLeader['id']; ?>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to reject/disable this registration?');">
+                            <a href="church_sites.php?action=reject_leader&id=<?php echo $pLeader['id']; ?>" class="btn btn-danger btn-sm" onclick="event.preventDefault(); Swal.fire({ title: 'Reject Leader?', text: 'Are you sure you want to reject/disable this registration?', icon: 'warning', showCancelButton: true, confirmButtonText: 'Yes, reject', cancelButtonText: 'Cancel', reverseButtons: true }).then((result) => { if (result.isConfirmed) { window.location.href = this.href; } });">
                               <i class="fas fa-times"></i> Reject
                             </a>
                           </div>
@@ -795,7 +887,7 @@ include 'includes/header.php';
                         <td><?php echo date('M d, Y h:i A', strtotime($rLeader['created_at'])); ?></td>
                         <td>
                           <div style="display:flex; gap:8px;">
-                            <a href="church_sites.php?action=approve_leader&id=<?php echo $rLeader['id']; ?>" class="btn btn-success btn-sm" onclick="return confirm('Are you sure you want to reactivate this church leader account?');">
+                            <a href="church_sites.php?action=approve_leader&id=<?php echo $rLeader['id']; ?>" class="btn btn-success btn-sm" onclick="event.preventDefault(); Swal.fire({ title: 'Reactivate Leader?', text: 'Are you sure you want to reactivate this church leader account?', icon: 'question', showCancelButton: true, confirmButtonText: 'Yes, reactivate', cancelButtonText: 'Cancel', reverseButtons: true }).then((result) => { if (result.isConfirmed) { window.location.href = this.href; } });">
                               <i class="fas fa-check"></i> Reactivate
                             </a>
                           </div>

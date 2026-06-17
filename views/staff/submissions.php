@@ -176,9 +176,12 @@ include 'includes/header.php';
                     
                     <div style="display:flex; gap: 15px;">
                         <!-- Approve Form -->
-                        <form method="POST" action="submissions.php" onsubmit="return confirm('Are you sure you want to APPROVE this child? They will be permanently added to the registry.');">
+                        <form id="approveForm_<?php echo $sub['id']; ?>" method="POST" action="submissions.php">
                             <input type="hidden" name="submission_id" value="<?php echo $sub['id']; ?>">
-                            <button type="submit" name="approve_submission" class="btn btn-success"><i class="fas fa-check"></i> Approve & Register Child</button>
+                            <input type="hidden" name="approve_submission" value="1">
+                            <button type="button" class="btn btn-success" onclick="event.preventDefault(); Swal.fire({ title: 'Approve Submission?', text: 'Are you sure you want to APPROVE this child? They will be permanently added to the registry.', icon: 'question', showCancelButton: true, confirmButtonText: 'Yes, approve', cancelButtonText: 'Cancel', reverseButtons: true }).then((result) => { if (result.isConfirmed) { document.getElementById('approveForm_<?php echo $sub['id']; ?>').submit(); } });">
+                                <i class="fas fa-check"></i> Approve & Register Child
+                            </button>
                         </form>
                         
                         <!-- Reject Button triggers modal -->
@@ -234,27 +237,85 @@ include 'includes/header.php';
     $validTabs = ['pending', 'approved', 'rejected'];
     if (!in_array($tab, $validTabs)) $tab = 'pending';
 
-    $stmt = $pdo->prepare("SELECT s.*, cs.church_name 
-                           FROM children_submissions s 
-                           JOIN church_sites cs ON s.church_site_id = cs.id
-                           WHERE s.submission_status = ? 
-                           ORDER BY s.created_at DESC");
-    $stmt->execute([$tab]);
+    $search = trim($_GET['search'] ?? '');
+    $siteFilter = $_GET['site_id'] ?? '';
+
+    // Fetch all church sites for filter dropdown
+    $stmtSites = $pdo->query("SELECT id, church_name FROM church_sites ORDER BY church_name ASC");
+    $churchSites = $stmtSites->fetchAll(PDO::FETCH_ASSOC);
+
+    $query = "SELECT s.*, cs.church_name 
+              FROM children_submissions s 
+              JOIN church_sites cs ON s.church_site_id = cs.id
+              WHERE s.submission_status = ?";
+    $params = [$tab];
+
+    if (!empty($search)) {
+        $query .= " AND (s.first_name LIKE ? OR s.last_name LIKE ? OR cs.church_name LIKE ?)";
+        $search_param = '%' . $search . '%';
+        $params[] = $search_param;
+        $params[] = $search_param;
+        $params[] = $search_param;
+    }
+
+    if (!empty($siteFilter)) {
+        $query .= " AND s.church_site_id = ?";
+        $params[] = intval($siteFilter);
+    }
+
+    $query .= " ORDER BY s.created_at DESC";
+    $stmt = $pdo->prepare($query);
+    $stmt->execute($params);
     $submissions = $stmt->fetchAll();
     ?>
 
     <!-- Pill Tab Bar (Outside Card) -->
     <div class="pill-tabs" style="margin-bottom: 24px;">
-        <a href="submissions.php?tab=pending" class="pill-tab <?php echo $tab === 'pending' ? 'active' : ''; ?>" style="text-decoration: none;">
+        <a href="submissions.php?tab=pending&search=<?php echo urlencode($search); ?>&site_id=<?php echo urlencode($siteFilter); ?>" class="pill-tab <?php echo $tab === 'pending' ? 'active' : ''; ?>" style="text-decoration: none;">
             <i class="fas fa-clock"></i> Pending
         </a>
-        <a href="submissions.php?tab=approved" class="pill-tab <?php echo $tab === 'approved' ? 'active' : ''; ?>" style="text-decoration: none;">
+        <a href="submissions.php?tab=approved&search=<?php echo urlencode($search); ?>&site_id=<?php echo urlencode($siteFilter); ?>" class="pill-tab <?php echo $tab === 'approved' ? 'active' : ''; ?>" style="text-decoration: none;">
             <i class="fas fa-check-circle"></i> Approved
         </a>
-        <a href="submissions.php?tab=rejected" class="pill-tab <?php echo $tab === 'rejected' ? 'active' : ''; ?>" style="text-decoration: none;">
+        <a href="submissions.php?tab=rejected&search=<?php echo urlencode($search); ?>&site_id=<?php echo urlencode($siteFilter); ?>" class="pill-tab <?php echo $tab === 'rejected' ? 'active' : ''; ?>" style="text-decoration: none;">
             <i class="fas fa-ban"></i> Rejected
         </a>
     </div>
+
+    <!-- Search & Filters Bar conforming to design system -->
+    <section class="dashboard-card" style="margin-bottom:24px; padding: 20px 28px;">
+      <form action="submissions.php" method="GET" style="display:flex; flex-wrap:wrap; gap:16px; align-items:flex-end;">
+        <input type="hidden" name="tab" value="<?php echo htmlspecialchars($tab); ?>">
+        
+        <div style="flex:1.2; min-width:200px;">
+          <label style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">Search</label>
+          <input type="text" name="search" class="auth-input" placeholder="Search child name..." value="<?php echo htmlspecialchars($search); ?>" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px;">
+        </div>
+
+        <div style="flex:1; min-width:150px;">
+          <label style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">Church Site</label>
+          <select name="site_id" class="auth-select" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px;">
+            <option value="">-- All Sites --</option>
+            <?php foreach ($churchSites as $site): ?>
+              <option value="<?php echo $site['id']; ?>" <?php echo $siteFilter == $site['id'] ? 'selected' : ''; ?>>
+                <?php echo htmlspecialchars($site['church_name']); ?>
+              </option>
+            <?php endforeach; ?>
+          </select>
+        </div>
+
+        <div style="display:flex; gap:10px; width:auto;">
+          <button type="submit" class="btn btn-primary" style="padding:10px 20px; font-size:0.85rem; height:46px;">
+            <i class="fas fa-filter"></i> Apply Filters
+          </button>
+          <?php if (!empty($search) || !empty($siteFilter)): ?>
+            <a href="submissions.php?tab=<?php echo urlencode($tab); ?>" class="btn btn-outline" style="padding:10px 20px; font-size:0.85rem; height:46px; border-color:rgba(255,255,255,0.1); color:var(--gray-300); align-items:center;">
+              <i class="fas fa-filter-circle-xmark"></i> Clear
+            </a>
+          <?php endif; ?>
+        </div>
+      </form>
+    </section>
 
     <!-- Main Table Card -->
     <div class="dashboard-card">

@@ -142,6 +142,39 @@ Standardize all interface action buttons by using standard utility class variant
   <a href="#" class="btn btn-info btn-sm"><i class="fas fa-eye"></i> View</a>
   ```
 
+## 8. Filter Bar & Search Controls
+Standardize control containers for searching, filtering, and date-range inputs. Wrap filters in a `.dashboard-card` with flex layouts to match the dashboard spacing.
+
+```html
+<section class="dashboard-card" style="margin-bottom:24px; padding: 20px 28px;">
+  <form action="" method="GET" style="display:flex; flex-wrap:wrap; gap:16px; align-items:flex-end;">
+    <!-- Text / Search Input -->
+    <div style="flex:1.2; min-width:200px;">
+      <label style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">Search</label>
+      <input type="text" name="search" class="auth-input" placeholder="Search..." style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px;">
+    </div>
+
+    <!-- Select Dropdown Filter -->
+    <div style="flex:1; min-width:150px;">
+      <label style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">Category</label>
+      <select name="category" class="auth-select" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px;">
+        <option value="">-- All --</option>
+      </select>
+    </div>
+
+    <!-- Action Buttons Group -->
+    <div style="display:flex; gap:10px; width:auto;">
+      <button type="submit" class="btn btn-primary" style="padding:10px 20px; font-size:0.85rem; height:46px;">
+        <i class="fas fa-filter"></i> Apply Filters
+      </button>
+      <a href="?" class="btn btn-outline" style="padding:10px 20px; font-size:0.85rem; height:46px; border-color:rgba(255,255,255,0.1); color:var(--gray-300); align-items:center;">
+        <i class="fas fa-filter-circle-xmark"></i> Clear
+      </a>
+    </div>
+  </form>
+</section>
+```
+
 ### Important Design Rules
 1. Never use inline styles for colors if a CSS variable exists (e.g. use `var(--blue-400)` instead of `#60a5fa`).
 2. Dark themes rely heavily on subtle border colors. Use `rgba(255,255,255,0.1)` for borders and dividers instead of solid gray.

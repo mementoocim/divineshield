@@ -74,6 +74,10 @@ $currentPage = basename($_SERVER['PHP_SELF']);
       <i class="fas fa-qrcode"></i>
       <span>QR Generator</span>
     </a>
+    <a href="attendance_monitoring.php" class="sidebar-link <?php echo $currentPage === 'attendance_monitoring.php' ? 'active' : ''; ?>">
+      <i class="fas fa-calendar-check"></i>
+      <span>Attendance Monitor</span>
+    </a>
     <a href="security.php" class="sidebar-link <?php echo $currentPage === 'security.php' ? 'active' : ''; ?>">
       <i class="fas fa-shield-halved"></i>
       <span>Security</span>
@@ -89,7 +93,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
   </nav>
 
   <div class="sidebar-footer">
-    <a href="logout.php" class="sidebar-link" style="color:var(--red-500); border-color:transparent;">
+    <a href="logout.php" class="sidebar-link logout-btn-trigger" style="color:var(--red-500); border-color:transparent;">
       <i class="fas fa-sign-out-alt"></i>
       <span>Sign Out</span>
     </a>
@@ -111,6 +115,27 @@ document.addEventListener("DOMContentLoaded", function() {
         links.forEach(link => {
             link.addEventListener("click", function() {
                 sessionStorage.setItem("admin_sidebar_scroll", sidebarMenu.scrollTop);
+            });
+        });
+    }
+
+    // Logout sweet alert confirmation
+    const logoutBtn = document.querySelector('.logout-btn-trigger');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "You will be signed out of your administrator session.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, sign out',
+                cancelButtonText: 'Cancel',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = logoutBtn.getAttribute('href');
+                }
             });
         });
     }

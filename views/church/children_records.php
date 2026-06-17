@@ -23,6 +23,8 @@ if (!$church_site_id) {
 
 // Get filters
 $search = trim($_GET['search'] ?? '');
+$statusFilter = $_GET['status'] ?? '';
+$genderFilter = $_GET['gender'] ?? '';
 
 // Build Query
 $query = "SELECT c.*, cs.church_name 
@@ -38,6 +40,16 @@ if (!empty($search)) {
     $params[] = $search_param;
 }
 
+if (!empty($statusFilter)) {
+    $where_clauses[] = "c.status = ?";
+    $params[] = $statusFilter;
+}
+
+if (!empty($genderFilter)) {
+    $where_clauses[] = "c.gender = ?";
+    $params[] = $genderFilter;
+}
+
 if (count($where_clauses) > 0) {
     $query .= " WHERE " . implode(" AND ", $where_clauses);
 }
@@ -51,23 +63,50 @@ $children = $stmt->fetchAll(PDO::FETCH_ASSOC);
 include 'includes/header.php';
 ?>
 
-<!-- Search & Filters Row -->
-<div style="display:flex; justify-content:flex-end; margin-bottom:20px; flex-wrap:wrap; gap:15px;">
-    <!-- Search Form -->
-    <form method="GET" action="children_records.php" style="display:flex; gap:8px; align-items:center;">
-        <input type="text" name="search" placeholder="Search by name..." 
-               value="<?php echo htmlspecialchars($search); ?>" 
-               style="padding:8px 16px; background:rgba(30, 41, 59, 0.6); border:1px solid rgba(255,255,255,0.08); border-radius:999px; color:var(--white); outline:none; font-size:0.85rem;">
-        <button type="submit" class="btn btn-primary" style="padding:8px 20px; border-radius:999px; font-size:0.85rem; height:36px; display:inline-flex; align-items:center; justify-content:center;">Search</button>
-        <?php if (!empty($search)): ?>
-            <a href="children_records.php" class="btn btn-outline" style="padding:8px 20px; border-radius:999px; font-size:0.85rem; height:36px; display:inline-flex; align-items:center; justify-content:center;">Clear</a>
-        <?php endif; ?>
-    </form>
-</div>
+<!-- Search & Filters Bar conforming to design system -->
+<section class="dashboard-card" style="margin-bottom:24px; padding: 20px 28px;">
+  <form action="children_records.php" method="GET" style="display:flex; flex-wrap:wrap; gap:16px; align-items:flex-end;">
+    
+    <div style="flex:1.2; min-width:200px;">
+      <label style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">Search</label>
+      <input type="text" name="search" class="auth-input" placeholder="Search by name..." value="<?php echo htmlspecialchars($search); ?>" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px;">
+    </div>
+
+    <div style="flex:0.8; min-width:120px;">
+      <label style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">Status</label>
+      <select name="status" class="auth-select" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px;">
+        <option value="">-- All --</option>
+        <option value="active" <?php echo $statusFilter === 'active' ? 'selected' : ''; ?>>Active</option>
+        <option value="graduated" <?php echo $statusFilter === 'graduated' ? 'selected' : ''; ?>>Graduated</option>
+        <option value="inactive" <?php echo $statusFilter === 'inactive' ? 'selected' : ''; ?>>Inactive</option>
+      </select>
+    </div>
+
+    <div style="flex:0.8; min-width:120px;">
+      <label style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">Gender</label>
+      <select name="gender" class="auth-select" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px;">
+        <option value="">-- All --</option>
+        <option value="male" <?php echo $genderFilter === 'male' ? 'selected' : ''; ?>>Male</option>
+        <option value="female" <?php echo $genderFilter === 'female' ? 'selected' : ''; ?>>Female</option>
+      </select>
+    </div>
+
+    <div style="display:flex; gap:10px; width:auto;">
+      <button type="submit" class="btn btn-primary" style="padding:10px 20px; font-size:0.85rem; height:46px;">
+        <i class="fas fa-filter"></i> Apply Filters
+      </button>
+      <?php if (!empty($search) || !empty($statusFilter) || !empty($genderFilter)): ?>
+        <a href="children_records.php" class="btn btn-outline" style="padding:10px 20px; font-size:0.85rem; height:46px; border-color:rgba(255,255,255,0.1); color:var(--gray-300); align-items:center;">
+          <i class="fas fa-filter-circle-xmark"></i> Clear
+        </a>
+      <?php endif; ?>
+    </div>
+  </form>
+</section>
 
 <div class="dashboard-card">
     <div class="dashboard-card-header" style="border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 14px; margin-bottom: 24px;">
-        <h3 class="dashboard-card-title" style="font-family: var(--font-head); font-size: 1.15rem; font-weight: 700; display: flex; align-items: center; gap: 10px; color: var(--white);"><i class="fas fa-children" style="color:var(--blue-400);"></i> Children Registry</h3>
+        <h3 class="dashboard-card-title" style="font-family: var(--font-head); font-size: 1.15rem; font-weight: 700; color: var(--white);">Children Registry</h3>
     </div>
 
     <div class="panel-body" style="padding:0;">

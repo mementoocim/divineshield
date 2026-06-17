@@ -151,6 +151,13 @@ include 'includes/header.php';
     <?php
     // Get filters
     $search = trim($_GET['search'] ?? '');
+    $siteFilter = $_GET['site_id'] ?? '';
+    $statusFilter = $_GET['status'] ?? '';
+    $genderFilter = $_GET['gender'] ?? '';
+
+    // Fetch all church sites for dropdown filter
+    $stmtSites = $pdo->query("SELECT id, church_name FROM church_sites ORDER BY church_name ASC");
+    $churchSites = $stmtSites->fetchAll(PDO::FETCH_ASSOC);
 
     // Build Query
     $query = "SELECT c.*, cs.church_name, na.bmi, na.bmi_status, na.assessment_date
@@ -176,6 +183,21 @@ include 'includes/header.php';
         $params[] = $search_param;
     }
 
+    if (!empty($siteFilter)) {
+        $where_clauses[] = "c.church_site_id = ?";
+        $params[] = intval($siteFilter);
+    }
+
+    if (!empty($statusFilter)) {
+        $where_clauses[] = "c.status = ?";
+        $params[] = $statusFilter;
+    }
+
+    if (!empty($genderFilter)) {
+        $where_clauses[] = "c.gender = ?";
+        $params[] = $genderFilter;
+    }
+
     if (count($where_clauses) > 0) {
         $query .= " WHERE " . implode(" AND ", $where_clauses);
     }
@@ -187,19 +209,58 @@ include 'includes/header.php';
     $children = $stmt->fetchAll(PDO::FETCH_ASSOC);
     ?>
 
-    <!-- Search & Filters Row -->
-    <div style="display:flex; justify-content:flex-end; margin-bottom:20px; flex-wrap:wrap; gap:15px;">
-        <!-- Search Form -->
-        <form method="GET" action="children_registry.php" style="display:flex; gap:8px; align-items:center;">
-            <input type="text" name="search" placeholder="Search by name or site..." 
-                   value="<?php echo htmlspecialchars($search); ?>" 
-                   style="padding:8px 16px; background:rgba(30, 41, 59, 0.6); border:1px solid rgba(255,255,255,0.08); border-radius:999px; color:var(--white); outline:none; font-size:0.85rem;">
-            <button type="submit" class="btn btn-primary" style="padding:8px 20px; border-radius:999px; font-size:0.85rem; height:36px; display:inline-flex; align-items:center; justify-content:center;">Search</button>
-            <?php if (!empty($search)): ?>
-                <a href="children_registry.php" class="btn btn-outline" style="padding:8px 20px; border-radius:999px; font-size:0.85rem; height:36px; display:inline-flex; align-items:center; justify-content:center;">Clear</a>
-            <?php endif; ?>
-        </form>
-    </div>
+    <!-- Search & Filters Bar conforming to design system -->
+    <section class="dashboard-card" style="margin-bottom:24px; padding: 20px 28px;">
+      <form action="children_registry.php" method="GET" style="display:flex; flex-wrap:wrap; gap:16px; align-items:flex-end;">
+        
+        <div style="flex:1.2; min-width:200px;">
+          <label style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">Search</label>
+          <input type="text" name="search" class="auth-input" placeholder="Search by name or site..." value="<?php echo htmlspecialchars($search); ?>" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px;">
+        </div>
+
+        <div style="flex:1; min-width:150px;">
+          <label style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">Church Site</label>
+          <select name="site_id" class="auth-select" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px;">
+            <option value="">-- All Sites --</option>
+            <?php foreach ($churchSites as $site): ?>
+              <option value="<?php echo $site['id']; ?>" <?php echo $siteFilter == $site['id'] ? 'selected' : ''; ?>>
+                <?php echo htmlspecialchars($site['church_name']); ?>
+              </option>
+            <?php endforeach; ?>
+          </select>
+        </div>
+
+        <div style="flex:0.8; min-width:120px;">
+          <label style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">Status</label>
+          <select name="status" class="auth-select" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px;">
+            <option value="">-- All --</option>
+            <option value="active" <?php echo $statusFilter === 'active' ? 'selected' : ''; ?>>Active</option>
+            <option value="graduated" <?php echo $statusFilter === 'graduated' ? 'selected' : ''; ?>>Graduated</option>
+            <option value="inactive" <?php echo $statusFilter === 'inactive' ? 'selected' : ''; ?>>Inactive</option>
+          </select>
+        </div>
+
+        <div style="flex:0.8; min-width:120px;">
+          <label style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">Gender</label>
+          <select name="gender" class="auth-select" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px;">
+            <option value="">-- All --</option>
+            <option value="male" <?php echo $genderFilter === 'male' ? 'selected' : ''; ?>>Male</option>
+            <option value="female" <?php echo $genderFilter === 'female' ? 'selected' : ''; ?>>Female</option>
+          </select>
+        </div>
+
+        <div style="display:flex; gap:10px; width:auto;">
+          <button type="submit" class="btn btn-primary" style="padding:10px 20px; font-size:0.85rem; height:46px;">
+            <i class="fas fa-filter"></i> Apply Filters
+          </button>
+          <?php if (!empty($search) || !empty($siteFilter) || !empty($statusFilter) || !empty($genderFilter)): ?>
+            <a href="children_registry.php" class="btn btn-outline" style="padding:10px 20px; font-size:0.85rem; height:46px; border-color:rgba(255,255,255,0.1); color:var(--gray-300); align-items:center;">
+              <i class="fas fa-filter-circle-xmark"></i> Clear
+            </a>
+          <?php endif; ?>
+        </div>
+      </form>
+    </section>
 
     <!-- MAIN REGISTRY CARD -->
     <div class="dashboard-card">

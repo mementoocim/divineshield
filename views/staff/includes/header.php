@@ -20,6 +20,38 @@ if (empty($staffFullName)) {
   <link rel="stylesheet" href="../../assets/css/style.css?v=16" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    /* Dark Theme styling for SweetAlert2 to match DivineShield */
+    .swal2-popup {
+      background: #0f172a !important;
+      color: #f8fafc !important;
+      border: 1px solid rgba(255, 255, 255, 0.08) !important;
+      border-radius: 16px !important;
+    }
+    .swal2-title {
+      color: #ffffff !important;
+      font-family: 'Poppins', sans-serif !important;
+    }
+    .swal2-html-container {
+      color: #94a3b8 !important;
+      font-family: 'Inter', sans-serif !important;
+    }
+    .swal2-confirm {
+      background-color: #2563eb !important; /* blue-600 */
+      color: #ffffff !important;
+      border-radius: 8px !important;
+    }
+    .swal2-cancel {
+      background-color: transparent !important;
+      color: #94a3b8 !important;
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+      border-radius: 8px !important;
+    }
+    .swal2-deny {
+      border-radius: 8px !important;
+    }
+  </style>
 </head>
 <body>
   <!-- Backdrop overlay for mobile sidebar -->

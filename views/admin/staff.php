@@ -152,7 +152,30 @@ if ($action === 'delete_staff' && $id > 0) {
 // ──────────────────────────────────────────
 // FETCH ALL STAFF USERS
 // ──────────────────────────────────────────
-$stmtStaff = $pdo->query("SELECT * FROM users WHERE role = 'staff' ORDER BY created_at DESC");
+$search = trim($_GET['search'] ?? '');
+$statusFilter = $_GET['status'] ?? '';
+
+$query = "SELECT * FROM users WHERE role = 'staff'";
+$params = [];
+
+if (!empty($search)) {
+    $query .= " AND (first_name LIKE ? OR last_name LIKE ? OR username LIKE ? OR email LIKE ?)";
+    $likeSearch = '%' . $search . '%';
+    $params[] = $likeSearch;
+    $params[] = $likeSearch;
+    $params[] = $likeSearch;
+    $params[] = $likeSearch;
+}
+
+if (!empty($statusFilter)) {
+    $query .= " AND status = ?";
+    $params[] = $statusFilter;
+}
+
+$query .= " ORDER BY created_at DESC";
+
+$stmtStaff = $pdo->prepare($query);
+$stmtStaff->execute($params);
 $staffList = $stmtStaff->fetchAll();
 
 ?>
@@ -246,6 +269,39 @@ include 'includes/header.php';
           </section>
         <?php endif; ?>
 
+        <?php if ($action !== 'add'): ?>
+        <!-- Search & Filters Bar conforming to design system -->
+        <section class="dashboard-card" style="margin-bottom:24px; padding: 20px 28px;">
+          <form action="staff.php" method="GET" style="display:flex; flex-wrap:wrap; gap:16px; align-items:flex-end;">
+            
+            <div style="flex:1.2; min-width:200px;">
+              <label style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">Search</label>
+              <input type="text" name="search" class="auth-input" placeholder="Search by name, username, email..." value="<?php echo htmlspecialchars($search); ?>" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px;">
+            </div>
+
+            <div style="flex:0.8; min-width:150px;">
+              <label style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">Status</label>
+              <select name="status" class="auth-select" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px;">
+                <option value="">-- All --</option>
+                <option value="active" <?php echo $statusFilter === 'active' ? 'selected' : ''; ?>>Active</option>
+                <option value="inactive" <?php echo $statusFilter === 'inactive' ? 'selected' : ''; ?>>Inactive</option>
+              </select>
+            </div>
+
+            <div style="display:flex; gap:10px; width:auto;">
+              <button type="submit" class="btn btn-primary" style="padding:10px 20px; font-size:0.85rem; height:46px;">
+                <i class="fas fa-filter"></i> Apply Filters
+              </button>
+              <?php if (!empty($search) || !empty($statusFilter)): ?>
+                <a href="staff.php" class="btn btn-outline" style="padding:10px 20px; font-size:0.85rem; height:46px; border-color:rgba(255,255,255,0.1); color:var(--gray-300); align-items:center;">
+                  <i class="fas fa-filter-circle-xmark"></i> Clear
+                </a>
+              <?php endif; ?>
+            </div>
+          </form>
+        </section>
+        <?php endif; ?>
+
         <!-- ==========================================
              STAFF REGISTRY LISTING CARD
              ========================================== -->
@@ -304,15 +360,15 @@ include 'includes/header.php';
                       <td>
                         <div style="display:flex; gap:8px;">
                           <?php if ($staff['status'] === 'active'): ?>
-                            <a href="staff.php?action=toggle_status&id=<?php echo $staff['id']; ?>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to deactivate this staff member?');">
+                            <a href="staff.php?action=toggle_status&id=<?php echo $staff['id']; ?>" class="btn btn-danger btn-sm" onclick="event.preventDefault(); Swal.fire({ title: 'Deactivate Staff?', text: 'Are you sure you want to deactivate this staff member?', icon: 'warning', showCancelButton: true, confirmButtonText: 'Yes, deactivate', cancelButtonText: 'Cancel', reverseButtons: true }).then((result) => { if (result.isConfirmed) { window.location.href = this.href; } });">
                               <i class="fas fa-user-slash"></i> Deactivate
                             </a>
                           <?php else: ?>
-                            <a href="staff.php?action=toggle_status&id=<?php echo $staff['id']; ?>" class="btn btn-success btn-sm" onclick="return confirm('Are you sure you want to activate this staff member?');">
+                            <a href="staff.php?action=toggle_status&id=<?php echo $staff['id']; ?>" class="btn btn-success btn-sm" onclick="event.preventDefault(); Swal.fire({ title: 'Activate Staff?', text: 'Are you sure you want to activate this staff member?', icon: 'question', showCancelButton: true, confirmButtonText: 'Yes, activate', cancelButtonText: 'Cancel', reverseButtons: true }).then((result) => { if (result.isConfirmed) { window.location.href = this.href; } });">
                               <i class="fas fa-user-check"></i> Activate
                             </a>
                           <?php endif; ?>
-                          <a href="staff.php?action=delete_staff&id=<?php echo $staff['id']; ?>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to permanently delete this encoder account? This action is irreversible.');">
+                          <a href="staff.php?action=delete_staff&id=<?php echo $staff['id']; ?>" class="btn btn-danger btn-sm" onclick="event.preventDefault(); Swal.fire({ title: 'Delete Encoder Account?', text: 'Are you sure you want to permanently delete this encoder account? This action is irreversible.', icon: 'warning', showCancelButton: true, confirmButtonText: 'Yes, delete', cancelButtonText: 'Cancel', reverseButtons: true }).then((result) => { if (result.isConfirmed) { window.location.href = this.href; } });">
                             <i class="fas fa-trash-can"></i> Delete
                           </a>
                         </div>

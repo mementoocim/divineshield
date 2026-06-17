@@ -133,6 +133,10 @@ if ($action === 'view' && $id > 0) {
 
 // B. Status tabs filter and list query
 $status_filter = $_GET['status'] ?? 'all';
+$search = trim($_GET['search'] ?? '');
+$dateStart = $_GET['date_start'] ?? '';
+$dateEnd = $_GET['date_end'] ?? '';
+
 $query = "
     SELECT fp.*, cs.church_name 
     FROM feeding_programs fp 
@@ -144,6 +148,21 @@ $params = [$church_site_id];
 if ($status_filter !== 'all') {
     $query .= " AND fp.status = ?";
     $params[] = $status_filter;
+}
+
+if (!empty($search)) {
+    $query .= " AND fp.title LIKE ?";
+    $params[] = '%' . $search . '%';
+}
+
+if (!empty($dateStart)) {
+    $query .= " AND fp.scheduled_date >= ?";
+    $params[] = $dateStart;
+}
+
+if (!empty($dateEnd)) {
+    $query .= " AND fp.scheduled_date <= ?";
+    $params[] = $dateEnd;
 }
 
 $query .= " ORDER BY fp.scheduled_date DESC, fp.scheduled_time DESC";
@@ -285,15 +304,48 @@ include 'includes/header.php';
   <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:15px;">
     <!-- Pill Tabs -->
     <div class="pill-tabs" style="margin-bottom:0; border-bottom:none; padding-bottom:0;">
-      <a href="attendance.php?status=all" class="pill-tab <?php echo $status_filter === 'all' ? 'active' : ''; ?>">All Sessions</a>
-      <a href="attendance.php?status=scheduled" class="pill-tab <?php echo $status_filter === 'scheduled' ? 'active' : ''; ?>">
+      <a href="attendance.php?status=all&search=<?php echo urlencode($search); ?>&date_start=<?php echo urlencode($dateStart); ?>&date_end=<?php echo urlencode($dateEnd); ?>" class="pill-tab <?php echo $status_filter === 'all' ? 'active' : ''; ?>">All Sessions</a>
+      <a href="attendance.php?status=scheduled&search=<?php echo urlencode($search); ?>&date_start=<?php echo urlencode($dateStart); ?>&date_end=<?php echo urlencode($dateEnd); ?>" class="pill-tab <?php echo $status_filter === 'scheduled' ? 'active' : ''; ?>">
         <i class="fas fa-calendar" style="font-size:0.8rem; margin-right:4px;"></i> Scheduled
       </a>
-      <a href="attendance.php?status=completed" class="pill-tab <?php echo $status_filter === 'completed' ? 'active' : ''; ?>">
+      <a href="attendance.php?status=completed&search=<?php echo urlencode($search); ?>&date_start=<?php echo urlencode($dateStart); ?>&date_end=<?php echo urlencode($dateEnd); ?>" class="pill-tab <?php echo $status_filter === 'completed' ? 'active' : ''; ?>">
         <i class="fas fa-check-circle" style="font-size:0.8rem; margin-right:4px;"></i> Completed
       </a>
     </div>
   </div>
+
+  <!-- Search & Filters Bar conforming to design system -->
+  <section class="dashboard-card" style="margin-bottom:24px; padding: 20px 28px;">
+    <form action="attendance.php" method="GET" style="display:flex; flex-wrap:wrap; gap:16px; align-items:flex-end;">
+      <input type="hidden" name="status" value="<?php echo htmlspecialchars($status_filter); ?>">
+      
+      <div style="flex:1.2; min-width:200px;">
+        <label style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">Search</label>
+        <input type="text" name="search" class="auth-input" placeholder="Search program title..." value="<?php echo htmlspecialchars($search); ?>" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px;">
+      </div>
+
+      <div style="flex:1; min-width:140px;">
+        <label style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">Start Date</label>
+        <input type="date" name="date_start" class="auth-input" value="<?php echo htmlspecialchars($dateStart); ?>" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px;">
+      </div>
+
+      <div style="flex:1; min-width:140px;">
+        <label style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">End Date</label>
+        <input type="date" name="date_end" class="auth-input" value="<?php echo htmlspecialchars($dateEnd); ?>" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px;">
+      </div>
+
+      <div style="display:flex; gap:10px; width:auto;">
+        <button type="submit" class="btn btn-primary" style="padding:10px 20px; font-size:0.85rem; height:46px;">
+          <i class="fas fa-filter"></i> Apply Filters
+        </button>
+        <?php if (!empty($search) || !empty($dateStart) || !empty($dateEnd)): ?>
+          <a href="attendance.php?status=<?php echo urlencode($status_filter); ?>" class="btn btn-outline" style="padding:10px 20px; font-size:0.85rem; height:46px; border-color:rgba(255,255,255,0.1); color:var(--gray-300); align-items:center;">
+            <i class="fas fa-filter-circle-xmark"></i> Clear
+          </a>
+        <?php endif; ?>
+      </div>
+    </form>
+  </section>
 
   <!-- MAIN LISTING CARD -->
   <div class="dashboard-card">

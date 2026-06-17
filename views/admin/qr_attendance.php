@@ -90,16 +90,16 @@ include 'includes/header.php';
 ?>
 
 <?php if ($success): ?>
-  <div class="alert alert-success"
-    style="margin-bottom:24px; padding:15px; background:rgba(45,212,191,0.1); border-left:4px solid var(--teal-500); color:var(--teal-100); border-radius: 4px;">
-    <i class="fas fa-check-circle"></i> <?php echo htmlspecialchars($success); ?>
+  <div class="auth-alert auth-alert-success" style="margin-bottom:24px;">
+    <i class="fas fa-circle-check"></i>
+    <div><strong>Success</strong> <span><?php echo htmlspecialchars($success); ?></span></div>
   </div>
 <?php endif; ?>
 
 <?php if ($error): ?>
-  <div class="alert alert-danger"
-    style="margin-bottom:24px; padding:15px; background:rgba(239,68,68,0.1); border-left:4px solid var(--red-500); color:var(--red-100); border-radius: 4px;">
-    <i class="fas fa-exclamation-circle"></i> <?php echo htmlspecialchars($error); ?>
+  <div class="auth-alert auth-alert-danger" style="margin-bottom:24px;">
+    <i class="fas fa-circle-exclamation"></i>
+    <div><strong>Error</strong> <span><?php echo htmlspecialchars($error); ?></span></div>
   </div>
 <?php endif; ?>
 
@@ -108,8 +108,7 @@ include 'includes/header.php';
   <!-- Left Side: QR Code Display -->
   <div class="dashboard-card"
     style="flex: 1.2; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; text-align: center;">
-    <h3 class="dashboard-card-title" style="margin-bottom:12px; font-family: var(--font-head); font-size: 1.25rem;"><i
-        class="fas fa-qrcode" style="color:var(--blue-400); margin-right:8px;"></i> Active Check-In Code</h3>
+    <h3 class="dashboard-card-title" style="margin-bottom:12px; font-family: var(--font-head); font-size: 1.25rem;">Active Check-In Code</h3>
     <p style="color: var(--gray-400); font-size: 0.85rem; margin-bottom: 30px; max-width: 380px;">Encoders and staff
       scan this code using their mobile devices to log their present attendance for today.</p>
 
@@ -166,8 +165,7 @@ include 'includes/header.php';
   <div class="dashboard-card" style="flex: 1.5; display: flex; flex-direction: column; padding: 28px;">
     <div class="dashboard-card-header"
       style="border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom:14px; margin-bottom: 20px;">
-      <h3 class="dashboard-card-title"><i class="fas fa-clipboard-user"
-          style="color:var(--teal-400); margin-right:8px;"></i> Today's Check-in Log</h3>
+      <h3 class="dashboard-card-title">Today's Check-in Log</h3>
     </div>
 
     <div class="panel-body" style="padding:0; flex-grow:1;">
@@ -184,12 +182,11 @@ include 'includes/header.php';
       ?>
 
       <?php if (empty($todayLogs)): ?>
-        <div class="empty-state" style="padding: 60px 20px; text-align: center;">
+        <div class="empty-state" style="padding: 40px; text-align: center;">
           <i class="fas fa-user-clock empty-icon"
-            style="font-size: 2.5rem; color:var(--gray-500); margin-bottom: 12px;"></i>
-          <h4 style="color: var(--white); margin-bottom: 6px; font-size: 0.95rem;">No Staff Checked-in Today</h4>
-          <p style="color: var(--gray-400); font-size:0.8rem;">Once staff scan the active QR code, their check-in records
-            will appear here.</p>
+            style="font-size: 3rem; color:var(--gray-500); margin-bottom: 16px;"></i>
+          <h4 style="color: var(--white); margin-bottom: 8px;">No Staff Checked-in Today</h4>
+          <p style="color: var(--gray-400); font-size:0.8rem;">Once staff scan the active QR code, their check-in records will appear here.</p>
         </div>
       <?php else: ?>
         <div class="dark-table-wrap" style="max-height: 380px; overflow-y: auto;">

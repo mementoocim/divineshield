@@ -20,13 +20,26 @@ $stmtStaff->execute([$userId]);
 $staffProfilePic = $stmtStaff->fetchColumn();
 
 // Fetch check-in logs
-$stmtLogs = $pdo->prepare("
-    SELECT * 
-    FROM staff_attendance 
-    WHERE user_id = ? 
-    ORDER BY check_in_time DESC
-");
-$stmtLogs->execute([$userId]);
+$dateStart = $_GET['date_start'] ?? '';
+$dateEnd = $_GET['date_end'] ?? '';
+
+$query = "SELECT * FROM staff_attendance WHERE user_id = ?";
+$params = [$userId];
+
+if (!empty($dateStart)) {
+    $query .= " AND DATE(check_in_time) >= ?";
+    $params[] = $dateStart;
+}
+
+if (!empty($dateEnd)) {
+    $query .= " AND DATE(check_in_time) <= ?";
+    $params[] = $dateEnd;
+}
+
+$query .= " ORDER BY check_in_time DESC";
+
+$stmtLogs = $pdo->prepare($query);
+$stmtLogs->execute($params);
 $logs = $stmtLogs->fetchAll(PDO::FETCH_ASSOC);
 
 // Calculate present days in the current month
@@ -73,12 +86,37 @@ include 'includes/header.php';
     </div>
 </div>
 
+<!-- Search & Filters Bar conforming to design system -->
+<section class="dashboard-card" style="margin-bottom:24px; padding: 20px 28px;">
+  <form action="attendance_history.php" method="GET" style="display:flex; flex-wrap:wrap; gap:16px; align-items:flex-end;">
+    
+    <div style="flex:1; min-width:140px;">
+      <label style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">Start Date</label>
+      <input type="date" name="date_start" class="auth-input" value="<?php echo htmlspecialchars($dateStart); ?>" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px;">
+    </div>
+
+    <div style="flex:1; min-width:140px;">
+      <label style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">End Date</label>
+      <input type="date" name="date_end" class="auth-input" value="<?php echo htmlspecialchars($dateEnd); ?>" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px;">
+    </div>
+
+    <div style="display:flex; gap:10px; width:auto;">
+      <button type="submit" class="btn btn-primary" style="padding:10px 20px; font-size:0.85rem; height:46px;">
+        <i class="fas fa-filter"></i> Apply Filters
+      </button>
+      <?php if (!empty($dateStart) || !empty($dateEnd)): ?>
+        <a href="attendance_history.php" class="btn btn-outline" style="padding:10px 20px; font-size:0.85rem; height:46px; border-color:rgba(255,255,255,0.1); color:var(--gray-300); align-items:center;">
+          <i class="fas fa-filter-circle-xmark"></i> Clear
+        </a>
+      <?php endif; ?>
+    </div>
+  </form>
+</section>
+
 <!-- Attendance Registry Table Card -->
 <div class="dashboard-card">
     <div class="dashboard-card-header" style="border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 14px; margin-bottom: 24px;">
-        <h3 class="dashboard-card-title" style="font-family: var(--font-head); font-size: 1.15rem; font-weight: 700; display: flex; align-items: center; gap: 10px; color: var(--white);">
-            <i class="fas fa-history" style="color:var(--blue-400);"></i> Check-In Registry Log
-        </h3>
+        <h3 class="dashboard-card-title" style="font-family: var(--font-head); font-size: 1.15rem; font-weight: 700; color: var(--white);">Check-In Registry Log</h3>
     </div>
 
     <div class="panel-body" style="padding:0;">

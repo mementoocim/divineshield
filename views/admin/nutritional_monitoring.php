@@ -134,23 +134,111 @@ include 'includes/header.php';
 
 <?php else: ?>
     <?php
+    // Get filters
+    $search = trim($_GET['search'] ?? '');
+    $siteFilter = $_GET['site_id'] ?? '';
+    $statusFilter = $_GET['bmi_status'] ?? '';
+
+    // Fetch all church sites for dropdown filter
+    $stmtSites = $pdo->query("SELECT id, church_name FROM church_sites ORDER BY church_name ASC");
+    $churchSites = $stmtSites->fetchAll(PDO::FETCH_ASSOC);
+
     // Default list view: fetch active children from all sites
-    $stmtList = $pdo->query("SELECT c.id as child_id, c.first_name, c.last_name, c.gender, cs.church_name,
-                                    na.bmi, na.bmi_status, na.assessment_date
-                             FROM children c
-                             JOIN church_sites cs ON c.church_site_id = cs.id
-                             LEFT JOIN (
-                                 SELECT na1.* FROM nutritional_assessments na1
-                                 JOIN (
-                                     SELECT child_id, MAX(assessment_date) as max_date, MAX(id) as max_id 
-                                     FROM nutritional_assessments 
-                                     GROUP BY child_id
-                                 ) na2 ON na1.child_id = na2.child_id AND na1.assessment_date = na2.max_date AND na1.id = na2.max_id
-                             ) na ON c.id = na.child_id
-                             WHERE c.status = 'active'
-                             ORDER BY c.first_name ASC, c.last_name ASC");
+    $query = "SELECT c.id as child_id, c.first_name, c.last_name, c.gender, cs.church_name,
+                     na.bmi, na.bmi_status, na.assessment_date
+              FROM children c
+              JOIN church_sites cs ON c.church_site_id = cs.id
+              LEFT JOIN (
+                  SELECT na1.* FROM nutritional_assessments na1
+                  JOIN (
+                      SELECT child_id, MAX(assessment_date) as max_date, MAX(id) as max_id 
+                      FROM nutritional_assessments 
+                      GROUP BY child_id
+                  ) na2 ON na1.child_id = na2.child_id AND na1.assessment_date = na2.max_date AND na1.id = na2.max_id
+              ) na ON c.id = na.child_id
+              WHERE c.status = 'active'";
+
+    $params = [];
+    $where_clauses = [];
+
+    if (!empty($search)) {
+        $where_clauses[] = "(c.first_name LIKE ? OR c.last_name LIKE ? OR cs.church_name LIKE ?)";
+        $search_param = '%' . $search . '%';
+        $params[] = $search_param;
+        $params[] = $search_param;
+        $params[] = $search_param;
+    }
+
+    if (!empty($siteFilter)) {
+        $where_clauses[] = "c.church_site_id = ?";
+        $params[] = intval($siteFilter);
+    }
+
+    if (!empty($statusFilter)) {
+        if ($statusFilter === 'Not Assessed') {
+            $where_clauses[] = "na.bmi_status IS NULL";
+        } else {
+            $where_clauses[] = "na.bmi_status = ?";
+            $params[] = $statusFilter;
+        }
+    }
+
+    if (count($where_clauses) > 0) {
+        $query .= " AND " . implode(" AND ", $where_clauses);
+    }
+
+    $query .= " ORDER BY c.first_name ASC, c.last_name ASC";
+
+    $stmtList = $pdo->prepare($query);
+    $stmtList->execute($params);
     $activeChildren = $stmtList->fetchAll(PDO::FETCH_ASSOC);
     ?>
+    
+    <!-- Search & Filters Bar conforming to design system -->
+    <section class="dashboard-card" style="margin-bottom:24px; padding: 20px 28px;">
+      <form action="nutritional_monitoring.php" method="GET" style="display:flex; flex-wrap:wrap; gap:16px; align-items:flex-end;">
+        
+        <div style="flex:1.2; min-width:200px;">
+          <label style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">Search</label>
+          <input type="text" name="search" class="auth-input" placeholder="Search by name or site..." value="<?php echo htmlspecialchars($search); ?>" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px;">
+        </div>
+
+        <div style="flex:1; min-width:150px;">
+          <label style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">Church Site</label>
+          <select name="site_id" class="auth-select" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px;">
+            <option value="">-- All Sites --</option>
+            <?php foreach ($churchSites as $site): ?>
+              <option value="<?php echo $site['id']; ?>" <?php echo $siteFilter == $site['id'] ? 'selected' : ''; ?>>
+                <?php echo htmlspecialchars($site['church_name']); ?>
+              </option>
+            <?php endforeach; ?>
+          </select>
+        </div>
+
+        <div style="flex:1; min-width:150px;">
+          <label style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">BMI Status</label>
+          <select name="bmi_status" class="auth-select" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px;">
+            <option value="">-- All --</option>
+            <option value="Normal Weight" <?php echo $statusFilter === 'Normal Weight' ? 'selected' : ''; ?>>Normal Weight</option>
+            <option value="Underweight" <?php echo $statusFilter === 'Underweight' ? 'selected' : ''; ?>>Underweight</option>
+            <option value="Severely Underweight" <?php echo $statusFilter === 'Severely Underweight' ? 'selected' : ''; ?>>Severely Underweight</option>
+            <option value="Not Assessed" <?php echo $statusFilter === 'Not Assessed' ? 'selected' : ''; ?>>Not Assessed</option>
+          </select>
+        </div>
+
+        <div style="display:flex; gap:10px; width:auto;">
+          <button type="submit" class="btn btn-primary" style="padding:10px 20px; font-size:0.85rem; height:46px;">
+            <i class="fas fa-filter"></i> Apply Filters
+          </button>
+          <?php if (!empty($search) || !empty($siteFilter) || !empty($statusFilter)): ?>
+            <a href="nutritional_monitoring.php" class="btn btn-outline" style="padding:10px 20px; font-size:0.85rem; height:46px; border-color:rgba(255,255,255,0.1); color:var(--gray-300); align-items:center;">
+              <i class="fas fa-filter-circle-xmark"></i> Clear
+            </a>
+          <?php endif; ?>
+        </div>
+      </form>
+    </section>
+
     <div class="admin-panel">
         <div class="panel-header">
             <h3 class="panel-title">Nutritional Monitoring Overview</h3>

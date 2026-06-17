@@ -189,16 +189,48 @@ $churchSites = $stmtSites->fetchAll();
 
 // C. Status tabs filter and list query
 $status_filter = $_GET['status'] ?? 'all';
+$search = trim($_GET['search'] ?? '');
+$siteFilter = $_GET['site_id'] ?? '';
+$dateStart = $_GET['date_start'] ?? '';
+$dateEnd = $_GET['date_end'] ?? '';
+
 $query = "
     SELECT fp.*, cs.church_name 
     FROM feeding_programs fp 
     JOIN church_sites cs ON fp.church_site_id = cs.id
 ";
+$where_clauses = [];
 $params = [];
 
 if ($status_filter !== 'all') {
-    $query .= " WHERE fp.status = ?";
+    $where_clauses[] = "fp.status = ?";
     $params[] = $status_filter;
+}
+
+if (!empty($search)) {
+    $where_clauses[] = "(fp.title LIKE ? OR cs.church_name LIKE ?)";
+    $likeSearch = '%' . $search . '%';
+    $params[] = $likeSearch;
+    $params[] = $likeSearch;
+}
+
+if (!empty($siteFilter)) {
+    $where_clauses[] = "fp.church_site_id = ?";
+    $params[] = intval($siteFilter);
+}
+
+if (!empty($dateStart)) {
+    $where_clauses[] = "fp.scheduled_date >= ?";
+    $params[] = $dateStart;
+}
+
+if (!empty($dateEnd)) {
+    $where_clauses[] = "fp.scheduled_date <= ?";
+    $params[] = $dateEnd;
+}
+
+if (!empty($where_clauses)) {
+    $query .= " WHERE " . implode(" AND ", $where_clauses);
 }
 
 $query .= " ORDER BY fp.scheduled_date DESC, fp.scheduled_time DESC";
@@ -324,10 +356,10 @@ include 'includes/header.php';
 
     <?php if ($viewProgram['status'] === 'scheduled'): ?>
       <div style="margin-top:20px; display:flex; gap:10px;">
-        <a href="feeding_programs.php?action=complete&id=<?php echo $viewProgram['id']; ?>" class="btn btn-success btn-sm" onclick="return confirm('Are you sure you want to mark this program session as COMPLETED?');">
+        <a href="feeding_programs.php?action=complete&id=<?php echo $viewProgram['id']; ?>" class="btn btn-success btn-sm" onclick="event.preventDefault(); Swal.fire({ title: 'Complete Feeding Session?', text: 'Are you sure you want to mark this program session as COMPLETED?', icon: 'question', showCancelButton: true, confirmButtonText: 'Yes, complete', cancelButtonText: 'Cancel', reverseButtons: true }).then((result) => { if (result.isConfirmed) { window.location.href = this.href; } });">
           <i class="fas fa-check"></i> Mark Complete
         </a>
-        <a href="feeding_programs.php?action=cancel&id=<?php echo $viewProgram['id']; ?>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to CANCEL this program session?');">
+        <a href="feeding_programs.php?action=cancel&id=<?php echo $viewProgram['id']; ?>" class="btn btn-danger btn-sm" onclick="event.preventDefault(); Swal.fire({ title: 'Cancel Feeding Session?', text: 'Are you sure you want to CANCEL this program session?', icon: 'warning', showCancelButton: true, confirmButtonText: 'Yes, cancel', cancelButtonText: 'Cancel', reverseButtons: true }).then((result) => { if (result.isConfirmed) { window.location.href = this.href; } });">
           <i class="fas fa-times"></i> Cancel Session
         </a>
       </div>
@@ -405,14 +437,14 @@ include 'includes/header.php';
   <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:15px;">
     <!-- Pill Tabs (Placed outside and above the dashboard-card container) -->
     <div class="pill-tabs" style="margin-bottom:0; border-bottom:none; padding-bottom:0;">
-      <a href="feeding_programs.php?status=all" class="pill-tab <?php echo $status_filter === 'all' ? 'active' : ''; ?>">All Sessions</a>
-      <a href="feeding_programs.php?status=scheduled" class="pill-tab <?php echo $status_filter === 'scheduled' ? 'active' : ''; ?>">
+      <a href="feeding_programs.php?status=all&search=<?php echo urlencode($search); ?>&site_id=<?php echo urlencode($siteFilter); ?>&date_start=<?php echo urlencode($dateStart); ?>&date_end=<?php echo urlencode($dateEnd); ?>" class="pill-tab <?php echo $status_filter === 'all' ? 'active' : ''; ?>">All Sessions</a>
+      <a href="feeding_programs.php?status=scheduled&search=<?php echo urlencode($search); ?>&site_id=<?php echo urlencode($siteFilter); ?>&date_start=<?php echo urlencode($dateStart); ?>&date_end=<?php echo urlencode($dateEnd); ?>" class="pill-tab <?php echo $status_filter === 'scheduled' ? 'active' : ''; ?>">
         <i class="fas fa-calendar" style="font-size:0.8rem; margin-right:4px;"></i> Scheduled
       </a>
-      <a href="feeding_programs.php?status=completed" class="pill-tab <?php echo $status_filter === 'completed' ? 'active' : ''; ?>">
+      <a href="feeding_programs.php?status=completed&search=<?php echo urlencode($search); ?>&site_id=<?php echo urlencode($siteFilter); ?>&date_start=<?php echo urlencode($dateStart); ?>&date_end=<?php echo urlencode($dateEnd); ?>" class="pill-tab <?php echo $status_filter === 'completed' ? 'active' : ''; ?>">
         <i class="fas fa-check-circle" style="font-size:0.8rem; margin-right:4px;"></i> Completed
       </a>
-      <a href="feeding_programs.php?status=cancelled" class="pill-tab <?php echo $status_filter === 'cancelled' ? 'active' : ''; ?>">
+      <a href="feeding_programs.php?status=cancelled&search=<?php echo urlencode($search); ?>&site_id=<?php echo urlencode($siteFilter); ?>&date_start=<?php echo urlencode($dateStart); ?>&date_end=<?php echo urlencode($dateEnd); ?>" class="pill-tab <?php echo $status_filter === 'cancelled' ? 'active' : ''; ?>">
         <i class="fas fa-times-circle" style="font-size:0.8rem; margin-right:4px;"></i> Cancelled
       </a>
     </div>
@@ -424,6 +456,51 @@ include 'includes/header.php';
       </a>
     </div>
   </div>
+
+  <!-- Roster Filter Bar -->
+  <section class="dashboard-card" style="margin-bottom:24px; padding: 20px 28px;">
+    <form action="feeding_programs.php" method="GET" style="display:flex; flex-wrap:wrap; gap:16px; align-items:flex-end;">
+      <input type="hidden" name="status" value="<?php echo htmlspecialchars($status_filter); ?>">
+      
+      <div style="flex:1.2; min-width:200px;">
+        <label style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">Search</label>
+        <input type="text" name="search" class="auth-input" placeholder="Search title or site..." value="<?php echo htmlspecialchars($search); ?>" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px;">
+      </div>
+
+      <div style="flex:1; min-width:150px;">
+        <label style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">Church Site</label>
+        <select name="site_id" class="auth-select" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px;">
+          <option value="">-- All Sites --</option>
+          <?php foreach ($churchSites as $site): ?>
+            <option value="<?php echo $site['id']; ?>" <?php echo $siteFilter == $site['id'] ? 'selected' : ''; ?>>
+              <?php echo htmlspecialchars($site['church_name']); ?>
+            </option>
+          <?php endforeach; ?>
+        </select>
+      </div>
+
+      <div style="flex:0.8; min-width:140px;">
+        <label style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">Start Date</label>
+        <input type="date" name="date_start" class="auth-input" value="<?php echo htmlspecialchars($dateStart); ?>" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px;">
+      </div>
+
+      <div style="flex:0.8; min-width:140px;">
+        <label style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">End Date</label>
+        <input type="date" name="date_end" class="auth-input" value="<?php echo htmlspecialchars($dateEnd); ?>" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px;">
+      </div>
+
+      <div style="display:flex; gap:10px; width:auto;">
+        <button type="submit" class="btn btn-primary" style="padding:10px 20px; font-size:0.85rem; height:46px;">
+          <i class="fas fa-filter"></i> Apply Filters
+        </button>
+        <?php if (!empty($search) || !empty($siteFilter) || !empty($dateStart) || !empty($dateEnd)): ?>
+          <a href="feeding_programs.php?status=<?php echo urlencode($status_filter); ?>" class="btn btn-outline" style="padding:10px 20px; font-size:0.85rem; height:46px; border-color:rgba(255,255,255,0.1); color:var(--gray-300); align-items:center;">
+            <i class="fas fa-filter-circle-xmark"></i> Clear
+          </a>
+        <?php endif; ?>
+      </div>
+    </form>
+  </section>
 
   <!-- MAIN LISTING CARD -->
   <div class="dashboard-card">
@@ -480,10 +557,10 @@ include 'includes/header.php';
                         <i class="fas fa-eye"></i> View &amp; Attendance
                       </a>
                       <?php if ($program['status'] === 'scheduled'): ?>
-                        <a href="feeding_programs.php?action=complete&id=<?php echo $program['id']; ?>" class="btn btn-success btn-sm" onclick="return confirm('Are you sure you want to mark this program session as COMPLETED?');">
+                        <a href="feeding_programs.php?action=complete&id=<?php echo $program['id']; ?>" class="btn btn-success btn-sm" onclick="event.preventDefault(); Swal.fire({ title: 'Complete Feeding Session?', text: 'Are you sure you want to mark this program session as COMPLETED?', icon: 'question', showCancelButton: true, confirmButtonText: 'Yes, complete', cancelButtonText: 'Cancel', reverseButtons: true }).then((result) => { if (result.isConfirmed) { window.location.href = this.href; } });">
                           <i class="fas fa-check"></i> Complete
                         </a>
-                        <a href="feeding_programs.php?action=cancel&id=<?php echo $program['id']; ?>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to CANCEL this program session?');">
+                        <a href="feeding_programs.php?action=cancel&id=<?php echo $program['id']; ?>" class="btn btn-danger btn-sm" onclick="event.preventDefault(); Swal.fire({ title: 'Cancel Feeding Session?', text: 'Are you sure you want to CANCEL this program session?', icon: 'warning', showCancelButton: true, confirmButtonText: 'Yes, cancel', cancelButtonText: 'Cancel', reverseButtons: true }).then((result) => { if (result.isConfirmed) { window.location.href = this.href; } });">
                           <i class="fas fa-ban"></i> Cancel
                         </a>
                       <?php endif; ?>
