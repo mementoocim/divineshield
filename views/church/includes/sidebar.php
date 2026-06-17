@@ -3,6 +3,14 @@
  * Shared Church Leader Sidebar Navigation Template
  */
 ?>
+<style>
+#churchSidebarMenu {
+  gap: 10px !important;
+}
+#churchSidebarMenu .sidebar-link {
+  padding: 12px 18px !important;
+}
+</style>
 <!-- SIDEBAR NAVIGATION -->
 <aside class="admin-sidebar">
   <div class="sidebar-header">

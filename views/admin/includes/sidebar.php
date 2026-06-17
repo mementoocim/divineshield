@@ -4,6 +4,18 @@
  */
 $currentPage = basename($_SERVER['PHP_SELF']);
 ?>
+<style>
+#adminSidebarMenu {
+  gap: 6px !important;
+}
+#adminSidebarMenu .sidebar-link {
+  padding: 10px 16px !important;
+}
+#adminSidebarMenu .sidebar-section-label {
+  margin-top: 10px !important;
+  margin-bottom: 2px !important;
+}
+</style>
 <!-- SIDEBAR NAVIGATION -->
 <aside class="admin-sidebar">
   <div class="sidebar-header">

@@ -1,6 +1,14 @@
 <?php
 $currentPage = basename($_SERVER['PHP_SELF']);
 ?>
+<style>
+#staffSidebarMenu {
+  gap: 12px !important;
+}
+#staffSidebarMenu .sidebar-link {
+  padding: 14px 18px !important;
+}
+</style>
 <aside class="admin-sidebar" id="staffSidebar">
   <div class="sidebar-header">
     <a href="dashboard.php" class="nav-brand" style="pointer-events: none;">
