@@ -6,14 +6,14 @@ $currentPage = basename($_SERVER['PHP_SELF']);
 ?>
 <style>
 #adminSidebarMenu {
-  gap: 6px !important;
+  gap: 8px !important;
 }
 #adminSidebarMenu .sidebar-link {
-  padding: 10px 16px !important;
+  padding: 12px 18px !important;
 }
 #adminSidebarMenu .sidebar-section-label {
-  margin-top: 10px !important;
-  margin-bottom: 2px !important;
+  margin-top: 14px !important;
+  margin-bottom: 4px !important;
 }
 </style>
 <!-- SIDEBAR NAVIGATION -->
