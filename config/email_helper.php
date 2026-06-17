@@ -188,6 +188,15 @@ function sendAdminNewRegistrationEmail(
             ? '<p><strong>Message to Admin:</strong> ' . htmlspecialchars($adminMessage) . '</p>'
             : '';
 
+        $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+        $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+        $uri = $_SERVER['REQUEST_URI'] ?? '';
+        $folder = '/Divineshield';
+        if (stripos($uri, '/divinely-shield') !== false) {
+            $folder = '/divinely-shield';
+        }
+        $portalUrl = $protocol . '://' . $host . $folder . '/views/admin/dashboard.php';
+
         $mail->Body = '
         <!DOCTYPE html>
         <html>
@@ -244,7 +253,7 @@ function sendAdminNewRegistrationEmail(
               </div>
 
               <p>Log in to the DivineShield admin portal to approve or reject this registration.</p>
-              <a href="http://localhost/divinely-shield/views/admin/dashboard.php" class="btn">Go to Admin Portal →</a>
+              <a href="' . $portalUrl . '" class="btn">Go to Admin Portal →</a>
 
               <p style="margin-top: 28px; font-size:13px; color:#94a3b8;">This notification was sent automatically upon form submission.</p>
             </div>
