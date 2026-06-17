@@ -21,8 +21,8 @@ $adminProfilePic = $stmtAdmin->fetchColumn();
 $stmtSites = $pdo->query("SELECT id, church_name FROM church_sites ORDER BY church_name ASC");
 $churchSites = $stmtSites->fetchAll();
 
-// Get filter inputs
-$type = $_GET['report_type'] ?? 'nutritional';
+// Get filter inputs - Default to 'all'
+$type = $_GET['report_type'] ?? 'all';
 $siteId = isset($_GET['site_id']) && $_GET['site_id'] !== '' ? intval($_GET['site_id']) : null;
 $dateStart = $_GET['date_start'] ?? '';
 $dateEnd = $_GET['date_end'] ?? '';
@@ -30,7 +30,37 @@ $dateEnd = $_GET['date_end'] ?? '';
 // Handle real report export download
 if (isset($_GET['action']) && $_GET['action'] === 'export') {
     $params = [];
-    if ($type === 'nutritional') {
+    if ($type === 'all') {
+        $sql = "SELECT c.first_name, c.last_name, c.gender, c.birthdate, 
+                       cs.church_name, c.status, c.guardian_name,
+                       (SELECT bmi FROM nutritional_assessments WHERE child_id = c.id ORDER BY assessment_date DESC LIMIT 1) AS latest_bmi,
+                       (SELECT bmi_status FROM nutritional_assessments WHERE child_id = c.id ORDER BY assessment_date DESC LIMIT 1) AS latest_bmi_status
+                FROM children c
+                JOIN church_sites cs ON c.church_site_id = cs.id WHERE 1=1";
+
+        if ($siteId) {
+            $sql .= " AND c.church_site_id = ?";
+            $params[] = $siteId;
+        }
+
+        $sql .= " ORDER BY c.last_name ASC, c.first_name ASC";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $filename = "Master_System_Report_" . date('Ymd_His') . ".csv";
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        $output = fopen('php://output', 'w');
+        
+        fputcsv($output, ['First Name', 'Last Name', 'Gender', 'Birthdate', 'Church Site', 'Status', 'Guardian Name', 'Latest BMI', 'Latest BMI Status']);
+        foreach ($rows as $row) {
+            fputcsv($output, $row);
+        }
+        fclose($output);
+        exit;
+
+    } elseif ($type === 'nutritional') {
         $sql = "SELECT c.first_name, c.last_name, c.gender, c.birthdate, 
                        na.weight, na.height, na.bmi, na.bmi_status, na.assessment_date, 
                        cs.church_name, na.notes
@@ -139,7 +169,23 @@ if (isset($_GET['action']) && $_GET['action'] === 'export') {
 // Fetch preview data
 $previewRows = [];
 $previewParams = [];
-if ($type === 'nutritional') {
+if ($type === 'all') {
+    $sql = "SELECT c.first_name, c.last_name, c.gender, c.birthdate, 
+                   cs.church_name, c.status, c.guardian_name,
+                   (SELECT bmi FROM nutritional_assessments WHERE child_id = c.id ORDER BY assessment_date DESC LIMIT 1) AS latest_bmi,
+                   (SELECT bmi_status FROM nutritional_assessments WHERE child_id = c.id ORDER BY assessment_date DESC LIMIT 1) AS latest_bmi_status
+            FROM children c
+            JOIN church_sites cs ON c.church_site_id = cs.id WHERE 1=1";
+    if ($siteId) {
+        $sql .= " AND c.church_site_id = ?";
+        $previewParams[] = $siteId;
+    }
+    $sql .= " ORDER BY c.last_name ASC, c.first_name ASC LIMIT 50";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($previewParams);
+    $previewRows = $stmt->fetchAll();
+
+} elseif ($type === 'nutritional') {
     $sql = "SELECT c.first_name, c.last_name, c.gender, c.birthdate, 
                    na.weight, na.height, na.bmi, na.bmi_status, na.assessment_date, 
                    cs.church_name
@@ -212,6 +258,7 @@ include 'includes/header.php';
     <div style="flex:1.2; min-width:200px;">
       <label style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">Report Type</label>
       <select name="report_type" class="auth-select" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px; width:100%;" required>
+        <option value="all" <?php echo $type === 'all' ? 'selected' : ''; ?>>All (Master System Summary)</option>
         <option value="nutritional" <?php echo $type === 'nutritional' ? 'selected' : ''; ?>>Nutritional Monitoring (BMI Records)</option>
         <option value="attendance" <?php echo $type === 'attendance' ? 'selected' : ''; ?>>Program Attendance Ledger</option>
         <option value="beneficiaries" <?php echo $type === 'beneficiaries' ? 'selected' : ''; ?>>Beneficiary Demographics &amp; Registry</option>
@@ -244,7 +291,7 @@ include 'includes/header.php';
       <button type="submit" class="btn btn-primary" style="padding:10px 20px; font-size:0.85rem; height:46px;">
         <i class="fas fa-rotate"></i> Generate Preview
       </button>
-      <?php if ($siteId || !empty($dateStart) || !empty($dateEnd) || $type !== 'nutritional'): ?>
+      <?php if ($siteId || !empty($dateStart) || !empty($dateEnd) || $type !== 'all'): ?>
         <a href="reports.php" class="btn btn-outline" style="padding:10px 20px; font-size:0.85rem; height:46px; border-color:rgba(255,255,255,0.1); color:var(--gray-300); align-items:center;">
           <i class="fas fa-filter-circle-xmark"></i> Reset
         </a>
@@ -278,7 +325,55 @@ include 'includes/header.php';
       
       <div class="dark-table-wrap">
         <table class="dark-table">
-          <?php if ($type === 'nutritional'): ?>
+          <?php if ($type === 'all'): ?>
+            <thead>
+              <tr>
+                <th>Beneficiary Name</th>
+                <th>Gender</th>
+                <th>Age</th>
+                <th>Church Site</th>
+                <th>Latest BMI</th>
+                <th>BMI Status</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <?php foreach ($previewRows as $row): ?>
+                <?php $age = date_diff(date_create($row['birthdate']), date_create('today'))->y; ?>
+                <tr>
+                  <td class="fw-semibold text-white"><?php echo htmlspecialchars($row['first_name'] . ' ' . $row['last_name']); ?></td>
+                  <td style="text-transform: capitalize;"><?php echo htmlspecialchars($row['gender']); ?></td>
+                  <td><?php echo $age; ?> yrs</td>
+                  <td><?php echo htmlspecialchars($row['church_name']); ?></td>
+                  <td style="font-family: monospace; color:var(--white);"><?php echo $row['latest_bmi'] ? number_format($row['latest_bmi'], 2) : '—'; ?></td>
+                  <td>
+                    <?php 
+                    $status = $row['latest_bmi_status'];
+                    if (empty($status)) {
+                        echo '<span class="text-muted">Not Assessed</span>';
+                    } elseif ($status === 'Normal Weight' || $status === 'Normal') {
+                        echo '<span class="status-badge success"><i class="fas fa-check-circle"></i> Normal</span>';
+                    } elseif ($status === 'Underweight') {
+                        echo '<span class="status-badge warning"><i class="fas fa-exclamation-circle"></i> Underweight</span>';
+                    } else {
+                        echo '<span class="status-badge error"><i class="fas fa-times-circle"></i> Obese/Overweight</span>';
+                    }
+                    ?>
+                  </td>
+                  <td>
+                    <?php if ($row['status'] === 'active'): ?>
+                      <span class="status-badge success"><i class="fas fa-check-circle"></i> Active</span>
+                    <?php elseif ($row['status'] === 'graduated'): ?>
+                      <span class="status-badge warning" style="background:rgba(59,130,246,0.15); color:#60a5fa; border-color:rgba(59,130,246,0.3);"><i class="fas fa-graduation-cap"></i> Graduated</span>
+                    <?php else: ?>
+                      <span class="status-badge error"><i class="fas fa-times-circle"></i> Inactive</span>
+                    <?php endif; ?>
+                  </td>
+                </tr>
+              <?php endforeach; ?>
+            </tbody>
+
+          <?php elseif ($type === 'nutritional'): ?>
             <thead>
               <tr>
                 <th>Assessment Date</th>
