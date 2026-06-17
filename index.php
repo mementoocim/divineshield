@@ -369,181 +369,86 @@
       align-self: stretch;
     }
 
-    /* Right Visual: Interactive System Mockup Console */
-    .hero-preview-console {
+    /* Hero Photos Visual Styling */
+    .hero-visual {
       position: relative;
-      background: #090d16;
-      border: var(--glass-border);
-      border-radius: 20px;
-      box-shadow: var(--glass-shadow), 0 0 40px rgba(99, 102, 241, 0.1);
-      padding: 24px;
-      overflow: hidden;
-      aspect-ratio: 1.15;
+      z-index: 1;
       display: flex;
-      flex-direction: column;
-      gap: 18px;
-    }
-
-    .console-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-      padding-bottom: 14px;
-    }
-
-    .console-dots {
-      display: flex;
-      gap: 6px;
-    }
-
-    .console-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-    }
-
-    .console-dot-r { background: #ef4444; }
-    .console-dot-y { background: #eab308; }
-    .console-dot-g { background: #22c55e; }
-
-    .console-title {
-      font-family: var(--font-outfit);
-      font-size: 0.78rem;
-      color: var(--text-muted);
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      font-weight: 700;
-    }
-
-    .console-body {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-
-    .mock-metrics {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-
-    .mock-metric-card {
-      background: rgba(255, 255, 255, 0.02);
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      border-radius: 12px;
-      padding: 14px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .mock-metric-icon {
-      width: 36px;
-      height: 36px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
       justify-content: center;
-      font-size: 1rem;
-    }
-
-    .m-i-blue { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
-    .m-i-teal { background: rgba(16, 185, 129, 0.1); color: #10b981; }
-
-    .mock-metric-vals {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .mock-metric-val {
-      font-family: var(--font-outfit);
-      font-weight: 700;
-      font-size: 1.15rem;
-      color: #fff;
-    }
-
-    .mock-metric-lbl {
-      font-size: 0.65rem;
-      color: var(--text-muted);
-    }
-
-    /* Mock Chart Container */
-    .mock-chart-container {
-      flex: 1;
-      background: rgba(255, 255, 255, 0.01);
-      border: 1px solid rgba(255, 255, 255, 0.04);
-      border-radius: 12px;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-
-    .mock-chart-header {
-      display: flex;
-      justify-content: space-between;
       align-items: center;
-      font-size: 0.72rem;
-      margin-bottom: 8px;
     }
-
-    .mock-chart-title {
-      font-weight: 600;
-      color: #fff;
+    
+    .hero-photos {
+      position: relative;
+      width: 480px;
+      height: 400px;
+      max-width: 100%;
     }
-
-    .mock-chart-trend {
-      color: #10b981;
-      font-weight: 700;
-    }
-
-    .mock-chart-bars {
-      display: flex;
-      align-items: flex-end;
-      height: 90px;
-      gap: 12px;
-      padding-top: 10px;
-    }
-
-    .mock-chart-bar-wrap {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .mock-chart-bar-fill {
-      width: 100%;
-      background: linear-gradient(to top, var(--color-primary), var(--color-secondary));
-      border-radius: 4px 4px 0 0;
-      min-height: 10px;
+    
+    .hero-photo-frame {
+      position: absolute;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+      border: 3px solid rgba(255, 255, 255, 0.1);
       transition: var(--transition-smooth);
     }
-
-    .mock-chart-bar-lbl {
-      font-size: 0.6rem;
-      color: var(--text-muted);
+    
+    .hero-photo-frame:hover {
+      transform: scale(1.03) translateY(-8px) rotate(0deg) !important;
+      border-color: var(--color-primary);
+      z-index: 10 !important;
     }
-
-    /* Floating visual badge */
-    .visual-pill-badge {
+    
+    .hero-photo-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    
+    .frame-1 {
+      width: 340px;
+      height: 250px;
+      top: 0;
+      left: 0;
+      transform: rotate(-3deg);
+      z-index: 1;
+    }
+    
+    .frame-2 {
+      width: 290px;
+      height: 210px;
+      bottom: 0;
+      right: 0;
+      transform: rotate(3deg);
+      z-index: 2;
+      border-color: rgba(168, 85, 247, 0.2);
+    }
+    
+    .hero-photo-badge {
       position: absolute;
-      bottom: 12px;
-      right: 12px;
+      bottom: 120px;
+      left: -10px;
       background: var(--color-accent);
       color: var(--text-dark);
       font-family: var(--font-outfit);
-      font-weight: 700;
-      font-size: 0.78rem;
-      padding: 8px 16px;
+      font-weight: 800;
+      font-size: 0.8rem;
+      padding: 8px 20px;
       border-radius: 100px;
-      box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
+      box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+      z-index: 3;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
+      white-space: nowrap;
+      animation: floatBadge 3s ease-in-out infinite alternate;
+    }
+    
+    @keyframes floatBadge {
+      from { transform: translateY(0); }
+      to { transform: translateY(-6px); }
     }
 
     /* ── ABOUT SECTION ──────────────────────────────────────────────── */
@@ -1146,74 +1051,18 @@
           </div>
         </div>
         
-        <!-- Interactive Mockup Console -->
-        <div class="hero-preview-console">
-          <div class="console-header">
-            <div class="console-dots">
-              <span class="console-dot console-dot-r"></span>
-              <span class="console-dot console-dot-y"></span>
-              <span class="console-dot console-dot-g"></span>
+        <!-- Hero Photos Visual Block -->
+        <div class="hero-visual">
+          <div class="hero-photos">
+            <div class="hero-photo-frame frame-1">
+              <img src="assets/images/pict_large.jpg" alt="MAINPI Feeding Program – children eating indoors" />
             </div>
-            <span class="console-title">Live Analytics Feed</span>
-            <span style="font-size:0.65rem; color:#10b981; display:flex; align-items:center; gap:4px;"><span style="width:6px;height:6px;background:#10b981;border-radius:50%;display:inline-block;"></span> Online</span>
-          </div>
-          
-          <div class="console-body">
-            <div class="mock-metrics">
-              <div class="mock-metric-card">
-                <div class="mock-metric-icon m-i-blue">
-                  <i class="fas fa-children"></i>
-                </div>
-                <div class="mock-metric-vals">
-                  <span class="mock-metric-val">1,842</span>
-                  <span class="mock-metric-lbl">Total Registered</span>
-                </div>
-              </div>
-              
-              <div class="mock-metric-card">
-                <div class="mock-metric-icon m-i-teal">
-                  <i class="fas fa-check-circle"></i>
-                </div>
-                <div class="mock-metric-vals">
-                  <span class="mock-metric-val">94.2%</span>
-                  <span class="mock-metric-lbl">Qualified Status</span>
-                </div>
-              </div>
+            <div class="hero-photo-frame frame-2">
+              <img src="assets/images/philippines_freemeals001.webp" alt="MAINPI Feeding Program – children eating outdoors" />
             </div>
-            
-            <div class="mock-chart-container">
-              <div class="mock-chart-header">
-                <span class="mock-chart-title">Nutritional Recovery (Weekly Success)</span>
-                <span class="mock-chart-trend"><i class="fas fa-arrow-trend-up"></i> +4.8%</span>
-              </div>
-              
-              <div class="mock-chart-bars">
-                <div class="mock-chart-bar-wrap">
-                  <div class="mock-chart-bar-fill" style="height: 35px;"></div>
-                  <span class="mock-chart-bar-lbl">W1</span>
-                </div>
-                <div class="mock-chart-bar-wrap">
-                  <div class="mock-chart-bar-fill" style="height: 55px;"></div>
-                  <span class="mock-chart-bar-lbl">W2</span>
-                </div>
-                <div class="mock-chart-bar-wrap">
-                  <div class="mock-chart-bar-fill" style="height: 72px;"></div>
-                  <span class="mock-chart-bar-lbl">W3</span>
-                </div>
-                <div class="mock-chart-bar-wrap">
-                  <div class="mock-chart-bar-fill" style="height: 60px;"></div>
-                  <span class="mock-chart-bar-lbl">W4</span>
-                </div>
-                <div class="mock-chart-bar-wrap">
-                  <div class="mock-chart-bar-fill" style="height: 85px;"></div>
-                  <span class="mock-chart-bar-lbl">W5</span>
-                </div>
-              </div>
+            <div class="hero-photo-badge">
+              <i class="fas fa-heart"></i> Serving Children Since 2017
             </div>
-          </div>
-          
-          <div class="visual-pill-badge">
-            <i class="fas fa-star"></i> Since 2017
           </div>
         </div>
       </div>
