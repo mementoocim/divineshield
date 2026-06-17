@@ -21,15 +21,18 @@ $adminProfilePic = $stmtAdmin->fetchColumn();
 $stmtSites = $pdo->query("SELECT id, church_name FROM church_sites ORDER BY church_name ASC");
 $churchSites = $stmtSites->fetchAll();
 
-// Get filter inputs - Default to 'all'
+// Get filter inputs
 $type = $_GET['report_type'] ?? 'all';
 $siteId = isset($_GET['site_id']) && $_GET['site_id'] !== '' ? intval($_GET['site_id']) : null;
 $dateStart = $_GET['date_start'] ?? '';
 $dateEnd = $_GET['date_end'] ?? '';
+$format = $_GET['format'] ?? 'csv';
 
 // Handle real report export download
 if (isset($_GET['action']) && $_GET['action'] === 'export') {
     $params = [];
+    
+    // 1. Resolve query based on type
     if ($type === 'all') {
         $sql = "SELECT c.first_name, c.last_name, c.gender, c.birthdate, 
                        cs.church_name, c.status, c.guardian_name,
@@ -37,28 +40,12 @@ if (isset($_GET['action']) && $_GET['action'] === 'export') {
                        (SELECT bmi_status FROM nutritional_assessments WHERE child_id = c.id ORDER BY assessment_date DESC LIMIT 1) AS latest_bmi_status
                 FROM children c
                 JOIN church_sites cs ON c.church_site_id = cs.id WHERE 1=1";
-
         if ($siteId) {
             $sql .= " AND c.church_site_id = ?";
             $params[] = $siteId;
         }
-
         $sql .= " ORDER BY c.last_name ASC, c.first_name ASC";
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute($params);
-        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        $filename = "Master_System_Report_" . date('Ymd_His') . ".csv";
-        header('Content-Type: text/csv; charset=utf-8');
-        header('Content-Disposition: attachment; filename="' . $filename . '"');
-        $output = fopen('php://output', 'w');
-        
-        fputcsv($output, ['First Name', 'Last Name', 'Gender', 'Birthdate', 'Church Site', 'Status', 'Guardian Name', 'Latest BMI', 'Latest BMI Status']);
-        foreach ($rows as $row) {
-            fputcsv($output, $row);
-        }
-        fclose($output);
-        exit;
+        $headers = ['First Name', 'Last Name', 'Gender', 'Birthdate', 'Church Site', 'Status', 'Guardian Name', 'Latest BMI', 'Latest BMI Status'];
 
     } elseif ($type === 'nutritional') {
         $sql = "SELECT c.first_name, c.last_name, c.gender, c.birthdate, 
@@ -67,7 +54,6 @@ if (isset($_GET['action']) && $_GET['action'] === 'export') {
                 FROM nutritional_assessments na
                 JOIN children c ON na.child_id = c.id
                 JOIN church_sites cs ON c.church_site_id = cs.id WHERE 1=1";
-        
         if ($siteId) {
             $sql .= " AND c.church_site_id = ?";
             $params[] = $siteId;
@@ -80,23 +66,8 @@ if (isset($_GET['action']) && $_GET['action'] === 'export') {
             $sql .= " AND na.assessment_date <= ?";
             $params[] = $dateEnd;
         }
-        
         $sql .= " ORDER BY na.assessment_date DESC";
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute($params);
-        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        $filename = "Nutritional_Report_" . date('Ymd_His') . ".csv";
-        header('Content-Type: text/csv; charset=utf-8');
-        header('Content-Disposition: attachment; filename="' . $filename . '"');
-        $output = fopen('php://output', 'w');
-        
-        fputcsv($output, ['First Name', 'Last Name', 'Gender', 'Birthdate', 'Weight (kg)', 'Height (cm)', 'BMI', 'BMI Status', 'Assessment Date', 'Church Site', 'Notes']);
-        foreach ($rows as $row) {
-            fputcsv($output, $row);
-        }
-        fclose($output);
-        exit;
+        $headers = ['First Name', 'Last Name', 'Gender', 'Birthdate', 'Weight (kg)', 'Height (cm)', 'BMI', 'BMI Status', 'Assessment Date', 'Church Site', 'Notes'];
 
     } elseif ($type === 'attendance') {
         $sql = "SELECT a.logged_at, c.first_name, c.last_name, 
@@ -105,7 +76,6 @@ if (isset($_GET['action']) && $_GET['action'] === 'export') {
                 JOIN children c ON a.child_id = c.id
                 JOIN feeding_programs fp ON a.feeding_program_id = fp.id
                 JOIN church_sites cs ON fp.church_site_id = cs.id WHERE 1=1";
-
         if ($siteId) {
             $sql .= " AND fp.church_site_id = ?";
             $params[] = $siteId;
@@ -118,46 +88,103 @@ if (isset($_GET['action']) && $_GET['action'] === 'export') {
             $sql .= " AND DATE(a.logged_at) <= ?";
             $params[] = $dateEnd;
         }
-
         $sql .= " ORDER BY a.logged_at DESC";
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute($params);
-        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        $filename = "Attendance_Report_" . date('Ymd_His') . ".csv";
-        header('Content-Type: text/csv; charset=utf-8');
-        header('Content-Disposition: attachment; filename="' . $filename . '"');
-        $output = fopen('php://output', 'w');
-        
-        fputcsv($output, ['Logged At', 'First Name', 'Last Name', 'Program Title', 'Church Site', 'Status', 'Logged Via']);
-        foreach ($rows as $row) {
-            fputcsv($output, $row);
-        }
-        fclose($output);
-        exit;
+        $headers = ['Logged At', 'First Name', 'Last Name', 'Program Title', 'Church Site', 'Status', 'Logged Via'];
 
     } elseif ($type === 'beneficiaries') {
         $sql = "SELECT c.first_name, c.last_name, c.gender, c.birthdate, 
                        cs.church_name, c.status, c.guardian_name
                 FROM children c
                 JOIN church_sites cs ON c.church_site_id = cs.id WHERE 1=1";
-
         if ($siteId) {
             $sql .= " AND c.church_site_id = ?";
             $params[] = $siteId;
         }
-
         $sql .= " ORDER BY c.last_name ASC, c.first_name ASC";
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute($params);
-        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $headers = ['First Name', 'Last Name', 'Gender', 'Birthdate', 'Church Site', 'Status', 'Guardian Name'];
+    }
 
-        $filename = "Beneficiaries_Report_" . date('Ymd_His') . ".csv";
-        header('Content-Type: text/csv; charset=utf-8');
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // 2. Output File Formats
+    if ($format === 'print') {
+        // Output clean HTML printable layout
+        ?>
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <title>System Report – DivineShield</title>
+            <style>
+                body { font-family: 'Inter', sans-serif; color: #333; padding: 40px; line-height: 1.5; }
+                .header-title { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 15px; }
+                .header-title h2 { margin: 0 0 5px; font-size: 1.6rem; text-transform: uppercase; letter-spacing: 0.05em; }
+                .header-title p { margin: 0; color: #666; font-size: 0.9rem; }
+                .meta-info { display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 0.85rem; color: #555; }
+                table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.85rem; }
+                th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+                th { background-color: #f5f5f5; font-weight: bold; }
+                tr:nth-child(even) { background-color: #fafafa; }
+            </style>
+        </head>
+        <body>
+            <div class="header-title">
+                <h2>DivineShield Report</h2>
+                <p>System Export: <?php echo htmlspecialchars(ucwords(str_replace('_', ' ', $type))); ?> Details</p>
+            </div>
+            <div class="meta-info">
+                <span><strong>Date Generated:</strong> <?php echo date('F d, Y h:i A'); ?></span>
+                <span><strong>Records Count:</strong> <?php echo count($rows); ?> entries</span>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <?php foreach ($headers as $h): ?>
+                            <th><?php echo htmlspecialchars($h); ?></th>
+                        <?php endforeach; ?>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (empty($rows)): ?>
+                        <tr><td colspan="<?php echo count($headers); ?>" style="text-align:center;">No records found.</td></tr>
+                    <?php else: ?>
+                        <?php foreach ($rows as $row): ?>
+                            <tr>
+                                <?php foreach ($row as $val): ?>
+                                    <td><?php echo htmlspecialchars($val ?? '—'); ?></td>
+                                <?php endforeach; ?>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+            <script>
+                window.onload = function() {
+                    window.print();
+                }
+            </script>
+        </body>
+        </html>
+        <?php
+        exit;
+    } else {
+        // Excel (.xls) or CSV (.csv) output
+        $filename = ucwords($type) . "_Report_" . date('Ymd_His');
+        if ($format === 'excel') {
+            $filename .= ".xls";
+            header('Content-Type: application/vnd.ms-excel');
+        } else {
+            $filename .= ".csv";
+            header('Content-Type: text/csv; charset=utf-8');
+        }
+        
         header('Content-Disposition: attachment; filename="' . $filename . '"');
         $output = fopen('php://output', 'w');
         
-        fputcsv($output, ['First Name', 'Last Name', 'Gender', 'Birthdate', 'Church Site', 'Status', 'Guardian Name']);
+        // Output headers
+        fputcsv($output, $headers);
         foreach ($rows as $row) {
             fputcsv($output, $row);
         }
@@ -166,7 +193,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'export') {
     }
 }
 
-// Fetch preview data
+// Fetch preview data (limit to 50 for preview)
 $previewRows = [];
 $previewParams = [];
 if ($type === 'all') {
@@ -255,7 +282,7 @@ include 'includes/header.php';
 <!-- Top Filter Configuration Card -->
 <section class="dashboard-card" style="margin-bottom:24px; padding: 20px 28px;">
   <form action="reports.php" method="GET" style="display:flex; flex-wrap:wrap; gap:16px; align-items:flex-end;">
-    <div style="flex:1.2; min-width:200px;">
+    <div style="flex:1.2; min-width:180px;">
       <label style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">Report Type</label>
       <select name="report_type" class="auth-select" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px; width:100%;" required>
         <option value="all" <?php echo $type === 'all' ? 'selected' : ''; ?>>All (Master System Summary)</option>
@@ -277,21 +304,30 @@ include 'includes/header.php';
       </select>
     </div>
 
-    <div style="flex:0.8; min-width:140px;">
+    <div style="flex:0.8; min-width:130px;">
       <label style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">Start Date</label>
       <input type="date" name="date_start" class="auth-input" value="<?php echo htmlspecialchars($dateStart); ?>" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px;">
     </div>
 
-    <div style="flex:0.8; min-width:140px;">
+    <div style="flex:0.8; min-width:130px;">
       <label style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">End Date</label>
       <input type="date" name="date_end" class="auth-input" value="<?php echo htmlspecialchars($dateEnd); ?>" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px;">
+    </div>
+
+    <div style="flex:0.6; min-width:110px;">
+      <label style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">File Format</label>
+      <select name="format" class="auth-select" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px; width:100%;">
+        <option value="csv" <?php echo $format === 'csv' ? 'selected' : ''; ?>>CSV (.csv)</option>
+        <option value="excel" <?php echo $format === 'excel' ? 'selected' : ''; ?>>Excel (.xls)</option>
+        <option value="print" <?php echo $format === 'print' ? 'selected' : ''; ?>>Print / PDF</option>
+      </select>
     </div>
 
     <div style="display:flex; gap:10px; width:auto;">
       <button type="submit" class="btn btn-primary" style="padding:10px 20px; font-size:0.85rem; height:46px;">
         <i class="fas fa-rotate"></i> Generate Preview
       </button>
-      <?php if ($siteId || !empty($dateStart) || !empty($dateEnd) || $type !== 'all'): ?>
+      <?php if ($siteId || !empty($dateStart) || !empty($dateEnd) || $type !== 'all' || $format !== 'csv'): ?>
         <a href="reports.php" class="btn btn-outline" style="padding:10px 20px; font-size:0.85rem; height:46px; border-color:rgba(255,255,255,0.1); color:var(--gray-300); align-items:center;">
           <i class="fas fa-filter-circle-xmark"></i> Reset
         </a>
@@ -308,8 +344,8 @@ include 'includes/header.php';
     </div>
     
     <?php if (!empty($previewRows)): ?>
-      <a href="reports.php?action=export&report_type=<?php echo urlencode($type); ?>&site_id=<?php echo urlencode($siteId ?? ''); ?>&date_start=<?php echo urlencode($dateStart); ?>&date_end=<?php echo urlencode($dateEnd); ?>" class="btn btn-success btn-sm">
-        <i class="fas fa-download"></i> Export Filtered CSV
+      <a href="reports.php?action=export&report_type=<?php echo urlencode($type); ?>&site_id=<?php echo urlencode($siteId ?? ''); ?>&date_start=<?php echo urlencode($dateStart); ?>&date_end=<?php echo urlencode($dateEnd); ?>&format=<?php echo urlencode($format); ?>" class="btn btn-success btn-sm" <?php echo $format === 'print' ? 'target="_blank"' : ''; ?>>
+        <i class="fas fa-download"></i> <?php echo ($format === 'print') ? 'Print Report' : (($format === 'excel') ? 'Export to Excel' : 'Export to CSV'); ?>
       </a>
     <?php endif; ?>
   </div>
