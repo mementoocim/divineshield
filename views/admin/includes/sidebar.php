@@ -62,10 +62,6 @@ $currentPage = basename($_SERVER['PHP_SELF']);
       <i class="fas fa-file-invoice"></i>
       <span>Reports</span>
     </a>
-    <a href="notifications.php" class="sidebar-link <?php echo $currentPage === 'notifications.php' ? 'active' : ''; ?>">
-      <i class="fas fa-bell"></i>
-      <span>Notifications</span>
-    </a>
     <a href="audit_logs.php" class="sidebar-link <?php echo $currentPage === 'audit_logs.php' ? 'active' : ''; ?>">
       <i class="fas fa-scroll"></i>
       <span>Audit Logs</span>
