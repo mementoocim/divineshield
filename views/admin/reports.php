@@ -21,12 +21,18 @@ $adminProfilePic = $stmtAdmin->fetchColumn();
 $stmtSites = $pdo->query("SELECT id, church_name FROM church_sites ORDER BY church_name ASC");
 $churchSites = $stmtSites->fetchAll();
 
+// Fetch unique barangays from church sites for filtering
+$stmtBarangays = $pdo->query("SELECT DISTINCT barangay FROM church_sites WHERE barangay IS NOT NULL AND barangay != '' ORDER BY barangay ASC");
+$barangays = $stmtBarangays->fetchAll(PDO::FETCH_COLUMN);
+
 // Get filter inputs - Default to 'all'
 $type = $_GET['report_type'] ?? 'all';
 $siteId = isset($_GET['site_id']) && $_GET['site_id'] !== '' ? intval($_GET['site_id']) : null;
 $dateStart = $_GET['date_start'] ?? '';
 $dateEnd = $_GET['date_end'] ?? '';
 $format = $_GET['format'] ?? 'csv';
+$barangayFilter = $_GET['barangay'] ?? '';
+$qualFilter = $_GET['qualification'] ?? '';
 
 // Handle real report export download
 if (isset($_GET['action']) && $_GET['action'] === 'export') {
@@ -115,6 +121,22 @@ if (isset($_GET['action']) && $_GET['action'] === 'export') {
         }
         $sql .= " ORDER BY c.created_at DESC";
         $headers = ['First Name', 'Last Name', 'Gender', 'Birthdate', 'Church Site', 'Status', 'Guardian Name', 'Registration Date'];
+
+    } elseif ($type === 'qualification') {
+        $sql = "SELECT cs.barangay, cs.church_name, sub.first_name, sub.last_name, sub.gender, 
+                       sub.birthdate, sub.initial_bmi, sub.initial_bmi_status, sub.suggested_status, sub.submission_status
+                FROM children_submissions sub
+                JOIN church_sites cs ON sub.church_site_id = cs.id WHERE 1=1";
+        if (!empty($barangayFilter)) {
+            $sql .= " AND cs.barangay = ?";
+            $params[] = $barangayFilter;
+        }
+        if (!empty($qualFilter)) {
+            $sql .= " AND sub.suggested_status = ?";
+            $params[] = $qualFilter;
+        }
+        $sql .= " ORDER BY cs.barangay ASC, sub.last_name ASC";
+        $headers = ['Barangay', 'Church Site', 'First Name', 'Last Name', 'Gender', 'Birthdate', 'Initial BMI', 'Initial BMI Status', 'Qualification Suggested', 'Submission Status'];
     }
 
     $stmt = $pdo->prepare($sql);
@@ -301,6 +323,24 @@ if ($type === 'all') {
     $stmt = $pdo->prepare($sql);
     $stmt->execute($previewParams);
     $previewRows = $stmt->fetchAll();
+
+} elseif ($type === 'qualification') {
+    $sql = "SELECT cs.barangay, cs.church_name, sub.first_name, sub.last_name, sub.gender, 
+                   sub.birthdate, sub.initial_bmi, sub.initial_bmi_status, sub.suggested_status, sub.submission_status
+            FROM children_submissions sub
+            JOIN church_sites cs ON sub.church_site_id = cs.id WHERE 1=1";
+    if (!empty($barangayFilter)) {
+        $sql .= " AND cs.barangay = ?";
+        $previewParams[] = $barangayFilter;
+    }
+    if (!empty($qualFilter)) {
+        $sql .= " AND sub.suggested_status = ?";
+        $previewParams[] = $qualFilter;
+    }
+    $sql .= " ORDER BY cs.barangay ASC, sub.last_name ASC LIMIT 50";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($previewParams);
+    $previewRows = $stmt->fetchAll();
 }
 
 $pageTitle = "Reports Generator";
@@ -312,8 +352,9 @@ include 'includes/header.php';
   <form action="reports.php" method="GET" style="display:flex; flex-wrap:wrap; gap:16px; align-items:flex-end;">
     <div style="flex:1.2; min-width:180px;">
       <label style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">Report Type</label>
-      <select name="report_type" class="auth-select" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px; width:100%;" required>
+      <select name="report_type" id="report_type_select" class="auth-select" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px; width:100%;" required onchange="toggleFilterFields()">
         <option value="all" <?php echo $type === 'all' ? 'selected' : ''; ?>>All (Master System Summary)</option>
+        <option value="qualification" <?php echo $type === 'qualification' ? 'selected' : ''; ?>>Qualification by Barangay</option>
         <option value="nutritional" <?php echo $type === 'nutritional' ? 'selected' : ''; ?>>Nutritional Monitoring (BMI Records)</option>
         <option value="attendance" <?php echo $type === 'attendance' ? 'selected' : ''; ?>>Program Attendance Ledger</option>
         <option value="beneficiaries" <?php echo $type === 'beneficiaries' ? 'selected' : ''; ?>>Beneficiary Demographics &amp; Registry</option>
@@ -321,7 +362,8 @@ include 'includes/header.php';
       </select>
     </div>
 
-    <div style="flex:1; min-width:150px;">
+    <!-- Church Site (Hidden for Barangay report since it is barangay-based) -->
+    <div id="site-filter-wrapper" style="flex:1; min-width:150px;">
       <label style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">Church Site</label>
       <select name="site_id" class="auth-select" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px; width:100%;">
         <option value="">-- All Sites --</option>
@@ -333,12 +375,35 @@ include 'includes/header.php';
       </select>
     </div>
 
-    <div style="flex:0.8; min-width:130px;">
+    <!-- Barangay Dropdown (Visible only for Qualification Report) -->
+    <div id="barangay-filter-wrapper" style="flex:1; min-width:150px; display:none;">
+      <label style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">Barangay</label>
+      <select name="barangay" class="auth-select" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px; width:100%;">
+        <option value="">-- All Barangays --</option>
+        <?php foreach ($barangays as $bg): ?>
+          <option value="<?php echo htmlspecialchars($bg); ?>" <?php echo $barangayFilter === $bg ? 'selected' : ''; ?>>
+            <?php echo htmlspecialchars($bg); ?>
+          </option>
+        <?php endforeach; ?>
+      </select>
+    </div>
+
+    <!-- Qualification Status (Visible only for Qualification Report) -->
+    <div id="qual-filter-wrapper" style="flex:0.8; min-width:130px; display:none;">
+      <label style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">Qualification</label>
+      <select name="qualification" class="auth-select" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px; width:100%;">
+        <option value="">-- All --</option>
+        <option value="qualified" <?php echo $qualFilter === 'qualified' ? 'selected' : ''; ?>>Qualified</option>
+        <option value="disqualified" <?php echo $qualFilter === 'disqualified' ? 'selected' : ''; ?>>Disqualified</option>
+      </select>
+    </div>
+
+    <div id="start-date-wrapper" style="flex:0.8; min-width:130px;">
       <label style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">Start Date</label>
       <input type="date" name="date_start" class="auth-input" value="<?php echo htmlspecialchars($dateStart); ?>" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px;">
     </div>
 
-    <div style="flex:0.8; min-width:130px;">
+    <div id="end-date-wrapper" style="flex:0.8; min-width:130px;">
       <label style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">End Date</label>
       <input type="date" name="date_end" class="auth-input" value="<?php echo htmlspecialchars($dateEnd); ?>" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px;">
     </div>
@@ -347,7 +412,7 @@ include 'includes/header.php';
       <button type="submit" class="btn btn-primary" style="padding:10px 20px; font-size:0.85rem; height:46px;">
         <i class="fas fa-rotate"></i> Generate Preview
       </button>
-      <?php if ($siteId || !empty($dateStart) || !empty($dateEnd) || $type !== 'all'): ?>
+      <?php if ($siteId || !empty($dateStart) || !empty($dateEnd) || !empty($barangayFilter) || !empty($qualFilter) || $type !== 'all'): ?>
         <a href="reports.php" class="btn btn-outline" style="padding:10px 20px; font-size:0.85rem; height:46px; border-color:rgba(255,255,255,0.1); color:var(--gray-300); align-items:center;">
           <i class="fas fa-filter-circle-xmark"></i> Reset
         </a>
@@ -369,13 +434,13 @@ include 'includes/header.php';
           <i class="fas fa-file-export"></i> Export Report <i class="fas fa-chevron-down" style="font-size:0.75rem;"></i>
         </button>
         <div class="dropdown-content" style="display: none; position: absolute; right: 0; background-color: #0f172a; min-width: 170px; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.55); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; z-index: 100; margin-top: 4px; overflow: hidden;">
-          <a href="reports.php?action=export&report_type=<?php echo urlencode($type); ?>&site_id=<?php echo urlencode($siteId ?? ''); ?>&date_start=<?php echo urlencode($dateStart); ?>&date_end=<?php echo urlencode($dateEnd); ?>&format=csv" style="color: var(--white); padding: 12px 16px; text-decoration: none; display: block; font-size: 0.82rem; border-bottom: 1px solid rgba(255,255,255,0.06); transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.04)'" onmouseout="this.style.background='transparent'">
+          <a href="reports.php?action=export&report_type=<?php echo urlencode($type); ?>&site_id=<?php echo urlencode($siteId ?? ''); ?>&date_start=<?php echo urlencode($dateStart); ?>&date_end=<?php echo urlencode($dateEnd); ?>&barangay=<?php echo urlencode($barangayFilter); ?>&qualification=<?php echo urlencode($qualFilter); ?>&format=csv" style="color: var(--white); padding: 12px 16px; text-decoration: none; display: block; font-size: 0.82rem; border-bottom: 1px solid rgba(255,255,255,0.06); transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.04)'" onmouseout="this.style.background='transparent'">
             <i class="fas fa-file-csv" style="color:#818cf8; width:16px; margin-right: 8px;"></i> Export to CSV
           </a>
-          <a href="reports.php?action=export&report_type=<?php echo urlencode($type); ?>&site_id=<?php echo urlencode($siteId ?? ''); ?>&date_start=<?php echo urlencode($dateStart); ?>&date_end=<?php echo urlencode($dateEnd); ?>&format=excel" style="color: var(--white); padding: 12px 16px; text-decoration: none; display: block; font-size: 0.82rem; border-bottom: 1px solid rgba(255,255,255,0.06); transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.04)'" onmouseout="this.style.background='transparent'">
+          <a href="reports.php?action=export&report_type=<?php echo urlencode($type); ?>&site_id=<?php echo urlencode($siteId ?? ''); ?>&date_start=<?php echo urlencode($dateStart); ?>&date_end=<?php echo urlencode($dateEnd); ?>&barangay=<?php echo urlencode($barangayFilter); ?>&qualification=<?php echo urlencode($qualFilter); ?>&format=excel" style="color: var(--white); padding: 12px 16px; text-decoration: none; display: block; font-size: 0.82rem; border-bottom: 1px solid rgba(255,255,255,0.06); transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.04)'" onmouseout="this.style.background='transparent'">
             <i class="fas fa-file-excel" style="color:#34d399; width:16px; margin-right: 8px;"></i> Export to Excel
           </a>
-          <a href="reports.php?action=export&report_type=<?php echo urlencode($type); ?>&site_id=<?php echo urlencode($siteId ?? ''); ?>&date_start=<?php echo urlencode($dateStart); ?>&date_end=<?php echo urlencode($dateEnd); ?>&format=print" target="_blank" style="color: var(--white); padding: 12px 16px; text-decoration: none; display: block; font-size: 0.82rem; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.04)'" onmouseout="this.style.background='transparent'">
+          <a href="reports.php?action=export&report_type=<?php echo urlencode($type); ?>&site_id=<?php echo urlencode($siteId ?? ''); ?>&date_start=<?php echo urlencode($dateStart); ?>&date_end=<?php echo urlencode($dateEnd); ?>&barangay=<?php echo urlencode($barangayFilter); ?>&qualification=<?php echo urlencode($qualFilter); ?>&format=print" target="_blank" style="color: var(--white); padding: 12px 16px; text-decoration: none; display: block; font-size: 0.82rem; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.04)'" onmouseout="this.style.background='transparent'">
             <i class="fas fa-print" style="color:#60a5fa; width:16px; margin-right: 8px;"></i> Print / Save PDF
           </a>
         </div>
@@ -438,6 +503,45 @@ include 'includes/header.php';
                       <span class="status-badge error"><i class="fas fa-times-circle"></i> Inactive</span>
                     <?php endif; ?>
                   </td>
+                </tr>
+              <?php endforeach; ?>
+            </tbody>
+
+          <?php elseif ($type === 'qualification'): ?>
+            <thead>
+              <tr>
+                <th>Barangay</th>
+                <th>Beneficiary Name</th>
+                <th>Gender</th>
+                <th>Age</th>
+                <th>Initial BMI (Status)</th>
+                <th>Qualification</th>
+                <th>Submission Status</th>
+                <th>Church Site</th>
+              </tr>
+            </thead>
+            <tbody>
+              <?php foreach ($previewRows as $row): ?>
+                <?php $age = date_diff(date_create($row['birthdate']), date_create('today'))->y; ?>
+                <tr>
+                  <td class="fw-semibold text-white"><?php echo htmlspecialchars($row['barangay']); ?></td>
+                  <td class="text-white"><?php echo htmlspecialchars($row['first_name'] . ' ' . $row['last_name']); ?></td>
+                  <td style="text-transform: capitalize;"><?php echo htmlspecialchars($row['gender']); ?></td>
+                  <td><?php echo $age; ?> yrs</td>
+                  <td><?php echo $row['initial_bmi']; ?> (<?php echo htmlspecialchars($row['initial_bmi_status']); ?>)</td>
+                  <td>
+                    <?php if ($row['suggested_status'] === 'qualified'): ?>
+                      <span class="status-badge success"><i class="fas fa-check-circle"></i> Qualified</span>
+                    <?php else: ?>
+                      <span class="status-badge error"><i class="fas fa-times-circle"></i> Disqualified</span>
+                    <?php endif; ?>
+                  </td>
+                  <td>
+                    <span style="text-transform:capitalize; font-size:0.82rem;" class="status-badge <?php echo ($row['submission_status'] === 'approved') ? 'success' : (($row['submission_status'] === 'pending') ? 'warning' : 'error'); ?>">
+                      <?php echo htmlspecialchars($row['submission_status']); ?>
+                    </span>
+                  </td>
+                  <td><?php echo htmlspecialchars($row['church_name']); ?></td>
                 </tr>
               <?php endforeach; ?>
             </tbody>
@@ -606,7 +710,42 @@ document.addEventListener('DOMContentLoaded', function() {
       dropdownContent.style.display = 'none';
     });
   }
+  
+  // Call on load
+  toggleFilterFields();
 });
+
+function toggleFilterFields() {
+  const typeSelect = document.getElementById('report_type_select');
+  const type = typeSelect.value;
+  
+  const siteWrapper = document.getElementById('site-filter-wrapper');
+  const barangayWrapper = document.getElementById('barangay-filter-wrapper');
+  const qualWrapper = document.getElementById('qual-filter-wrapper');
+  const startWrapper = document.getElementById('start-date-wrapper');
+  const endWrapper = document.getElementById('end-date-wrapper');
+  
+  if (type === 'qualification') {
+    siteWrapper.style.display = 'none';
+    barangayWrapper.style.display = 'block';
+    qualWrapper.style.display = 'block';
+    startWrapper.style.display = 'none';
+    endWrapper.style.display = 'none';
+  } else {
+    siteWrapper.style.display = 'block';
+    barangayWrapper.style.display = 'none';
+    qualWrapper.style.display = 'none';
+    
+    // Hide dates for simple registry lists
+    if (type === 'beneficiaries' || type === 'beneficiaries_monthly' || type === 'all') {
+      startWrapper.style.display = 'none';
+      endWrapper.style.display = 'none';
+    } else {
+      startWrapper.style.display = 'block';
+      endWrapper.style.display = 'block';
+    }
+  }
+}
 </script>
 
 <?php include 'includes/footer.php'; ?>
