@@ -2237,11 +2237,13 @@ button.sidebar-link {
   margin-bottom: 12px;
 }
 
+/* ── Tablet: icon-only collapsed sidebar ─────────────────────────── */
 @media (max-width: 1024px) {
   .admin-sidebar {
     width: 80px;
   }
-  .sidebar-header .brand-text, .sidebar-link span, .sidebar-footer span {
+  .sidebar-header .brand-text, .sidebar-link span, .sidebar-footer span,
+  .sidebar-section-label {
     display: none;
   }
   .sidebar-link {
@@ -2252,31 +2254,145 @@ button.sidebar-link {
     justify-content: center;
     padding: 16px;
   }
+  .admin-topbar {
+    padding: 0 24px;
+  }
+  .admin-content {
+    padding: 24px;
+  }
 }
 
+/* ── Mobile: hamburger drawer ────────────────────────────────────── */
 @media (max-width: 768px) {
+
+  /* Layout stacks but topbar stays at top */
   .admin-layout {
     flex-direction: column;
   }
+
+  /* Sidebar becomes a fixed off-canvas drawer */
   .admin-sidebar {
-    width: 100%;
-    height: auto;
-    position: static;
-    border-right: none;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 280px;
+    height: 100vh;
+    z-index: 1000;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-right: 1px solid rgba(255,255,255,0.1);
+
+    /* Reset tablet overrides */
+    flex-direction: column;
   }
-  .sidebar-menu {
-    flex-direction: row;
-    overflow-x: auto;
-    padding: 12px 24px;
+  .admin-sidebar.sidebar-open {
+    transform: translateX(0);
   }
-  .sidebar-header, .sidebar-footer {
+
+  /* Restore full sidebar text on mobile drawer */
+  .sidebar-header .brand-text,
+  .sidebar-link span,
+  .sidebar-footer span,
+  .sidebar-section-label {
+    display: block !important;
+  }
+  .sidebar-link {
+    justify-content: flex-start !important;
+    padding: 10px 16px !important;
+  }
+  .sidebar-header {
+    justify-content: flex-start !important;
+    padding: 16px 24px !important;
+  }
+
+  /* Backdrop overlay */
+  .sidebar-backdrop {
     display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(2px);
+    z-index: 999;
+    animation: fadeIn 0.2s ease;
   }
+  .sidebar-backdrop.active {
+    display: block;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  /* Hamburger button */
+  .hamburger-btn {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    color: var(--white);
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-right: 14px;
+    flex-shrink: 0;
+  }
+  .hamburger-btn:hover {
+    background: rgba(255,255,255,0.12);
+  }
+
+  /* Topbar adjustments */
+  .admin-topbar {
+    padding: 0 16px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .admin-main {
+    margin-top: 0;
+    min-height: 100vh;
+  }
+
+  /* Content padding */
+  .admin-content {
+    padding: 16px;
+  }
+
+  /* Cards stack */
   .dashboard-row {
     grid-template-columns: 1fr;
   }
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  /* Body scroll lock when drawer open */
+  body.sidebar-is-open {
+    overflow: hidden;
+  }
 }
+
+@media (max-width: 480px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  .topbar-title {
+    font-size: 1.1rem;
+  }
+  .user-badge-group {
+    display: none;
+  }
+}
+
+/* Hamburger button — hidden on desktop */
+.hamburger-btn {
+  display: none;
+}
+
+
 
 /* ── Dark Data Table Styling ────────────────────────────────────── */
 .dark-table-wrap {

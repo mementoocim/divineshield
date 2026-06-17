@@ -1,17 +1,26 @@
 <?php
 /**
- * DivineShield - Staff / Encoder Nutritional Monitoring
+ * DivineShield - Church Leader Nutritional Monitoring
  */
 require_once '../../db.php';
 session_start();
 
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'staff') {
+if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'church_leader') {
     header("Location: ../../login.php");
     exit;
 }
 
 $pageTitle = "Nutritional Monitoring";
-$encoder_id = $_SESSION['user_id'];
+$user_id = $_SESSION['user_id'];
+
+// Fetch church leader's site ID
+$stmtSite = $pdo->prepare("SELECT id FROM church_sites WHERE church_leader_id = ?");
+$stmtSite->execute([$user_id]);
+$church_site_id = $stmtSite->fetchColumn();
+
+if (!$church_site_id) {
+    $church_site_id = 0;
+}
 
 $success = '';
 $error = '';
@@ -38,6 +47,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_assessment'])) {
     }
 
     try {
+        // Fetch child details and verify authorization
+        $stmtChild = $pdo->prepare("SELECT first_name, last_name, church_site_id FROM children WHERE id = ?");
+        $stmtChild->execute([$child_id]);
+        $childObj = $stmtChild->fetch();
+        
+        if (!$childObj || $childObj['church_site_id'] != $church_site_id) {
+            throw new Exception("Unauthorized database access for this child.");
+        }
+        
+        $childName = $childObj['first_name'] . ' ' . $childObj['last_name'];
+
         // Calculate BMI
         $heightInM = $height / 100;
         $bmi = round($weight / ($heightInM * $heightInM), 2);
@@ -56,15 +76,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_assessment'])) {
         // Insert Assessment
         $stmt = $pdo->prepare("INSERT INTO nutritional_assessments (child_id, encoder_id, weight, height, bmi, bmi_status, assessment_date, notes) 
                                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-        $stmt->execute([$child_id, $encoder_id, $weight, $height, $bmi, $bmiStatus, $assessment_date, $notes]);
+        $stmt->execute([$child_id, $user_id, $weight, $height, $bmi, $bmiStatus, $assessment_date, $notes]);
 
-        // Fetch child details for logging
-        $stmtChild = $pdo->prepare("SELECT first_name, last_name FROM children WHERE id = ?");
-        $stmtChild->execute([$child_id]);
-        $childObj = $stmtChild->fetch();
-        $childName = $childObj ? ($childObj['first_name'] . ' ' . $childObj['last_name']) : "ID $child_id";
-
-        logAudit($pdo, $encoder_id, 'RECORD_BMI', "Recorded nutritional assessment for child: $childName (BMI: $bmi, Status: $bmiStatus)");
+        logAudit($pdo, $user_id, 'RECORD_BMI', "Pastor recorded nutritional assessment for child: $childName (BMI: $bmi, Status: $bmiStatus)");
 
         $_SESSION['success_msg'] = "Nutritional assessment recorded successfully for " . htmlspecialchars($childName) . ".";
         header("Location: nutritional_monitoring.php");
@@ -92,16 +106,16 @@ include 'includes/header.php';
 
 <?php if ($action === 'record' && $child_id > 0): ?>
     <?php
-    // Fetch Child Info
+    // Fetch Child Info (Ensuring child belongs to leader's site)
     $stmt = $pdo->prepare("SELECT c.*, cs.church_name 
                            FROM children c 
                            JOIN church_sites cs ON c.church_site_id = cs.id
-                           WHERE c.id = ?");
-    $stmt->execute([$child_id]);
+                           WHERE c.id = ? AND c.church_site_id = ?");
+    $stmt->execute([$child_id, $church_site_id]);
     $child = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$child) {
-        echo "<div class='dashboard-card'><h3 style='color:var(--white);'>Child record not found.</h3><a href='nutritional_monitoring.php' class='btn btn-outline btn-sm' style='margin-top:15px;'>Back to List</a></div>";
+        echo "<div class='dashboard-card'><h3 style='color:var(--white);'>Child record not found or access denied.</h3><a href='nutritional_monitoring.php' class='btn btn-outline btn-sm' style='margin-top:15px;'>Back to List</a></div>";
     } else {
     ?>
     <div class="admin-panel">
@@ -224,19 +238,19 @@ include 'includes/header.php';
 
 <?php elseif ($action === 'history' && $child_id > 0): ?>
     <?php
-    // Fetch Child Info
+    // Fetch Child Info (Verify belongs to site)
     $stmt = $pdo->prepare("SELECT c.*, cs.church_name 
                            FROM children c 
                            JOIN church_sites cs ON c.church_site_id = cs.id
-                           WHERE c.id = ?");
-    $stmt->execute([$child_id]);
+                           WHERE c.id = ? AND c.church_site_id = ?");
+    $stmt->execute([$child_id, $church_site_id]);
     $child = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$child) {
-        echo "<div class='dashboard-card'><h3 style='color:var(--white);'>Child record not found.</h3><a href='nutritional_monitoring.php' class='btn btn-outline btn-sm' style='margin-top:15px;'>Back to List</a></div>";
+        echo "<div class='dashboard-card'><h3 style='color:var(--white);'>Child record not found or access denied.</h3><a href='nutritional_monitoring.php' class='btn btn-outline btn-sm' style='margin-top:15px;'>Back to List</a></div>";
     } else {
         // Fetch Assessment History
-        $stmtHist = $pdo->prepare("SELECT na.*, u.first_name, u.last_name 
+        $stmtHist = $pdo->prepare("SELECT na.*, u.first_name, u.last_name, u.role
                                    FROM nutritional_assessments na 
                                    JOIN users u ON na.encoder_id = u.id
                                    WHERE na.child_id = ? 
@@ -291,7 +305,7 @@ include 'includes/header.php';
                                     }
                                     ?>
                                 </td>
-                                <td><?php echo htmlspecialchars($record['first_name'] . ' ' . $record['last_name']); ?></td>
+                                <td><?php echo htmlspecialchars($record['first_name'] . ' ' . $record['last_name'] . ' (' . ucfirst($record['role']) . ')'); ?></td>
                                 <td class="text-muted"><?php echo htmlspecialchars($record['notes'] ?? ''); ?></td>
                             </tr>
                             <?php endforeach; ?>
@@ -311,8 +325,8 @@ include 'includes/header.php';
 
 <?php else: ?>
     <?php
-    // Default list view: fetch children with their LATEST assessment if it exists
-    $stmtList = $pdo->query("SELECT c.id as child_id, c.first_name, c.last_name, c.gender, cs.church_name,
+    // Default list view: fetch children with their LATEST assessment if it exists (restricted to leader's site)
+    $stmtList = $pdo->prepare("SELECT c.id as child_id, c.first_name, c.last_name, c.gender, cs.church_name,
                                     na.bmi, na.bmi_status, na.assessment_date
                              FROM children c
                              JOIN church_sites cs ON c.church_site_id = cs.id
@@ -324,8 +338,9 @@ include 'includes/header.php';
                                      GROUP BY child_id
                                  ) na2 ON na1.child_id = na2.child_id AND na1.assessment_date = na2.max_date AND na1.id = na2.max_id
                              ) na ON c.id = na.child_id
-                             WHERE c.status = 'active'
+                             WHERE c.status = 'active' AND c.church_site_id = ?
                              ORDER BY c.first_name ASC, c.last_name ASC");
+    $stmtList->execute([$church_site_id]);
     $activeChildren = $stmtList->fetchAll(PDO::FETCH_ASSOC);
     ?>
     <div class="admin-panel">
@@ -384,7 +399,7 @@ include 'includes/header.php';
                 <div class="empty-state" style="padding: 60px; text-align: center;">
                     <i class="fas fa-children empty-icon" style="font-size: 3rem; color:var(--gray-500); margin-bottom: 16px;"></i>
                     <h4 style="color: var(--white); margin-bottom: 8px;">No Active Children Found</h4>
-                    <p style="color: var(--gray-400);">Go to Dashboard or submissions review to approve pending children first.</p>
+                    <p style="color: var(--gray-400);">Submit new beneficiaries first to begin monitoring.</p>
                 </div>
             <?php endif; ?>
         </div>

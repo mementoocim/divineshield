@@ -13,6 +13,11 @@ if (isset($_SESSION['user_id'])) {
 
 $error = '';
 $success = '';
+$qrNotice = '';
+if (isset($_SESSION['qr_notice'])) {
+    $qrNotice = $_SESSION['qr_notice'];
+    unset($_SESSION['qr_notice']);
+}
 
 // Determine if we are on Step 2 (MFA PIN Verification for Admin)
 $showPinVerification = isset($_SESSION['temp_admin_auth']) && $_SESSION['temp_admin_auth'] === true;
@@ -125,6 +130,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // Helper function to handle redirection to dashboards
 function redirectDashboard($role) {
+    if (isset($_SESSION['redirect_after_login'])) {
+        $target = $_SESSION['redirect_after_login'];
+        unset($_SESSION['redirect_after_login']);
+        header("Location: " . $target);
+        exit;
+    }
     if ($role === 'admin') {
         header("Location: views/admin/dashboard.php");
     } elseif ($role === 'staff') {
@@ -301,6 +312,64 @@ function redirectDashboard($role) {
       </div>
     </div>
   </div>
+
+<?php if (!empty($qrNotice)): ?>
+<!-- QR Attendance Toast Notification -->
+<div id="qr-toast" style="
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: linear-gradient(135deg, rgba(30,41,59,0.97), rgba(15,23,42,0.97));
+    border: 1px solid rgba(59,130,246,0.35);
+    color: #e2e8f0;
+    padding: 14px 48px 14px 18px;
+    border-radius: 12px;
+    font-size: 0.875rem;
+    font-family: 'Inter', sans-serif;
+    max-width: 360px;
+    width: calc(100% - 48px);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    z-index: 9999;
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease;
+    opacity: 0;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+">
+    <i class="fas fa-qrcode" style="color:#60a5fa; font-size:1.2rem; flex-shrink:0; margin-top:1px;"></i>
+    <div>
+        <div style="font-weight:700; color:#fff; margin-bottom:3px;">Login Required</div>
+        <div style="color:#94a3b8; font-size:0.82rem;"><?php echo htmlspecialchars($qrNotice); ?></div>
+    </div>
+    <button onclick="dismissToast()" style="
+        position:absolute; top:10px; right:12px;
+        background:none; border:none; color:#64748b;
+        font-size:1rem; cursor:pointer; padding:2px 4px;
+        line-height:1; transition:color 0.2s;
+    " onmouseover="this.style.color='#e2e8f0'" onmouseout="this.style.color='#64748b'">
+        <i class="fas fa-xmark"></i>
+    </button>
+</div>
+<script>
+    const toast = document.getElementById('qr-toast');
+    // Slide in
+    requestAnimationFrame(() => {
+        setTimeout(() => {
+            toast.style.transform = 'translateX(-50%) translateY(0)';
+            toast.style.opacity = '1';
+        }, 200);
+    });
+    // Auto-dismiss after 5 seconds
+    const autoDismiss = setTimeout(dismissToast, 5000);
+    function dismissToast() {
+        clearTimeout(autoDismiss);
+        toast.style.transform = 'translateX(-50%) translateY(100px)';
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 400);
+    }
+</script>
+<?php endif; ?>
 
 </body>
 </html>

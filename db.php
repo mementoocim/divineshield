@@ -54,3 +54,36 @@ try {
     }
 }
 
+// Create staff_qr_tokens table if not exists
+try {
+    $pdo->query("SELECT 1 FROM staff_qr_tokens LIMIT 1");
+} catch (PDOException $e) {
+    try {
+        $pdo->exec("CREATE TABLE IF NOT EXISTS staff_qr_tokens (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            token VARCHAR(255) NOT NULL UNIQUE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            expires_at DATETIME NOT NULL
+        ) ENGINE=InnoDB");
+    } catch (Exception $ex) {
+        // Fail silently
+    }
+}
+
+// Create staff_attendance table if not exists
+try {
+    $pdo->query("SELECT 1 FROM staff_attendance LIMIT 1");
+} catch (PDOException $e) {
+    try {
+        $pdo->exec("CREATE TABLE IF NOT EXISTS staff_attendance (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            user_id INT NOT NULL,
+            check_in_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            ip_address VARCHAR(45) NULL,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB");
+    } catch (Exception $ex) {
+        // Fail silently
+    }
+}
+

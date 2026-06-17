@@ -1,7 +1,7 @@
 <?php
 $currentPage = basename($_SERVER['PHP_SELF']);
 ?>
-<aside class="admin-sidebar">
+<aside class="admin-sidebar" id="staffSidebar">
   <div class="sidebar-header">
     <a href="dashboard.php" class="nav-brand" style="pointer-events: none;">
       <div class="logo-mark small">
@@ -25,21 +25,11 @@ $currentPage = basename($_SERVER['PHP_SELF']);
       <i class="fas fa-inbox"></i>
       <span>Submission Review</span>
     </a>
+    <a href="attendance_history.php" class="sidebar-link <?php echo $currentPage === 'attendance_history.php' ? 'active' : ''; ?>">
+      <i class="fas fa-calendar-check"></i>
+      <span>My Attendance</span>
+    </a>
 
-    <!-- BENEFICIARIES -->
-    <div class="sidebar-section-label">Beneficiaries</div>
-    <a href="children_records.php" class="sidebar-link <?php echo $currentPage === 'children_records.php' ? 'active' : ''; ?>">
-      <i class="fas fa-child"></i>
-      <span>Children Records</span>
-    </a>
-    <a href="nutritional_monitoring.php" class="sidebar-link <?php echo $currentPage === 'nutritional_monitoring.php' ? 'active' : ''; ?>">
-      <i class="fas fa-heart-pulse"></i>
-      <span>Nutritional Monitoring</span>
-    </a>
-    <a href="attendance.php" class="sidebar-link <?php echo $currentPage === 'attendance.php' ? 'active' : ''; ?>">
-      <i class="fas fa-clipboard-user"></i>
-      <span>Attendance Monitoring</span>
-    </a>
 
     <!-- SYSTEM -->
     <div class="sidebar-section-label">Account</div>
@@ -77,3 +67,4 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 });
 </script>
+

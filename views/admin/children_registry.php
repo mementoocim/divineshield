@@ -151,7 +151,6 @@ include 'includes/header.php';
     <?php
     // Get filters
     $search = trim($_GET['search'] ?? '');
-    $status_filter = $_GET['status'] ?? 'all';
 
     // Build Query
     $query = "SELECT c.*, cs.church_name, na.bmi, na.bmi_status, na.assessment_date
@@ -168,11 +167,6 @@ include 'includes/header.php';
               
     $params = [];
     $where_clauses = [];
-
-    if ($status_filter !== 'all') {
-        $where_clauses[] = "c.status = ?";
-        $params[] = $status_filter;
-    }
 
     if (!empty($search)) {
         $where_clauses[] = "(c.first_name LIKE ? OR c.last_name LIKE ? OR cs.church_name LIKE ?)";
@@ -194,27 +188,14 @@ include 'includes/header.php';
     ?>
 
     <!-- Search & Filters Row -->
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:15px;">
-        <!-- Pill Tabs -->
-        <div class="pill-tabs" style="margin-bottom:0; border-bottom:none; padding-bottom:0;">
-            <a href="children_registry.php?status=all&search=<?php echo urlencode($search); ?>" 
-               class="pill-tab <?php echo $status_filter === 'all' ? 'active' : ''; ?>">All</a>
-            <a href="children_registry.php?status=active&search=<?php echo urlencode($search); ?>" 
-               class="pill-tab <?php echo $status_filter === 'active' ? 'active' : ''; ?>"><i class="fas fa-check-circle" style="font-size:0.8rem; margin-right:4px;"></i> Active</a>
-            <a href="children_registry.php?status=graduated&search=<?php echo urlencode($search); ?>" 
-               class="pill-tab <?php echo $status_filter === 'graduated' ? 'active' : ''; ?>"><i class="fas fa-graduation-cap" style="font-size:0.8rem; margin-right:4px;"></i> Graduated</a>
-            <a href="children_registry.php?status=inactive&search=<?php echo urlencode($search); ?>" 
-               class="pill-tab <?php echo $status_filter === 'inactive' ? 'active' : ''; ?>"><i class="fas fa-times-circle" style="font-size:0.8rem; margin-right:4px;"></i> Inactive</a>
-        </div>
-
+    <div style="display:flex; justify-content:flex-end; margin-bottom:20px; flex-wrap:wrap; gap:15px;">
         <!-- Search Form -->
         <form method="GET" action="children_registry.php" style="display:flex; gap:8px; align-items:center;">
-            <input type="hidden" name="status" value="<?php echo htmlspecialchars($status_filter); ?>">
             <input type="text" name="search" placeholder="Search by name or site..." 
                    value="<?php echo htmlspecialchars($search); ?>" 
                    style="padding:8px 16px; background:rgba(30, 41, 59, 0.6); border:1px solid rgba(255,255,255,0.08); border-radius:999px; color:var(--white); outline:none; font-size:0.85rem;">
             <button type="submit" class="btn btn-primary" style="padding:8px 20px; border-radius:999px; font-size:0.85rem; height:36px; display:inline-flex; align-items:center; justify-content:center;">Search</button>
-            <?php if (!empty($search) || $status_filter !== 'all'): ?>
+            <?php if (!empty($search)): ?>
                 <a href="children_registry.php" class="btn btn-outline" style="padding:8px 20px; border-radius:999px; font-size:0.85rem; height:36px; display:inline-flex; align-items:center; justify-content:center;">Clear</a>
             <?php endif; ?>
         </form>

@@ -131,11 +131,33 @@ while ($row = $stmtTrend->fetch()) {
     }
 }
 
-$trendLabels = [];
-$trendCounts = [];
 foreach ($months as $m) {
     $trendLabels[] = $m['label'];
     $trendCounts[] = $m['count'];
+}
+
+// ──────────────────────────────────────────
+// CHART 4: Age Group Distribution
+// ──────────────────────────────────────────
+$stmtAge = $pdo->query("
+    SELECT 
+        CASE 
+            WHEN TIMESTAMPDIFF(YEAR, birthdate, CURDATE()) BETWEEN 0 AND 2 THEN '0-2 Years'
+            WHEN TIMESTAMPDIFF(YEAR, birthdate, CURDATE()) BETWEEN 3 AND 5 THEN '3-5 Years'
+            WHEN TIMESTAMPDIFF(YEAR, birthdate, CURDATE()) BETWEEN 6 AND 12 THEN '6-12 Years'
+            ELSE '13+ Years'
+        END AS age_group,
+        COUNT(*) as count
+    FROM children
+    WHERE status = 'active'
+    GROUP BY age_group
+    ORDER BY FIELD(age_group, '0-2 Years', '3-5 Years', '6-12 Years', '13+ Years')
+");
+$ageLabels = [];
+$ageCounts = [];
+while ($row = $stmtAge->fetch()) {
+    $ageLabels[] = $row['age_group'];
+    $ageCounts[] = intval($row['count']);
 }
 
 $pageTitle = "System Analytics";
@@ -352,12 +374,25 @@ include 'includes/header.php';
   </div>
 </div>
 
-<!-- Secondary Chart Grid (Line Chart Trend) -->
-<div class="charts-grid-1">
+<!-- Secondary Chart Grid (Line + Age Group) -->
+<div class="charts-grid-2">
+  <!-- Left Chart: Monthly Trend -->
   <div class="chart-card">
     <div class="chart-title">Child Registrations &amp; Submissions Trend (Last 6 Months)</div>
     <div class="chart-container-inner" style="min-height: 250px;">
       <canvas id="trendChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Right Chart: Age Distribution -->
+  <div class="chart-card">
+    <div class="chart-title">Age Group Distribution</div>
+    <div class="chart-container-inner" style="min-height: 250px;">
+      <?php if (empty($ageLabels)): ?>
+        <span style="color:var(--gray-500); font-size:0.9rem;">No age records available.</span>
+      <?php else: ?>
+        <canvas id="ageChart"></canvas>
+      <?php endif; ?>
     </div>
   </div>
 </div>
@@ -487,6 +522,52 @@ include 'includes/header.php';
           }
       }
   });
+
+  // 4. Age Group Distribution Chart (Horizontal Bar Chart)
+  <?php if (!empty($ageLabels)): ?>
+  const ageCtx = document.getElementById('ageChart').getContext('2d');
+  new Chart(ageCtx, {
+      type: 'bar',
+      data: {
+          labels: <?php echo json_encode($ageLabels); ?>,
+          datasets: [{
+              label: 'Beneficiaries Count',
+              data: <?php echo json_encode($ageCounts); ?>,
+              backgroundColor: [
+                  'rgba(244, 63, 94, 0.6)',   // Rose
+                  'rgba(245, 158, 11, 0.6)',   // Amber
+                  'rgba(16, 185, 129, 0.6)',  // Emerald
+                  'rgba(59, 130, 246, 0.6)'   // Blue
+              ],
+              borderColor: [
+                  'rgb(244, 63, 94)',
+                  'rgb(245, 158, 11)',
+                  'rgb(16, 185, 129)',
+                  'rgb(59, 130, 246)'
+              ],
+              borderWidth: 1.5,
+              borderRadius: 4
+          }]
+      },
+      options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+              legend: { display: false }
+          },
+          scales: {
+              x: {
+                  grid: { color: 'rgba(255, 255, 255, 0.04)' },
+                  ticks: { stepSize: 1, beginAtZero: true }
+              },
+              y: {
+                  grid: { display: false }
+              }
+          }
+      }
+  });
+  <?php endif; ?>
 </script>
 
 <?php include 'includes/footer.php'; ?>

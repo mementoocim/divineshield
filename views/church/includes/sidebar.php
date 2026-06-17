@@ -22,6 +22,9 @@
   $current = basename($_SERVER['PHP_SELF'] ?? 'dashboard.php');
   $isDashboard = ($current === 'dashboard.php');
   $isSubmit = ($current === 'submit-child.php');
+  $isChildrenRecords = ($current === 'children_records.php');
+  $isNutritional = ($current === 'nutritional_monitoring.php');
+  $isAttendance = ($current === 'attendance.php');
   $isSite = ($current === 'church-sites.php');
   ?>
 
@@ -38,6 +41,18 @@
     <a href="submit-child.php" class="sidebar-link <?php echo $isSubmit ? 'active' : ''; ?>" id="menu-submit">
       <i class="fas fa-child-reaching"></i>
       <span>Submit Child</span>
+    </a>
+    <a href="children_records.php" class="sidebar-link <?php echo $isChildrenRecords ? 'active' : ''; ?>" id="menu-children">
+      <i class="fas fa-child"></i>
+      <span>Children Records</span>
+    </a>
+    <a href="nutritional_monitoring.php" class="sidebar-link <?php echo $isNutritional ? 'active' : ''; ?>" id="menu-nutritional">
+      <i class="fas fa-heart-pulse"></i>
+      <span>Nutritional Monitoring</span>
+    </a>
+    <a href="attendance.php" class="sidebar-link <?php echo $isAttendance ? 'active' : ''; ?>" id="menu-attendance">
+      <i class="fas fa-utensils"></i>
+      <span>Feeding Programs</span>
     </a>
 
     <!-- SITE -->

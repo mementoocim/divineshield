@@ -179,6 +179,30 @@ CREATE TABLE IF NOT EXISTS audit_logs (
 ) ENGINE=InnoDB;
 
 
+-- ------------------------------------------
+-- 10. STAFF QR TOKENS TABLE
+-- ------------------------------------------
+CREATE TABLE IF NOT EXISTS staff_qr_tokens (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    token VARCHAR(64) NOT NULL UNIQUE,
+    expires_at DATETIME NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_token (token),
+    INDEX idx_expires_at (expires_at)
+) ENGINE=InnoDB;
+
+-- ------------------------------------------
+-- 11. STAFF ATTENDANCE TABLE
+-- ------------------------------------------
+CREATE TABLE IF NOT EXISTS staff_attendance (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    check_in_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    ip_address VARCHAR(45) NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_user_checkin (user_id, check_in_time)
+) ENGINE=InnoDB;
+
 -- ==========================================
 -- SEED DATA (Default Accounts)
 -- ==========================================
@@ -187,8 +211,12 @@ CREATE TABLE IF NOT EXISTS audit_logs (
 INSERT INTO users (username, password_hash, role, first_name, middle_name, last_name, email, phone, admin_pin, status) VALUES
 -- Admin account
 ('admin', '$2y$10$kw00kdWe258GJMJwCiUeZu5DRaUn7bCAAMpV8Ziio/m0NXBC47TTy', 'admin', 'DivineShield', NULL, 'Admin', 'admin@mainpi.org', '09171234567', '1234', 'active'),
--- Staff/Encoder accounts
-('encoder1', '$2y$10$kw00kdWe258GJMJwCiUeZu5DRaUn7bCAAMpV8Ziio/m0NXBC47TTy', 'staff', 'Maria', NULL, 'Santos', 'maria.encoder@mainpi.org', '09187654321', NULL, 'active'),
+-- Staff/Encoder accounts (password: admin123)
+('encoder1', '$2y$10$kw00kdWe258GJMJwCiUeZu5DRaUn7bCAAMpV8Ziio/m0NXBC47TTy', 'staff', 'Maria', NULL, 'Santos',   'maria.encoder@mainpi.org', '09187654321', NULL, 'active'),
+('encoder2', '$2y$10$kw00kdWe258GJMJwCiUeZu5DRaUn7bCAAMpV8Ziio/m0NXBC47TTy', 'staff', 'Jose',  NULL, 'Reyes',    'jose.encoder@mainpi.org',  '09181234001', NULL, 'active'),
+('encoder3', '$2y$10$kw00kdWe258GJMJwCiUeZu5DRaUn7bCAAMpV8Ziio/m0NXBC47TTy', 'staff', 'Ana',   NULL, 'Cruz',     'ana.encoder@mainpi.org',   '09181234002', NULL, 'active'),
+('encoder4', '$2y$10$kw00kdWe258GJMJwCiUeZu5DRaUn7bCAAMpV8Ziio/m0NXBC47TTy', 'staff', 'Carlo', NULL, 'Bautista', 'carlo.encoder@mainpi.org', '09181234003', NULL, 'active'),
+('encoder5', '$2y$10$kw00kdWe258GJMJwCiUeZu5DRaUn7bCAAMpV8Ziio/m0NXBC47TTy', 'staff', 'Liza',  NULL, 'Garcia',   'liza.encoder@mainpi.org',  '09181234004', NULL, 'active'),
 -- Church Leader accounts (Juan: Active, Pedro: Inactive/Pending approval)
 ('pastor_juan', '$2y$10$kw00kdWe258GJMJwCiUeZu5DRaUn7bCAAMpV8Ziio/m0NXBC47TTy', 'church_leader', 'Juan', NULL, 'Dela Cruz', 'juan.delacruz@church.org', '09191112222', NULL, 'active'),
 ('pastor_pedro', '$2y$10$kw00kdWe258GJMJwCiUeZu5DRaUn7bCAAMpV8Ziio/m0NXBC47TTy', 'church_leader', 'Pedro', NULL, 'Penduko', 'pedro.penduko@church.org', '09193334444', NULL, 'pending');

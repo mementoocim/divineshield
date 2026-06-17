@@ -1,20 +1,29 @@
 <?php
 /**
- * DivineShield - Staff / Encoder Attendance Monitoring (RFID-free manual checklist)
+ * DivineShield - Church Leader Attendance Monitoring (RFID-free manual checklist)
  */
 require_once '../../db.php';
 session_start();
 
 // Security and Role Check
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'staff') {
+if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'church_leader') {
     header("Location: ../../login.php");
     exit;
 }
 
-// Fetch staff profile picture for topbar
-$stmtStaff = $pdo->prepare("SELECT profile_picture FROM users WHERE id = ?");
-$stmtStaff->execute([$_SESSION['user_id']]);
-$staffProfilePic = $stmtStaff->fetchColumn();
+// Fetch church leader's site ID
+$stmtSite = $pdo->prepare("SELECT id FROM church_sites WHERE church_leader_id = ?");
+$stmtSite->execute([$_SESSION['user_id']]);
+$church_site_id = $stmtSite->fetchColumn();
+
+if (!$church_site_id) {
+    $church_site_id = 0;
+}
+
+// Fetch church leader profile picture for topbar
+$stmtLeader = $pdo->prepare("SELECT profile_picture FROM users WHERE id = ?");
+$stmtLeader->execute([$_SESSION['user_id']]);
+$leaderProfilePic = $stmtLeader->fetchColumn();
 
 $success = '';
 $error = '';
@@ -39,13 +48,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_attendance']) &&
     try {
         $pdo->beginTransaction();
         
-        // Fetch program title for logging
-        $stmtFP = $pdo->prepare("SELECT title FROM feeding_programs WHERE id = ?");
+        // Fetch program details and verify site authorization
+        $stmtFP = $pdo->prepare("SELECT title, church_site_id FROM feeding_programs WHERE id = ?");
         $stmtFP->execute([$id]);
-        $fpTitle = $stmtFP->fetchColumn();
+        $fpData = $stmtFP->fetch();
+        
+        if (!$fpData || $fpData['church_site_id'] != $church_site_id) {
+            throw new Exception("Unauthorized to modify attendance for this program session.");
+        }
+        
+        $fpTitle = $fpData['title'];
 
         foreach ($attendanceData as $childId => $attStatus) {
             if (in_array($attStatus, ['present', 'absent', 'excused'])) {
+                // Verify the child belongs to this site
+                $stmtChildCheck = $pdo->prepare("SELECT id FROM children WHERE id = ? AND church_site_id = ?");
+                $stmtChildCheck->execute([$childId, $church_site_id]);
+                if (!$stmtChildCheck->fetch()) {
+                    continue; // Skip if child doesn't belong to leader's site
+                }
+
                 // Check if already logged
                 $stmtCheck = $pdo->prepare("SELECT id FROM attendance WHERE feeding_program_id = ? AND child_id = ?");
                 $stmtCheck->execute([$id, $childId]);
@@ -62,7 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_attendance']) &&
         }
         
         // Log Audit Trail
-        logAudit($pdo, $_SESSION['user_id'], 'ATTENDANCE_RECORDED', "Staff recorded/updated manual attendance for program: '$fpTitle' (ID: $id)");
+        logAudit($pdo, $_SESSION['user_id'], 'ATTENDANCE_RECORDED', "Pastor recorded/updated manual attendance for program: '$fpTitle' (ID: $id)");
         
         $pdo->commit();
         $_SESSION['success_msg'] = "Attendance checklist has been successfully saved!";
@@ -88,9 +110,9 @@ if ($action === 'view' && $id > 0) {
         SELECT fp.*, cs.church_name, cs.id AS site_id 
         FROM feeding_programs fp 
         JOIN church_sites cs ON fp.church_site_id = cs.id 
-        WHERE fp.id = ?
+        WHERE fp.id = ? AND fp.church_site_id = ?
     ");
-    $stmtView->execute([$id]);
+    $stmtView->execute([$id, $church_site_id]);
     $viewProgram = $stmtView->fetch();
 
     if ($viewProgram) {
@@ -102,10 +124,10 @@ if ($action === 'view' && $id > 0) {
             WHERE c.church_site_id = ? AND c.status = 'active'
             ORDER BY c.first_name ASC, c.last_name ASC
         ");
-        $stmtChild->execute([$id, $viewProgram['site_id']]);
+        $stmtChild->execute([$id, $church_site_id]);
         $childrenList = $stmtChild->fetchAll();
     } else {
-        $error = "Feeding program session could not be found.";
+        $error = "Feeding program session could not be found or you are not authorized to view it.";
     }
 }
 
@@ -115,11 +137,12 @@ $query = "
     SELECT fp.*, cs.church_name 
     FROM feeding_programs fp 
     JOIN church_sites cs ON fp.church_site_id = cs.id
+    WHERE fp.church_site_id = ?
 ";
-$params = [];
+$params = [$church_site_id];
 
 if ($status_filter !== 'all') {
-    $query .= " WHERE fp.status = ?";
+    $query .= " AND fp.status = ?";
     $params[] = $status_filter;
 }
 
@@ -128,7 +151,7 @@ $stmtPrograms = $pdo->prepare($query);
 $stmtPrograms->execute($params);
 $programsList = $stmtPrograms->fetchAll();
 
-$pageTitle = "Attendance Monitoring";
+$pageTitle = "Feeding Programs Attendance";
 include 'includes/header.php';
 ?>
 
@@ -260,7 +283,7 @@ include 'includes/header.php';
 
   <!-- Pill Tabs Row -->
   <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:15px;">
-    <!-- Pill Tabs (Placed outside and above the dashboard-card container) -->
+    <!-- Pill Tabs -->
     <div class="pill-tabs" style="margin-bottom:0; border-bottom:none; padding-bottom:0;">
       <a href="attendance.php?status=all" class="pill-tab <?php echo $status_filter === 'all' ? 'active' : ''; ?>">All Sessions</a>
       <a href="attendance.php?status=scheduled" class="pill-tab <?php echo $status_filter === 'scheduled' ? 'active' : ''; ?>">
@@ -277,7 +300,7 @@ include 'includes/header.php';
     <div class="dashboard-card-header">
       <h3 class="dashboard-card-title">Feeding Program Roster</h3>
       <span style="font-size:0.75rem; color:var(--gray-400); background:rgba(255,255,255,0.06); padding:4px 10px; border-radius:999px;">
-        Encoder Selection
+        Local Site
       </span>
     </div>
     
@@ -334,8 +357,8 @@ include 'includes/header.php';
       <?php else: ?>
         <div class="empty-state" style="padding: 60px; text-align: center;">
           <i class="fas fa-utensils empty-icon" style="font-size: 3rem; color:var(--gray-500); margin-bottom: 16px;"></i>
-          <h4 style="color: var(--white); margin-bottom: 8px;">No Feeding Programs Found</h4>
-          <p style="color: var(--gray-400);">There are no scheduled, completed, or cancelled feeding program sessions listed.</p>
+          <h4 style="color: var(--white); margin-bottom: 8px;">No Feeding Programs Scheduled</h4>
+          <p style="color: var(--gray-400);">There are no scheduled feeding program sessions listed for your church site.</p>
         </div>
       <?php endif; ?>
     </div>

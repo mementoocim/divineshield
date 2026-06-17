@@ -1,37 +1,39 @@
 <?php
 /**
- * DivineShield - Staff / Encoder Children Records
+ * DivineShield - Church Leader Children Records
  */
 require_once '../../db.php';
 session_start();
 
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'staff') {
+if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'church_leader') {
     header("Location: ../../login.php");
     exit;
 }
 
 $pageTitle = "Children Records";
 
+// Fetch church leader's site ID
+$stmtSite = $pdo->prepare("SELECT id FROM church_sites WHERE church_leader_id = ?");
+$stmtSite->execute([$_SESSION['user_id']]);
+$church_site_id = $stmtSite->fetchColumn();
+
+if (!$church_site_id) {
+    $church_site_id = 0;
+}
+
 // Get filters
 $search = trim($_GET['search'] ?? '');
-$status_filter = $_GET['status'] ?? 'all';
 
 // Build Query
 $query = "SELECT c.*, cs.church_name 
           FROM children c 
           JOIN church_sites cs ON c.church_site_id = cs.id";
-$params = [];
-$where_clauses = [];
-
-if ($status_filter !== 'all') {
-    $where_clauses[] = "c.status = ?";
-    $params[] = $status_filter;
-}
+$params = [$church_site_id];
+$where_clauses = ["c.church_site_id = ?"];
 
 if (!empty($search)) {
-    $where_clauses[] = "(c.first_name LIKE ? OR c.last_name LIKE ? OR cs.church_name LIKE ?)";
+    $where_clauses[] = "(c.first_name LIKE ? OR c.last_name LIKE ?)";
     $search_param = '%' . $search . '%';
-    $params[] = $search_param;
     $params[] = $search_param;
     $params[] = $search_param;
 }
@@ -50,27 +52,14 @@ include 'includes/header.php';
 ?>
 
 <!-- Search & Filters Row -->
-<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:15px;">
-    <!-- Pill Tabs -->
-    <div class="pill-tabs" style="margin-bottom:0; border-bottom:none; padding-bottom:0;">
-        <a href="children_records.php?status=all&search=<?php echo urlencode($search); ?>" 
-           class="pill-tab <?php echo $status_filter === 'all' ? 'active' : ''; ?>">All</a>
-        <a href="children_records.php?status=active&search=<?php echo urlencode($search); ?>" 
-           class="pill-tab <?php echo $status_filter === 'active' ? 'active' : ''; ?>"><i class="fas fa-check-circle" style="font-size:0.8rem; margin-right:4px;"></i> Active</a>
-        <a href="children_records.php?status=graduated&search=<?php echo urlencode($search); ?>" 
-           class="pill-tab <?php echo $status_filter === 'graduated' ? 'active' : ''; ?>"><i class="fas fa-graduation-cap" style="font-size:0.8rem; margin-right:4px;"></i> Graduated</a>
-        <a href="children_records.php?status=inactive&search=<?php echo urlencode($search); ?>" 
-           class="pill-tab <?php echo $status_filter === 'inactive' ? 'active' : ''; ?>"><i class="fas fa-times-circle" style="font-size:0.8rem; margin-right:4px;"></i> Inactive</a>
-    </div>
-
+<div style="display:flex; justify-content:flex-end; margin-bottom:20px; flex-wrap:wrap; gap:15px;">
     <!-- Search Form -->
     <form method="GET" action="children_records.php" style="display:flex; gap:8px; align-items:center;">
-        <input type="hidden" name="status" value="<?php echo htmlspecialchars($status_filter); ?>">
-        <input type="text" name="search" placeholder="Search by name or site..." 
+        <input type="text" name="search" placeholder="Search by name..." 
                value="<?php echo htmlspecialchars($search); ?>" 
                style="padding:8px 16px; background:rgba(30, 41, 59, 0.6); border:1px solid rgba(255,255,255,0.08); border-radius:999px; color:var(--white); outline:none; font-size:0.85rem;">
         <button type="submit" class="btn btn-primary" style="padding:8px 20px; border-radius:999px; font-size:0.85rem; height:36px; display:inline-flex; align-items:center; justify-content:center;">Search</button>
-        <?php if (!empty($search) || $status_filter !== 'all'): ?>
+        <?php if (!empty($search)): ?>
             <a href="children_records.php" class="btn btn-outline" style="padding:8px 20px; border-radius:999px; font-size:0.85rem; height:36px; display:inline-flex; align-items:center; justify-content:center;">Clear</a>
         <?php endif; ?>
     </form>
@@ -127,7 +116,7 @@ include 'includes/header.php';
             <div class="empty-state" style="padding: 60px; text-align: center;">
                 <i class="fas fa-children empty-icon" style="font-size: 3rem; color:var(--gray-500); margin-bottom: 16px;"></i>
                 <h4 style="color: var(--white); margin-bottom: 8px;">No Children Records Found</h4>
-                <p style="color: var(--gray-400);">No children match the filters or search criteria.</p>
+                <p style="color: var(--gray-400);">No children registered for your site match the filters or search criteria.</p>
             </div>
         <?php endif; ?>
     </div>

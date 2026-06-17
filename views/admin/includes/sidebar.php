@@ -70,6 +70,10 @@ $currentPage = basename($_SERVER['PHP_SELF']);
       <i class="fas fa-scroll"></i>
       <span>Audit Logs</span>
     </a>
+    <a href="qr_attendance.php" class="sidebar-link <?php echo $currentPage === 'qr_attendance.php' ? 'active' : ''; ?>">
+      <i class="fas fa-qrcode"></i>
+      <span>QR Generator</span>
+    </a>
     <a href="security.php" class="sidebar-link <?php echo $currentPage === 'security.php' ? 'active' : ''; ?>">
       <i class="fas fa-shield-halved"></i>
       <span>Security</span>
