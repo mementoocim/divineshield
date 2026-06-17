@@ -25,8 +25,8 @@ $churchSites = $stmtSites->fetchAll();
 $stmtBarangays = $pdo->query("SELECT DISTINCT barangay FROM church_sites WHERE barangay IS NOT NULL AND barangay != '' ORDER BY barangay ASC");
 $barangays = $stmtBarangays->fetchAll(PDO::FETCH_COLUMN);
 
-// Get filter inputs - Default to 'all'
-$type = $_GET['report_type'] ?? 'all';
+// Get filter inputs - Default to 'qualification'
+$type = $_GET['report_type'] ?? 'qualification';
 $siteId = isset($_GET['site_id']) && $_GET['site_id'] !== '' ? intval($_GET['site_id']) : null;
 $dateStart = $_GET['date_start'] ?? '';
 $dateEnd = $_GET['date_end'] ?? '';
@@ -347,7 +347,6 @@ include 'includes/header.php';
     <div style="flex:1.2; min-width:180px;">
       <label style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">Report Type</label>
       <select name="report_type" id="report_type_select" class="auth-select" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px; width:100%;" required onchange="toggleFilterFields()">
-        <option value="all" <?php echo $type === 'all' ? 'selected' : ''; ?>>All (Master System Summary)</option>
         <option value="qualification" <?php echo $type === 'qualification' ? 'selected' : ''; ?>>Qualification by Barangay</option>
         <option value="nutritional" <?php echo $type === 'nutritional' ? 'selected' : ''; ?>>Nutritional Monitoring (BMI Records)</option>
         <option value="attendance" <?php echo $type === 'attendance' ? 'selected' : ''; ?>>Program Attendance Ledger</option>
