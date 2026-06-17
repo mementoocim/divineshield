@@ -62,11 +62,11 @@ graph TD
   - **Settings:** Manage system-wide configurations.
 
 ---
-
+ 
 ### 2. Staff / Encoder Portal
-
+ 
 > **"Sila ang nagve-verify at nagdedecide kung qualified ba talaga ang bata."**
-
+ 
 - **Access Flow:** Staff Login ➔ Dashboard ➔ Action Center.
 - **Modules:**
   - **Submission Review:** View all submissions sent by church leaders.
@@ -74,17 +74,14 @@ graph TD
   - **Verification Action:**
     - **Approve (Qualified):** System automatically registers the child into the permanent Children Registry database table.
     - **Reject (Disqualified):** Input a reason/note to communicate back to the church leader.
-  - **Children Records:** View and check overall enrolled child data.
-  - **Nutritional Monitoring:** Track BMI progression and record monthly growth metrics.
-  - **Attendance:** Manage feeding session presence logs.
-  - **RFID Interface:** Integration for RFID-based attendance hardware.
-
+  - **Daily Staff Attendance:** Record check-in and check-out times via administrator-generated QR codes, with real-time audit trails.
+ 
 ---
-
+ 
 ### 3. Church Leader Portal
-
+ 
 > **"Sila yung mag-sa-submit ng mga names and information ng mga bata."**
-
+ 
 - **Access Flow:** Registration (`register.php`) ➔ Admin Activation Approval ➔ Login ➔ Submit Child Info.
 - **Modules:**
   - **Church Site Registration:** Provide church information, personal profile details, and account credentials.
@@ -94,8 +91,11 @@ graph TD
     - Height (cm) & weight (kg).
   - **Auto-BMI Assessment:** System automatically calculates BMI and suggests qualification status (Qualified/Disqualified) for the child.
   - **My Submissions:** Track whether submissions are `Pending`, `Approved (Qualified)`, or `Rejected (Disqualified)`.
-  - _Note: Once submitted, records are read-only for church leaders. They cannot modify or approve submissions._
-
+  - **Children Records:** View overall enrolled child data for the leader's specific church site.
+  - **Nutritional Monitoring:** Track BMI progression and record monthly growth metrics (adding new weight/height records for active children).
+  - **Attendance & RFID Interface:** Log feeding program presence (present/absent/excused) and scan children tags utilizing hardware-compatible RFID check-in readers.
+  - _Note: Once submitted, initial submissions are read-only for church leaders. They cannot modify or approve submissions._
+ 
 ---
 
 ## 🔒 Security & Cloud Infrastructure
