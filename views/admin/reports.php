@@ -39,7 +39,21 @@ if (isset($_GET['action']) && $_GET['action'] === 'export') {
     $params = [];
     
     // 1. Resolve query based on type
-    if ($type === 'nutritional') {
+    if ($type === 'all') {
+        $sql = "SELECT c.first_name, c.last_name, c.gender, c.birthdate, 
+                       cs.church_name, c.status, c.guardian_name,
+                       (SELECT bmi FROM nutritional_assessments WHERE child_id = c.id ORDER BY assessment_date DESC LIMIT 1) AS latest_bmi,
+                       (SELECT bmi_status FROM nutritional_assessments WHERE child_id = c.id ORDER BY assessment_date DESC LIMIT 1) AS latest_bmi_status
+                FROM children c
+                JOIN church_sites cs ON c.church_site_id = cs.id WHERE 1=1";
+        if ($siteId) {
+            $sql .= " AND c.church_site_id = ?";
+            $params[] = $siteId;
+        }
+        $sql .= " ORDER BY c.last_name ASC, c.first_name ASC";
+        $headers = ['First Name', 'Last Name', 'Gender', 'Birthdate', 'Church Site', 'Status', 'Guardian Name', 'Latest BMI', 'Latest BMI Status'];
+
+    } elseif ($type === 'nutritional') {
         $sql = "SELECT c.first_name, c.last_name, c.gender, c.birthdate, 
                        na.weight, na.height, na.bmi, na.bmi_status, na.assessment_date, 
                        cs.church_name, na.notes
@@ -214,7 +228,23 @@ if (isset($_GET['action']) && $_GET['action'] === 'export') {
 // Fetch preview data (limit to 50 for preview)
 $previewRows = [];
 $previewParams = [];
-if ($type === 'nutritional') {
+if ($type === 'all') {
+    $sql = "SELECT c.first_name, c.last_name, c.gender, c.birthdate, 
+                   cs.church_name, c.status, c.guardian_name,
+                   (SELECT bmi FROM nutritional_assessments WHERE child_id = c.id ORDER BY assessment_date DESC LIMIT 1) AS latest_bmi,
+                   (SELECT bmi_status FROM nutritional_assessments WHERE child_id = c.id ORDER BY assessment_date DESC LIMIT 1) AS latest_bmi_status
+            FROM children c
+            JOIN church_sites cs ON c.church_site_id = cs.id WHERE 1=1";
+    if ($siteId) {
+        $sql .= " AND c.church_site_id = ?";
+        $previewParams[] = $siteId;
+    }
+    $sql .= " ORDER BY c.last_name ASC, c.first_name ASC LIMIT 50";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($previewParams);
+    $previewRows = $stmt->fetchAll();
+
+} elseif ($type === 'nutritional') {
     $sql = "SELECT c.first_name, c.last_name, c.gender, c.birthdate, 
                    na.weight, na.height, na.bmi, na.bmi_status, na.assessment_date, 
                    cs.church_name
@@ -375,7 +405,7 @@ include 'includes/header.php';
       <button type="submit" class="btn btn-primary" style="padding:10px 20px; font-size:0.85rem; height:46px;">
         <i class="fas fa-rotate"></i> Generate Preview
       </button>
-      <?php if ($siteId || !empty($dateStart) || !empty($dateEnd) || !empty($barangayFilter) || !empty($qualFilter) || $type !== 'qualification'): ?>
+      <?php if ($siteId || !empty($dateStart) || !empty($dateEnd) || !empty($barangayFilter) || !empty($qualFilter) || $type !== 'all'): ?>
         <a href="reports.php" class="btn btn-outline" style="padding:10px 20px; font-size:0.85rem; height:46px; border-color:rgba(255,255,255,0.1); color:var(--gray-300); align-items:center;">
           <i class="fas fa-filter-circle-xmark"></i> Reset
         </a>
@@ -422,7 +452,55 @@ include 'includes/header.php';
       
       <div class="dark-table-wrap">
         <table class="dark-table">
-          <?php if ($type === 'qualification'): ?>
+          <?php if ($type === 'all'): ?>
+            <thead>
+              <tr>
+                <th>Beneficiary Name</th>
+                <th>Gender</th>
+                <th>Age</th>
+                <th>Church Site</th>
+                <th>Latest BMI</th>
+                <th>BMI Status</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <?php foreach ($previewRows as $row): ?>
+                <?php $age = date_diff(date_create($row['birthdate']), date_create('today'))->y; ?>
+                <tr>
+                  <td class="fw-semibold text-white"><?php echo htmlspecialchars($row['first_name'] . ' ' . $row['last_name']); ?></td>
+                  <td style="text-transform: capitalize;"><?php echo htmlspecialchars($row['gender']); ?></td>
+                  <td><?php echo $age; ?> yrs</td>
+                  <td><?php echo htmlspecialchars($row['church_name']); ?></td>
+                  <td style="font-family: monospace; color:var(--white);"><?php echo $row['latest_bmi'] ? number_format($row['latest_bmi'], 2) : '—'; ?></td>
+                  <td>
+                    <?php 
+                    $status = $row['latest_bmi_status'];
+                    if (empty($status)) {
+                        echo '<span class="text-muted">Not Assessed</span>';
+                    } elseif ($status === 'Normal Weight' || $status === 'Normal') {
+                        echo '<span class="status-badge success"><i class="fas fa-check-circle"></i> Normal</span>';
+                    } elseif ($status === 'Underweight') {
+                        echo '<span class="status-badge warning"><i class="fas fa-exclamation-circle"></i> Underweight</span>';
+                    } else {
+                        echo '<span class="status-badge error"><i class="fas fa-times-circle"></i> Obese/Overweight</span>';
+                    }
+                    ?>
+                  </td>
+                  <td>
+                    <?php if ($row['status'] === 'active'): ?>
+                      <span class="status-badge success"><i class="fas fa-check-circle"></i> Active</span>
+                    <?php elseif ($row['status'] === 'graduated'): ?>
+                      <span class="status-badge warning" style="background:rgba(59,130,246,0.15); color:#60a5fa; border-color:rgba(59,130,246,0.3);"><i class="fas fa-graduation-cap"></i> Graduated</span>
+                    <?php else: ?>
+                      <span class="status-badge error"><i class="fas fa-times-circle"></i> Inactive</span>
+                    <?php endif; ?>
+                  </td>
+                </tr>
+              <?php endforeach; ?>
+            </tbody>
+
+          <?php elseif ($type === 'qualification'): ?>
             <thead>
               <tr>
                 <th>Barangay</th>
@@ -637,7 +715,7 @@ function toggleFilterFields() {
     qualWrapper.style.display = 'none';
     
     // Hide dates for simple registry lists
-    if (type === 'beneficiaries' || type === 'beneficiaries_monthly') {
+    if (type === 'beneficiaries' || type === 'beneficiaries_monthly' || type === 'all') {
       startWrapper.style.display = 'none';
       endWrapper.style.display = 'none';
     } else {

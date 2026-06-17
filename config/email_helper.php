@@ -6,36 +6,39 @@ require_once __DIR__ . '/../Phpmailer/src/SMTP.php';
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-function initializePHPMailer() {
-    $mail = new PHPMailer(true);
-    try {
-        $mail->isSMTP();
-        $mail->Host       = 'smtp.gmail.com';
-        $mail->SMTPAuth   = true;
-        $mail->Username   = 'mainpilalauanan@gmail.com';
-        $mail->Password   = 'uoel eiwn gvxv godj';
-        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-        $mail->Port       = 587;
-        $mail->setFrom('mainpilalauanan@gmail.com', 'DivineShield');
-        $mail->isHTML(true);
-        return $mail;
-    } catch (Exception $e) {
-        error_log("PHPMailer init failed: " . $e->getMessage());
-        return null;
-    }
+function initializePHPMailer()
+{
+  $mail = new PHPMailer(true);
+  try {
+    $mail->isSMTP();
+    $mail->Host = 'smtp.gmail.com';
+    $mail->SMTPAuth = true;
+    $mail->Username = 'mainpilalauanan@gmail.com';
+    $mail->Password = 'uoel eiwn gvxv godj';
+    $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+    $mail->Port = 587;
+    $mail->setFrom('mainpilalauanan@gmail.com', 'DivineShield');
+    $mail->isHTML(true);
+    return $mail;
+  } catch (Exception $e) {
+    error_log("PHPMailer init failed: " . $e->getMessage());
+    return null;
+  }
 }
 
 /**
  * Send approval notification to a church leader.
  */
-function sendLeaderApprovalEmail(string $toEmail, string $firstName, string $lastName, string $username): bool {
-    $mail = initializePHPMailer();
-    if (!$mail) return false;
+function sendLeaderApprovalEmail(string $toEmail, string $firstName, string $lastName, string $username): bool
+{
+  $mail = initializePHPMailer();
+  if (!$mail)
+    return false;
 
-    try {
-        $mail->addAddress($toEmail, "Pastor $firstName $lastName");
-        $mail->Subject = 'Your DivineShield Account Has Been Approved';
-        $mail->Body = '
+  try {
+    $mail->addAddress($toEmail, "Pastor $firstName $lastName");
+    $mail->Subject = 'Your DivineShield Account Has Been Approved';
+    $mail->Body = '
         <!DOCTYPE html>
         <html>
         <head>
@@ -83,27 +86,29 @@ function sendLeaderApprovalEmail(string $toEmail, string $firstName, string $las
         </body>
         </html>';
 
-        $mail->AltBody = "Dear Pastor $firstName $lastName,\n\nYour DivineShield church leader account (@$username) has been approved and is now active.\n\nYou may now log in to the portal.\n\nGod bless,\nThe DivineShield Team";
+    $mail->AltBody = "Dear Pastor $firstName $lastName,\n\nYour DivineShield church leader account (@$username) has been approved and is now active.\n\nYou may now log in to the portal.\n\nGod bless,\nThe DivineShield Team";
 
-        $mail->send();
-        return true;
-    } catch (Exception $e) {
-        error_log("Approval email failed for $toEmail: " . $e->getMessage());
-        return false;
-    }
+    $mail->send();
+    return true;
+  } catch (Exception $e) {
+    error_log("Approval email failed for $toEmail: " . $e->getMessage());
+    return false;
+  }
 }
 
 /**
  * Send rejection/deactivation notification to a church leader.
  */
-function sendLeaderRejectionEmail(string $toEmail, string $firstName, string $lastName, string $username): bool {
-    $mail = initializePHPMailer();
-    if (!$mail) return false;
+function sendLeaderRejectionEmail(string $toEmail, string $firstName, string $lastName, string $username): bool
+{
+  $mail = initializePHPMailer();
+  if (!$mail)
+    return false;
 
-    try {
-        $mail->addAddress($toEmail, "Pastor $firstName $lastName");
-        $mail->Subject = 'Your DivineShield Registration Status Update';
-        $mail->Body = '
+  try {
+    $mail->addAddress($toEmail, "Pastor $firstName $lastName");
+    $mail->Subject = 'Your DivineShield Registration Status Update';
+    $mail->Body = '
         <!DOCTYPE html>
         <html>
         <head>
@@ -150,54 +155,55 @@ function sendLeaderRejectionEmail(string $toEmail, string $firstName, string $la
         </body>
         </html>';
 
-        $mail->AltBody = "Dear Pastor $firstName $lastName,\n\nWe regret to inform you that your DivineShield church leader account (@$username) has not been approved at this time.\n\nIf you believe this is in error, please contact our support team.\n\nGod bless,\nThe DivineShield Team";
+    $mail->AltBody = "Dear Pastor $firstName $lastName,\n\nWe regret to inform you that your DivineShield church leader account (@$username) has not been approved at this time.\n\nIf you believe this is in error, please contact our support team.\n\nGod bless,\nThe DivineShield Team";
 
-        $mail->send();
-        return true;
-    } catch (Exception $e) {
-        error_log("Rejection email failed for $toEmail: " . $e->getMessage());
-        return false;
-    }
+    $mail->send();
+    return true;
+  } catch (Exception $e) {
+    error_log("Rejection email failed for $toEmail: " . $e->getMessage());
+    return false;
+  }
 }
 
 /**
  * Notify the admin of a new pending church leader registration.
  */
 function sendAdminNewRegistrationEmail(
-    string $leaderFirstName,
-    string $leaderLastName,
-    string $leaderEmail,
-    string $leaderPhone,
-    string $positionTitle,
-    string $username,
-    string $churchName,
-    string $streetAddress,
-    string $region,
-    string $city,
-    string $barangay,
-    string $adminMessage = ''
+  string $leaderFirstName,
+  string $leaderLastName,
+  string $leaderEmail,
+  string $leaderPhone,
+  string $positionTitle,
+  string $username,
+  string $churchName,
+  string $streetAddress,
+  string $region,
+  string $city,
+  string $barangay,
+  string $adminMessage = ''
 ): bool {
-    $mail = initializePHPMailer();
-    if (!$mail) return false;
+  $mail = initializePHPMailer();
+  if (!$mail)
+    return false;
 
-    try {
-        $mail->addAddress('maramagkimberly98@gmail.com', 'DivineShield Administrator');
-        $mail->Subject = 'New Church Leader Registration Pending Approval';
+  try {
+    $mail->addAddress('balmacedamico028@gmail.com', 'DivineShield Administrator');
+    $mail->Subject = 'New Church Leader Registration Pending Approval';
 
-        $adminMessageRow = !empty($adminMessage)
-            ? '<p><strong>Message to Admin:</strong> ' . htmlspecialchars($adminMessage) . '</p>'
-            : '';
+    $adminMessageRow = !empty($adminMessage)
+      ? '<p><strong>Message to Admin:</strong> ' . htmlspecialchars($adminMessage) . '</p>'
+      : '';
 
-        $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-        $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
-        $uri = $_SERVER['REQUEST_URI'] ?? '';
-        $folder = '/Divineshield';
-        if (stripos($uri, '/divinely-shield') !== false) {
-            $folder = '/divinely-shield';
-        }
-        $portalUrl = $protocol . '://' . $host . $folder . '/views/admin/dashboard.php';
+    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+    $uri = $_SERVER['REQUEST_URI'] ?? '';
+    $folder = '/Divineshield';
+    if (stripos($uri, '/divinely-shield') !== false) {
+      $folder = '/divinely-shield';
+    }
+    $portalUrl = $protocol . '://' . $host . $folder . '/views/admin/dashboard.php';
 
-        $mail->Body = '
+    $mail->Body = '
         <!DOCTYPE html>
         <html>
         <head>
@@ -265,19 +271,19 @@ function sendAdminNewRegistrationEmail(
         </body>
         </html>';
 
-        $mail->AltBody = "New Registration Pending\n\n"
-            . "Leader: Pastor $leaderFirstName $leaderLastName (@$username)\n"
-            . "Position: $positionTitle\n"
-            . "Email: $leaderEmail | Phone: $leaderPhone\n\n"
-            . "Church: $churchName\n"
-            . "Address: $streetAddress, $barangay, $city, $region\n"
-            . (!empty($adminMessage) ? "\nMessage to Admin: $adminMessage\n" : "")
-            . "\nPlease log in to the admin portal to review this registration.";
+    $mail->AltBody = "New Registration Pending\n\n"
+      . "Leader: Pastor $leaderFirstName $leaderLastName (@$username)\n"
+      . "Position: $positionTitle\n"
+      . "Email: $leaderEmail | Phone: $leaderPhone\n\n"
+      . "Church: $churchName\n"
+      . "Address: $streetAddress, $barangay, $city, $region\n"
+      . (!empty($adminMessage) ? "\nMessage to Admin: $adminMessage\n" : "")
+      . "\nPlease log in to the admin portal to review this registration.";
 
-        $mail->send();
-        return true;
-    } catch (Exception $e) {
-        error_log("Admin notification email failed: " . $e->getMessage());
-        return false;
-    }
+    $mail->send();
+    return true;
+  } catch (Exception $e) {
+    error_log("Admin notification email failed: " . $e->getMessage());
+    return false;
+  }
 }
