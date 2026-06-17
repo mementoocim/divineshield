@@ -11,16 +11,16 @@
   <style>
     /* ── CUSTOM BESPOKE LANDING THEME & STYLES ────────────────────────── */
     :root {
-      --bg-dark: #030712;
-      --bg-card: rgba(17, 24, 39, 0.7);
-      --bg-card-hover: rgba(31, 41, 55, 0.8);
-      --border-glow: rgba(99, 102, 241, 0.15);
+      --bg-dark: #0a1628;
+      --bg-card: rgba(15, 23, 42, 0.75);
+      --bg-card-hover: rgba(30, 41, 59, 0.85);
+      --border-glow: rgba(37, 99, 235, 0.2);
       
-      --color-primary: #6366f1; /* Indigo */
-      --color-primary-glow: rgba(99, 102, 241, 0.4);
-      --color-secondary: #a855f7; /* Purple */
-      --color-accent: #10b981; /* Emerald */
-      --color-accent-glow: rgba(16, 185, 129, 0.2);
+      --color-primary: #2563eb; /* Blue-600 */
+      --color-primary-glow: rgba(37, 99, 235, 0.4);
+      --color-secondary: #1d4ed8; /* Blue-700 */
+      --color-accent: #fbbf24; /* Yellow-400 */
+      --color-accent-glow: rgba(251, 191, 36, 0.25);
       
       --text-main: #f3f4f6;
       --text-muted: #9ca3af;
@@ -76,9 +76,9 @@
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      background: rgba(99, 102, 241, 0.1);
-      border: 1px solid rgba(99, 102, 241, 0.2);
-      color: #a5b4fc;
+      background: rgba(37, 99, 235, 0.1);
+      border: 1px solid rgba(37, 99, 235, 0.2);
+      color: #93c5fd;
       font-family: var(--font-outfit);
       font-size: 0.78rem;
       font-weight: 600;
@@ -90,7 +90,7 @@
     }
 
     .grad-text {
-      background: linear-gradient(135deg, #a5b4fc 0%, #c084fc 50%, #818cf8 100%);
+      background: linear-gradient(135deg, #ffffff 0%, var(--color-accent) 60%, #93c5fd 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
@@ -243,7 +243,7 @@
     .btn-login-nav:hover {
       background: var(--color-primary);
       border-color: var(--color-primary);
-      box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
+      box-shadow: 0 0 15px rgba(37, 99, 235, 0.4);
     }
 
     .hamburger-btn {
@@ -262,8 +262,8 @@
       display: flex;
       align-items: center;
       padding: 140px 0 80px;
-      background: radial-gradient(circle at 10% 10%, rgba(99, 102, 241, 0.08) 0%, transparent 40%),
-                  radial-gradient(circle at 90% 80%, rgba(168, 85, 247, 0.06) 0%, transparent 45%);
+      background: radial-gradient(circle at 10% 10%, rgba(37, 99, 235, 0.12) 0%, transparent 40%),
+                  radial-gradient(circle at 90% 80%, rgba(251, 191, 36, 0.05) 0%, transparent 45%);
       overflow: hidden;
     }
 
@@ -271,7 +271,7 @@
       position: absolute;
       width: 400px;
       height: 400px;
-      background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
+      background: radial-gradient(circle, rgba(37, 99, 235, 0.15) 0%, transparent 70%);
       filter: blur(40px);
       pointer-events: none;
       z-index: 0;
