@@ -10,6 +10,35 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
   exit;
 }
 
+// Handle AJAX request to fetch check-in logs
+if (isset($_GET['action']) && $_GET['action'] === 'get_logs') {
+  header('Content-Type: application/json');
+  try {
+    $stmtCheckIns = $pdo->query("
+        SELECT sa.check_in_time, sa.check_out_time, sa.ip_address, u.username, u.first_name, u.last_name, u.email
+        FROM staff_attendance sa
+        JOIN users u ON sa.user_id = u.id
+        WHERE DATE(sa.check_in_time) = CURRENT_DATE
+        ORDER BY sa.check_in_time DESC
+    ");
+    $todayLogs = $stmtCheckIns->fetchAll();
+    
+    // Format dates nicely
+    foreach ($todayLogs as &$log) {
+      $log['formatted_in'] = date('h:i:s A', strtotime($log['check_in_time']));
+      $log['formatted_out'] = $log['check_out_time'] ? date('h:i:s A', strtotime($log['check_out_time'])) : '—';
+      $log['full_name'] = htmlspecialchars($log['first_name'] . ' ' . $log['last_name']);
+      $log['username'] = htmlspecialchars($log['username']);
+      $log['email'] = htmlspecialchars($log['email']);
+      $log['ip_address'] = htmlspecialchars($log['ip_address'] ?? '—');
+    }
+    echo json_encode(['success' => true, 'logs' => $todayLogs]);
+  } catch (Exception $e) {
+    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+  }
+  exit;
+}
+
 // Fetch admin profile picture for topbar
 $stmtAdmin = $pdo->prepare("SELECT profile_picture FROM users WHERE id = ?");
 $stmtAdmin->execute([$_SESSION['user_id']]);
@@ -168,7 +197,7 @@ include 'includes/header.php';
       <h3 class="dashboard-card-title">Today's Check-in Log</h3>
     </div>
 
-    <div class="panel-body" style="padding:0; flex-grow:1;">
+    <div class="panel-body" id="today-logs-panel" style="padding:0; flex-grow:1;">
       <?php
       // Fetch today's check-ins for encoders
       $stmtCheckIns = $pdo->query("
@@ -281,6 +310,70 @@ include 'includes/header.php';
     }
 
     updateTimer();
+  </script>
+  <script>
+    // ── Live Polling for Today's Check-in Log ──
+    function pollLogs() {
+      fetch('qr_attendance.php?action=get_logs')
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            const panel = document.getElementById('today-logs-panel');
+            if (data.logs.length === 0) {
+              panel.innerHTML = `
+                <div class="empty-state" style="padding: 40px; text-align: center;">
+                  <i class="fas fa-user-clock empty-icon" style="font-size: 3rem; color:var(--gray-500); margin-bottom: 16px;"></i>
+                  <h4 style="color: var(--white); margin-bottom: 8px;">No Staff Checked-in Today</h4>
+                  <p style="color: var(--gray-400); font-size:0.8rem;">Once staff scan the active QR code, their check-in records will appear here.</p>
+                </div>`;
+            } else {
+              let rowsHtml = '';
+              data.logs.forEach(log => {
+                const outTime = log.check_out_time ? log.formatted_out : '<span class="text-muted">—</span>';
+                rowsHtml += `
+                  <tr>
+                    <td>
+                      <strong style="color:var(--white);">${log.full_name}</strong>
+                      <div style="font-size: 0.72rem; color: var(--gray-400); margin-top:2px;">
+                        @${log.username} &middot; ${log.email}
+                      </div>
+                    </td>
+                    <td style="font-family: monospace; color:var(--teal-400); font-weight:600;">
+                      ${log.formatted_in}
+                    </td>
+                    <td style="font-family: monospace; color:var(--blue-400); font-weight:600;">
+                      ${outTime}
+                    </td>
+                    <td style="font-family: monospace; font-size:0.8rem; color:var(--gray-400);">
+                      ${log.ip_address}
+                    </td>
+                  </tr>`;
+              });
+
+              panel.innerHTML = `
+                <div class="dark-table-wrap" style="max-height: 380px; overflow-y: auto;">
+                  <table class="dark-table">
+                    <thead>
+                      <tr>
+                        <th>Staff Member</th>
+                        <th>Check-in Time</th>
+                        <th>Check-out Time</th>
+                        <th>IP Address</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      ${rowsHtml}
+                    </tbody>
+                  </table>
+                </div>`;
+            }
+          }
+        })
+        .catch(err => console.error('Error polling logs:', err));
+    }
+
+    // Poll every 3 seconds
+    setInterval(pollLogs, 3000);
   </script>
 <?php endif; ?>
 
