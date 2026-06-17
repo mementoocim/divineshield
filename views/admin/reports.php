@@ -1,6 +1,6 @@
 <?php
 /**
- * DivineShield - Reports Control Panel
+ * DivineShield - Reports Control Panel (Live Preview & Export)
  */
 
 require_once '../../db.php';
@@ -21,15 +21,15 @@ $adminProfilePic = $stmtAdmin->fetchColumn();
 $stmtSites = $pdo->query("SELECT id, church_name FROM church_sites ORDER BY church_name ASC");
 $churchSites = $stmtSites->fetchAll();
 
+// Get filter inputs
+$type = $_GET['report_type'] ?? 'nutritional';
+$siteId = isset($_GET['site_id']) && $_GET['site_id'] !== '' ? intval($_GET['site_id']) : null;
+$dateStart = $_GET['date_start'] ?? '';
+$dateEnd = $_GET['date_end'] ?? '';
+
 // Handle real report export download
 if (isset($_GET['action']) && $_GET['action'] === 'export') {
-    $type = $_GET['report_type'] ?? '';
-    $siteId = isset($_GET['site_id']) && $_GET['site_id'] !== '' ? intval($_GET['site_id']) : null;
-    $dateStart = $_GET['date_start'] ?? '';
-    $dateEnd = $_GET['date_end'] ?? '';
-
     $params = [];
-
     if ($type === 'nutritional') {
         $sql = "SELECT c.first_name, c.last_name, c.gender, c.birthdate, 
                        na.weight, na.height, na.bmi, na.bmi_status, na.assessment_date, 
@@ -61,7 +61,6 @@ if (isset($_GET['action']) && $_GET['action'] === 'export') {
         header('Content-Disposition: attachment; filename="' . $filename . '"');
         $output = fopen('php://output', 'w');
         
-        // Output headers
         fputcsv($output, ['First Name', 'Last Name', 'Gender', 'Birthdate', 'Weight (kg)', 'Height (cm)', 'BMI', 'BMI Status', 'Assessment Date', 'Church Site', 'Notes']);
         foreach ($rows as $row) {
             fputcsv($output, $row);
@@ -137,188 +136,260 @@ if (isset($_GET['action']) && $_GET['action'] === 'export') {
     }
 }
 
-$pageTitle = "Reports";
+// Fetch preview data
+$previewRows = [];
+$previewParams = [];
+if ($type === 'nutritional') {
+    $sql = "SELECT c.first_name, c.last_name, c.gender, c.birthdate, 
+                   na.weight, na.height, na.bmi, na.bmi_status, na.assessment_date, 
+                   cs.church_name
+            FROM nutritional_assessments na
+            JOIN children c ON na.child_id = c.id
+            JOIN church_sites cs ON c.church_site_id = cs.id WHERE 1=1";
+    if ($siteId) {
+        $sql .= " AND c.church_site_id = ?";
+        $previewParams[] = $siteId;
+    }
+    if (!empty($dateStart)) {
+        $sql .= " AND na.assessment_date >= ?";
+        $previewParams[] = $dateStart;
+    }
+    if (!empty($dateEnd)) {
+        $sql .= " AND na.assessment_date <= ?";
+        $previewParams[] = $dateEnd;
+    }
+    $sql .= " ORDER BY na.assessment_date DESC LIMIT 50";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($previewParams);
+    $previewRows = $stmt->fetchAll();
+
+} elseif ($type === 'attendance') {
+    $sql = "SELECT a.logged_at, c.first_name, c.last_name, 
+                   fp.title AS program_title, cs.church_name, a.status, a.logged_via
+            FROM attendance a
+            JOIN children c ON a.child_id = c.id
+            JOIN feeding_programs fp ON a.feeding_program_id = fp.id
+            JOIN church_sites cs ON fp.church_site_id = cs.id WHERE 1=1";
+    if ($siteId) {
+        $sql .= " AND fp.church_site_id = ?";
+        $previewParams[] = $siteId;
+    }
+    if (!empty($dateStart)) {
+        $sql .= " AND DATE(a.logged_at) >= ?";
+        $previewParams[] = $dateStart;
+    }
+    if (!empty($dateEnd)) {
+        $sql .= " AND DATE(a.logged_at) <= ?";
+        $previewParams[] = $dateEnd;
+    }
+    $sql .= " ORDER BY a.logged_at DESC LIMIT 50";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($previewParams);
+    $previewRows = $stmt->fetchAll();
+
+} elseif ($type === 'beneficiaries') {
+    $sql = "SELECT c.first_name, c.last_name, c.gender, c.birthdate, 
+                   cs.church_name, c.status, c.guardian_name
+            FROM children c
+            JOIN church_sites cs ON c.church_site_id = cs.id WHERE 1=1";
+    if ($siteId) {
+        $sql .= " AND c.church_site_id = ?";
+        $previewParams[] = $siteId;
+    }
+    $sql .= " ORDER BY c.last_name ASC, c.first_name ASC LIMIT 50";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($previewParams);
+    $previewRows = $stmt->fetchAll();
+}
+
+$pageTitle = "Reports Generator";
 include 'includes/header.php';
 ?>
 
-<!-- KPI Stats Row -->
-<div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-bottom: 24px;">
-    <div class="stat-box">
-        <div class="stat-box-info">
-            <h4>Generated Reports</h4>
-            <div class="stat-val">24</div>
-            <p style="font-size: 0.75rem; color: var(--gray-500); margin-top:4px;">Total exported this month</p>
-        </div>
-        <div class="stat-box-icon" style="color:var(--blue-400); background:rgba(59,130,246,0.1);">
-            <i class="fas fa-file-pdf"></i>
-        </div>
-    </div>
-    <div class="stat-box">
-        <div class="stat-box-info">
-            <h4>System Audits Cleaned</h4>
-            <div class="stat-val">100%</div>
-            <p style="font-size: 0.75rem; color: var(--gray-500); margin-top:4px;">No critical errors flagged</p>
-        </div>
-        <div class="stat-box-icon" style="color:var(--teal-400); background:rgba(45,212,191,0.1);">
-            <i class="fas fa-circle-check"></i>
-        </div>
-    </div>
-    <div class="stat-box">
-        <div class="stat-box-info">
-            <h4>Export Formats Ready</h4>
-            <div class="stat-val">3</div>
-            <p style="font-size: 0.75rem; color: var(--gray-500); margin-top:4px;">PDF, Excel, &amp; CSV templates</p>
-        </div>
-        <div class="stat-box-icon" style="color:var(--yellow-400); background:rgba(251,191,36,0.1);">
-            <i class="fas fa-file-excel"></i>
-        </div>
-    </div>
-</div>
-
-<!-- Main Column Layout -->
-<div style="display:flex; flex-wrap:wrap; gap:24px;">
-    <!-- LEFT SIDE: Generator Form -->
-    <div class="dashboard-card" style="flex:1; min-width:320px; padding:28px;">
-        <div class="dashboard-card-header" style="border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom:14px; margin-bottom:20px;">
-            <h3 class="dashboard-card-title">Generate System Report</h3>
-        </div>
-        
-        <form id="report-generator-form" autocomplete="off" onsubmit="event.preventDefault(); triggerSimulatedExport();">
-            <div class="form-group" style="margin-bottom:20px;">
-                <label class="form-label" style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">Report Type *</label>
-                <select id="report_type" class="auth-select" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); width:100%; height:46px;" required>
-                    <option value="">-- Choose Type --</option>
-                    <option value="nutritional">Nutritional Monitoring Report (BMI Records)</option>
-                    <option value="attendance">Program Attendance Ledger</option>
-                    <option value="beneficiaries">Beneficiary Demographics &amp; Registry</option>
-                </select>
-            </div>
-
-            <div class="form-group" style="margin-bottom:20px;">
-                <label class="form-label" style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">Church Site</label>
-                <select id="site_id" class="auth-select" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); width:100%; height:46px;">
-                    <option value="">-- All Sites --</option>
-                    <?php foreach ($churchSites as $site): ?>
-                        <option value="<?php echo $site['id']; ?>"><?php echo htmlspecialchars($site['church_name']); ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-
-            <div style="display:flex; gap:16px; margin-bottom:20px;">
-                <div style="flex:1;">
-                    <label class="form-label" style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">Start Date</label>
-                    <input type="date" id="date_start" class="auth-input" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px; width:100%;">
-                </div>
-                <div style="flex:1;">
-                    <label class="form-label" style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">End Date</label>
-                    <input type="date" id="date_end" class="auth-input" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px; width:100%;">
-                </div>
-            </div>
-
-            <div class="form-group" style="margin-bottom:28px;">
-                <label class="form-label" style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">Export Format *</label>
-                <div style="display:flex; gap:16px;">
-                    <label style="display:inline-flex; align-items:center; color:var(--white); cursor:pointer;">
-                        <input type="radio" name="format" value="pdf" checked style="margin-right:8px;"> PDF Format
-                    </label>
-                    <label style="display:inline-flex; align-items:center; color:var(--white); cursor:pointer;">
-                        <input type="radio" name="format" value="excel" style="margin-right:8px;"> Excel Workbook
-                    </label>
-                    <label style="display:inline-flex; align-items:center; color:var(--white); cursor:pointer;">
-                        <input type="radio" name="format" value="csv" style="margin-right:8px;"> CSV Raw Data
-                    </label>
-                </div>
-            </div>
-
-            <button type="submit" class="btn btn-primary" style="width:100%; height:46px; justify-content:center;">
-                <i class="fas fa-file-export"></i> Compile &amp; Export Report
-            </button>
-        </form>
+<!-- Top Filter Configuration Card -->
+<section class="dashboard-card" style="margin-bottom:24px; padding: 20px 28px;">
+  <form action="reports.php" method="GET" style="display:flex; flex-wrap:wrap; gap:16px; align-items:flex-end;">
+    <div style="flex:1.2; min-width:200px;">
+      <label style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">Report Type</label>
+      <select name="report_type" class="auth-select" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px; width:100%;" required>
+        <option value="nutritional" <?php echo $type === 'nutritional' ? 'selected' : ''; ?>>Nutritional Monitoring (BMI Records)</option>
+        <option value="attendance" <?php echo $type === 'attendance' ? 'selected' : ''; ?>>Program Attendance Ledger</option>
+        <option value="beneficiaries" <?php echo $type === 'beneficiaries' ? 'selected' : ''; ?>>Beneficiary Demographics &amp; Registry</option>
+      </select>
     </div>
 
-    <!-- RIGHT SIDE: History Log -->
-    <div class="dashboard-card" style="flex:1.5; min-width:400px; padding:28px;">
-        <div class="dashboard-card-header" style="border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom:14px; margin-bottom:20px;">
-            <h3 class="dashboard-card-title">Recent Generated Exports</h3>
-        </div>
-
-        <div class="dark-table-wrap">
-            <table class="dark-table">
-                <thead>
-                    <tr>
-                        <th>Date Compiled</th>
-                        <th>Report Name</th>
-                        <th>Type</th>
-                        <th>Format</th>
-                        <th class="text-right">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td style="font-size:0.82rem; color:var(--gray-400);">Jun 17, 2026 10:15 AM</td>
-                        <td class="fw-semibold text-white">Nutri_Report_SaintNicos</td>
-                        <td>Nutritional Status</td>
-                        <td><span class="status-badge success" style="padding:2px 8px;"><i class="fas fa-file-pdf"></i> PDF</span></td>
-                        <td class="text-right">
-                            <button class="btn btn-info btn-sm" onclick="window.location.href='reports.php?action=export&report_type=nutritional'"><i class="fas fa-download"></i></button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style="font-size:0.82rem; color:var(--gray-400);">Jun 15, 2026 02:40 PM</td>
-                        <td class="fw-semibold text-white">Attendance_Ledger_Q2</td>
-                        <td>Attendance Logs</td>
-                        <td><span class="status-badge warning" style="padding:2px 8px; background:rgba(16,185,129,0.15); color:#34d399; border-color:rgba(16,185,129,0.3);"><i class="fas fa-file-excel"></i> XLSX</span></td>
-                        <td class="text-right">
-                            <button class="btn btn-info btn-sm" onclick="window.location.href='reports.php?action=export&report_type=attendance'"><i class="fas fa-download"></i></button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style="font-size:0.82rem; color:var(--gray-400);">Jun 12, 2026 09:12 AM</td>
-                        <td class="fw-semibold text-white">Beneficiary_Registry_Raw</td>
-                        <td>Registry list</td>
-                        <td><span class="status-badge error" style="padding:2px 8px; background:rgba(99,102,241,0.15); color:#818cf8; border-color:rgba(99,102,241,0.3);"><i class="fas fa-file-csv"></i> CSV</span></td>
-                        <td class="text-right">
-                            <button class="btn btn-info btn-sm" onclick="window.location.href='reports.php?action=export&report_type=beneficiaries'"><i class="fas fa-download"></i></button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+    <div style="flex:1; min-width:150px;">
+      <label style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">Church Site</label>
+      <select name="site_id" class="auth-select" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px; width:100%;">
+        <option value="">-- All Sites --</option>
+        <?php foreach ($churchSites as $site): ?>
+          <option value="<?php echo $site['id']; ?>" <?php echo $siteId == $site['id'] ? 'selected' : ''; ?>>
+            <?php echo htmlspecialchars($site['church_name']); ?>
+          </option>
+        <?php endforeach; ?>
+      </select>
     </div>
-</div>
 
-<script>
-function triggerSimulatedExport() {
-    const type = document.getElementById('report_type').value;
-    const siteId = document.getElementById('site_id').value;
-    const dateStart = document.getElementById('date_start').value;
-    const dateEnd = document.getElementById('date_end').value;
-    const format = document.querySelector('input[name="format"]:checked').value;
+    <div style="flex:0.8; min-width:140px;">
+      <label style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">Start Date</label>
+      <input type="date" name="date_start" class="auth-input" value="<?php echo htmlspecialchars($dateStart); ?>" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px;">
+    </div>
+
+    <div style="flex:0.8; min-width:140px;">
+      <label style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">End Date</label>
+      <input type="date" name="date_end" class="auth-input" value="<?php echo htmlspecialchars($dateEnd); ?>" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px;">
+    </div>
+
+    <div style="display:flex; gap:10px; width:auto;">
+      <button type="submit" class="btn btn-primary" style="padding:10px 20px; font-size:0.85rem; height:46px;">
+        <i class="fas fa-rotate"></i> Generate Preview
+      </button>
+      <?php if ($siteId || !empty($dateStart) || !empty($dateEnd) || $type !== 'nutritional'): ?>
+        <a href="reports.php" class="btn btn-outline" style="padding:10px 20px; font-size:0.85rem; height:46px; border-color:rgba(255,255,255,0.1); color:var(--gray-300); align-items:center;">
+          <i class="fas fa-filter-circle-xmark"></i> Reset
+        </a>
+      <?php endif; ?>
+    </div>
+  </form>
+</section>
+
+<!-- Live Preview Table Card -->
+<div class="dashboard-card">
+  <div class="dashboard-card-header" style="border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:14px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center;">
+    <div class="dashboard-card-title">
+        Report Live Preview (Showing up to 50 rows)
+    </div>
     
-    Swal.fire({
-        title: 'Compiling Report...',
-        html: 'Retrieving data rows, calculating nutritional metrics, and packaging file...',
-        timer: 1500,
-        timerProgressBar: true,
-        didOpen: () => {
-            Swal.showLoading();
-        }
-    }).then((result) => {
-        Swal.fire({
-            title: 'Report Compiled!',
-            text: 'System report has been generated successfully. Click below to download the CSV dataset.',
-            icon: 'success',
-            showCancelButton: true,
-            confirmButtonText: 'Download File',
-            cancelButtonText: 'Close',
-            reverseButtons: true
-        }).then((dlResult) => {
-            if (dlResult.isConfirmed) {
-                window.location.href = `reports.php?action=export&report_type=${type}&site_id=${siteId}&date_start=${dateStart}&date_end=${dateEnd}&format=${format}`;
-            }
-        });
-    });
-}
-</script>
+    <?php if (!empty($previewRows)): ?>
+      <a href="reports.php?action=export&report_type=<?php echo urlencode($type); ?>&site_id=<?php echo urlencode($siteId ?? ''); ?>&date_start=<?php echo urlencode($dateStart); ?>&date_end=<?php echo urlencode($dateEnd); ?>" class="btn btn-success btn-sm">
+        <i class="fas fa-download"></i> Export Filtered CSV
+      </a>
+    <?php endif; ?>
+  </div>
+
+  <div class="panel-body" style="padding:0;">
+    <?php if (empty($previewRows)): ?>
+      <div class="empty-state" style="padding: 60px; text-align: center;">
+        <i class="fas fa-file-excel empty-icon" style="font-size: 3rem; color:var(--gray-500); margin-bottom: 16px;"></i>
+        <h4 style="color: var(--white); margin-bottom: 8px;">No matching records found</h4>
+        <p style="color: var(--gray-400);">No database entries match the selected filters.</p>
+      </div>
+    <?php else: ?>
+      
+      <div class="dark-table-wrap">
+        <table class="dark-table">
+          <?php if ($type === 'nutritional'): ?>
+            <thead>
+              <tr>
+                <th>Assessment Date</th>
+                <th>Child Beneficiary</th>
+                <th>Gender</th>
+                <th>Age</th>
+                <th>Weight / Height</th>
+                <th>BMI</th>
+                <th>Status</th>
+                <th>Church Site</th>
+              </tr>
+            </thead>
+            <tbody>
+              <?php foreach ($previewRows as $row): ?>
+                <?php $age = date_diff(date_create($row['birthdate']), date_create('today'))->y; ?>
+                <tr>
+                  <td style="color:var(--gray-400); font-size:0.82rem;"><?php echo date('M d, Y', strtotime($row['assessment_date'])); ?></td>
+                  <td class="fw-semibold text-white"><?php echo htmlspecialchars($row['first_name'] . ' ' . $row['last_name']); ?></td>
+                  <td style="text-transform: capitalize;"><?php echo htmlspecialchars($row['gender']); ?></td>
+                  <td><?php echo $age; ?> yrs</td>
+                  <td><?php echo $row['weight']; ?> kg / <?php echo $row['height']; ?> cm</td>
+                  <td style="font-family: monospace; color:var(--white);"><?php echo number_format($row['bmi'], 2); ?></td>
+                  <td>
+                    <?php 
+                    $status = $row['bmi_status'];
+                    if ($status === 'Normal Weight' || $status === 'Normal') {
+                        echo '<span class="status-badge success"><i class="fas fa-check-circle"></i> Normal</span>';
+                    } elseif ($status === 'Underweight') {
+                        echo '<span class="status-badge warning"><i class="fas fa-exclamation-circle"></i> Underweight</span>';
+                    } else {
+                        echo '<span class="status-badge error"><i class="fas fa-times-circle"></i> Obese/Overweight</span>';
+                    }
+                    ?>
+                  </td>
+                  <td><?php echo htmlspecialchars($row['church_name']); ?></td>
+                </tr>
+              <?php endforeach; ?>
+            </tbody>
+
+          <?php elseif ($type === 'attendance'): ?>
+            <thead>
+              <tr>
+                <th>Date Logged</th>
+                <th>Beneficiary Name</th>
+                <th>Feeding Program</th>
+                <th>Church Site</th>
+                <th>Method</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <?php foreach ($previewRows as $row): ?>
+                <tr>
+                  <td style="color:var(--gray-400); font-size:0.82rem;"><?php echo date('M d, Y h:i A', strtotime($row['logged_at'])); ?></td>
+                  <td class="fw-semibold text-white"><?php echo htmlspecialchars($row['first_name'] . ' ' . $row['last_name']); ?></td>
+                  <td><?php echo htmlspecialchars($row['program_title']); ?></td>
+                  <td><?php echo htmlspecialchars($row['church_name']); ?></td>
+                  <td style="text-transform: capitalize; font-size:0.82rem;"><?php echo htmlspecialchars($row['logged_via']); ?></td>
+                  <td>
+                    <?php if ($row['status'] === 'present'): ?>
+                      <span class="status-badge success"><i class="fas fa-check-circle"></i> Present</span>
+                    <?php elseif ($row['status'] === 'absent'): ?>
+                      <span class="status-badge error"><i class="fas fa-times-circle"></i> Absent</span>
+                    <?php else: ?>
+                      <span class="status-badge warning"><i class="fas fa-exclamation-circle"></i> Excused</span>
+                    <?php endif; ?>
+                  </td>
+                </tr>
+              <?php endforeach; ?>
+            </tbody>
+
+          <?php elseif ($type === 'beneficiaries'): ?>
+            <thead>
+              <tr>
+                <th>Beneficiary Name</th>
+                <th>Gender</th>
+                <th>Birthdate</th>
+                <th>Age</th>
+                <th>Church Site</th>
+                <th>Guardian Info</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <?php foreach ($previewRows as $row): ?>
+                <?php $age = date_diff(date_create($row['birthdate']), date_create('today'))->y; ?>
+                <tr>
+                  <td class="fw-semibold text-white"><?php echo htmlspecialchars($row['first_name'] . ' ' . $row['last_name']); ?></td>
+                  <td style="text-transform: capitalize;"><?php echo htmlspecialchars($row['gender']); ?></td>
+                  <td><?php echo date('M d, Y', strtotime($row['birthdate'])); ?></td>
+                  <td><?php echo $age; ?> yrs</td>
+                  <td><?php echo htmlspecialchars($row['church_name']); ?></td>
+                  <td><?php echo htmlspecialchars($row['guardian_name']); ?></td>
+                  <td>
+                    <?php if ($row['status'] === 'active'): ?>
+                      <span class="status-badge success"><i class="fas fa-check-circle"></i> Active</span>
+                    <?php elseif ($row['status'] === 'graduated'): ?>
+                      <span class="status-badge warning" style="background:rgba(59,130,246,0.15); color:#60a5fa; border-color:rgba(59,130,246,0.3);"><i class="fas fa-graduation-cap"></i> Graduated</span>
+                    <?php else: ?>
+                      <span class="status-badge error"><i class="fas fa-times-circle"></i> Inactive</span>
+                    <?php endif; ?>
+                  </td>
+                </tr>
+              <?php endforeach; ?>
+            </tbody>
+          <?php endif; ?>
+        </table>
+      </div>
+
+    <?php endif; ?>
+  </div>
+</div>
 
 <?php include 'includes/footer.php'; ?>
