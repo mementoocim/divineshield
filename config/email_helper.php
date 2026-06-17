@@ -181,7 +181,7 @@ function sendAdminNewRegistrationEmail(
     if (!$mail) return false;
 
     try {
-        $mail->addAddress('admin@gmail.com', 'DivineShield Administrator');
+        $mail->addAddress('maramagkimberly98@gmail.com', 'DivineShield Administrator');
         $mail->Subject = 'New Church Leader Registration Pending Approval';
 
         $adminMessageRow = !empty($adminMessage)
@@ -205,8 +205,8 @@ function sendAdminNewRegistrationEmail(
             p { line-height: 1.7; font-size: 15px; color: #444; }
             .section-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #94a3b8; margin: 24px 0 8px; }
             .info-box { border-radius: 6px; padding: 16px 20px; margin-bottom: 16px; }
-            .info-box.blue { background: #f0f9ff; border-left: 4px solid #2563eb; }
-            .info-box.purple { background: #f5f3ff; border-left: 4px solid #7c3aed; }
+            .info-box.blue { background: #f0f9ff; }
+            .info-box.purple { background: #f5f3ff;}
             .info-box p { margin: 5px 0; font-size: 14px; color: #1e3a8a; }
             .info-box.purple p { color: #4c1d95; }
             .btn { display: inline-block; margin-top: 28px; background: #2563eb; color: #ffffff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 15px; }
