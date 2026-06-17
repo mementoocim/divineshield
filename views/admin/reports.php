@@ -21,6 +21,122 @@ $adminProfilePic = $stmtAdmin->fetchColumn();
 $stmtSites = $pdo->query("SELECT id, church_name FROM church_sites ORDER BY church_name ASC");
 $churchSites = $stmtSites->fetchAll();
 
+// Handle real report export download
+if (isset($_GET['action']) && $_GET['action'] === 'export') {
+    $type = $_GET['report_type'] ?? '';
+    $siteId = isset($_GET['site_id']) && $_GET['site_id'] !== '' ? intval($_GET['site_id']) : null;
+    $dateStart = $_GET['date_start'] ?? '';
+    $dateEnd = $_GET['date_end'] ?? '';
+
+    $params = [];
+
+    if ($type === 'nutritional') {
+        $sql = "SELECT c.first_name, c.last_name, c.gender, c.birthdate, 
+                       na.weight, na.height, na.bmi, na.bmi_status, na.assessment_date, 
+                       cs.church_name, na.notes
+                FROM nutritional_assessments na
+                JOIN children c ON na.child_id = c.id
+                JOIN church_sites cs ON c.church_site_id = cs.id WHERE 1=1";
+        
+        if ($siteId) {
+            $sql .= " AND c.church_site_id = ?";
+            $params[] = $siteId;
+        }
+        if (!empty($dateStart)) {
+            $sql .= " AND na.assessment_date >= ?";
+            $params[] = $dateStart;
+        }
+        if (!empty($dateEnd)) {
+            $sql .= " AND na.assessment_date <= ?";
+            $params[] = $dateEnd;
+        }
+        
+        $sql .= " ORDER BY na.assessment_date DESC";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $filename = "Nutritional_Report_" . date('Ymd_His') . ".csv";
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        $output = fopen('php://output', 'w');
+        
+        // Output headers
+        fputcsv($output, ['First Name', 'Last Name', 'Gender', 'Birthdate', 'Weight (kg)', 'Height (cm)', 'BMI', 'BMI Status', 'Assessment Date', 'Church Site', 'Notes']);
+        foreach ($rows as $row) {
+            fputcsv($output, $row);
+        }
+        fclose($output);
+        exit;
+
+    } elseif ($type === 'attendance') {
+        $sql = "SELECT a.logged_at, c.first_name, c.last_name, 
+                       fp.title AS program_title, cs.church_name, a.status, a.logged_via
+                FROM attendance a
+                JOIN children c ON a.child_id = c.id
+                JOIN feeding_programs fp ON a.feeding_program_id = fp.id
+                JOIN church_sites cs ON fp.church_site_id = cs.id WHERE 1=1";
+
+        if ($siteId) {
+            $sql .= " AND fp.church_site_id = ?";
+            $params[] = $siteId;
+        }
+        if (!empty($dateStart)) {
+            $sql .= " AND DATE(a.logged_at) >= ?";
+            $params[] = $dateStart;
+        }
+        if (!empty($dateEnd)) {
+            $sql .= " AND DATE(a.logged_at) <= ?";
+            $params[] = $dateEnd;
+        }
+
+        $sql .= " ORDER BY a.logged_at DESC";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $filename = "Attendance_Report_" . date('Ymd_His') . ".csv";
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        $output = fopen('php://output', 'w');
+        
+        fputcsv($output, ['Logged At', 'First Name', 'Last Name', 'Program Title', 'Church Site', 'Status', 'Logged Via']);
+        foreach ($rows as $row) {
+            fputcsv($output, $row);
+        }
+        fclose($output);
+        exit;
+
+    } elseif ($type === 'beneficiaries') {
+        $sql = "SELECT c.first_name, c.last_name, c.gender, c.birthdate, 
+                       cs.church_name, c.status, c.guardian_name
+                FROM children c
+                JOIN church_sites cs ON c.church_site_id = cs.id WHERE 1=1";
+
+        if ($siteId) {
+            $sql .= " AND c.church_site_id = ?";
+            $params[] = $siteId;
+        }
+
+        $sql .= " ORDER BY c.last_name ASC, c.first_name ASC";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $filename = "Beneficiaries_Report_" . date('Ymd_His') . ".csv";
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        $output = fopen('php://output', 'w');
+        
+        fputcsv($output, ['First Name', 'Last Name', 'Gender', 'Birthdate', 'Church Site', 'Status', 'Guardian Name']);
+        foreach ($rows as $row) {
+            fputcsv($output, $row);
+        }
+        fclose($output);
+        exit;
+    }
+}
+
 $pageTitle = "Reports";
 include 'includes/header.php';
 ?>
@@ -144,7 +260,7 @@ include 'includes/header.php';
                         <td>Nutritional Status</td>
                         <td><span class="status-badge success" style="padding:2px 8px;"><i class="fas fa-file-pdf"></i> PDF</span></td>
                         <td class="text-right">
-                            <button class="btn btn-info btn-sm" onclick="Swal.fire('Download Triggered', 'Simulated file download: Nutri_Report_SaintNicos.pdf', 'success')"><i class="fas fa-download"></i></button>
+                            <button class="btn btn-info btn-sm" onclick="window.location.href='reports.php?action=export&report_type=nutritional'"><i class="fas fa-download"></i></button>
                         </td>
                     </tr>
                     <tr>
@@ -153,7 +269,7 @@ include 'includes/header.php';
                         <td>Attendance Logs</td>
                         <td><span class="status-badge warning" style="padding:2px 8px; background:rgba(16,185,129,0.15); color:#34d399; border-color:rgba(16,185,129,0.3);"><i class="fas fa-file-excel"></i> XLSX</span></td>
                         <td class="text-right">
-                            <button class="btn btn-info btn-sm" onclick="Swal.fire('Download Triggered', 'Simulated file download: Attendance_Ledger_Q2.xlsx', 'success')"><i class="fas fa-download"></i></button>
+                            <button class="btn btn-info btn-sm" onclick="window.location.href='reports.php?action=export&report_type=attendance'"><i class="fas fa-download"></i></button>
                         </td>
                     </tr>
                     <tr>
@@ -162,7 +278,7 @@ include 'includes/header.php';
                         <td>Registry list</td>
                         <td><span class="status-badge error" style="padding:2px 8px; background:rgba(99,102,241,0.15); color:#818cf8; border-color:rgba(99,102,241,0.3);"><i class="fas fa-file-csv"></i> CSV</span></td>
                         <td class="text-right">
-                            <button class="btn btn-info btn-sm" onclick="Swal.fire('Download Triggered', 'Simulated file download: Beneficiary_Registry_Raw.csv', 'success')"><i class="fas fa-download"></i></button>
+                            <button class="btn btn-info btn-sm" onclick="window.location.href='reports.php?action=export&report_type=beneficiaries'"><i class="fas fa-download"></i></button>
                         </td>
                     </tr>
                 </tbody>
@@ -174,12 +290,15 @@ include 'includes/header.php';
 <script>
 function triggerSimulatedExport() {
     const type = document.getElementById('report_type').value;
-    const format = document.querySelector('input[name="format"]:checked').value.toUpperCase();
+    const siteId = document.getElementById('site_id').value;
+    const dateStart = document.getElementById('date_start').value;
+    const dateEnd = document.getElementById('date_end').value;
+    const format = document.querySelector('input[name="format"]:checked').value;
     
     Swal.fire({
         title: 'Compiling Report...',
         html: 'Retrieving data rows, calculating nutritional metrics, and packaging file...',
-        timer: 2000,
+        timer: 1500,
         timerProgressBar: true,
         didOpen: () => {
             Swal.showLoading();
@@ -187,9 +306,16 @@ function triggerSimulatedExport() {
     }).then((result) => {
         Swal.fire({
             title: 'Report Compiled!',
-            text: `System report has been generated successfully in ${format} format.`,
+            text: 'System report has been generated successfully. Click below to download the CSV dataset.',
             icon: 'success',
-            confirmButtonText: 'Download File'
+            showCancelButton: true,
+            confirmButtonText: 'Download File',
+            cancelButtonText: 'Close',
+            reverseButtons: true
+        }).then((dlResult) => {
+            if (dlResult.isConfirmed) {
+                window.location.href = `reports.php?action=export&report_type=${type}&site_id=${siteId}&date_start=${dateStart}&date_end=${dateEnd}&format=${format}`;
+            }
         });
     });
 }
