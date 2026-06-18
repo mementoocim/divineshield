@@ -51,9 +51,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password        = $_POST['password'] ?? '';
     $confirmPassword = $_POST['confirm_password'] ?? '';
 
-    if (empty($churchName) || empty($positionTitle) || empty($streetAddress) || empty($region) || empty($city) || empty($barangay) ||
+    if (empty($churchName) || empty($positionTitle) || empty($streetAddress) || empty($region) || empty($province) || empty($city) || empty($barangay) ||
         empty($firstName) || empty($lastName) || empty($phone) || empty($email) || empty($username) || empty($password)) {
-        $error = 'All required fields must be filled. Make sure Church Name, Street Address, Region, City/Municipality, and Barangay are specified.';
+        $error = 'All required fields must be filled. Make sure Church Name, Street Address, Region, Province, City/Municipality, and Barangay are specified.';
     } elseif ($password !== $confirmPassword) {
         $error = 'Passwords do not match.';
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -104,10 +104,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 $leaderId = $pdo->lastInsertId();
 
-                $provVal = empty($province) ? $city : $province;
-
                 $stmt = $pdo->prepare("INSERT INTO church_sites (church_leader_id, church_name, address, region, province, city_municipality, barangay, contact_number) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-                $stmt->execute([$leaderId, $churchName, $streetAddress, $region, $provVal, $city, $barangay, $phone]);
+                $stmt->execute([$leaderId, $churchName, $streetAddress, $region, $province, $city, $barangay, $phone]);
 
                 $leaderName = trim($firstName . ' ' . $lastName);
                 logAudit($pdo, $leaderId, 'USER_REGISTER', "Pastor $leaderName registered church site: $churchName (" . ($initialStatus === 'active' ? 'Automatically approved' : 'Pending approval') . ")");
@@ -248,15 +246,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
 
             <!-- Dynamic Locations Dropdown Section -->
-            <div class="auth-form-group">
-              <label for="region_select">Region *</label>
-              <div class="auth-input-wrapper" id="regionFieldContainer">
-                <i class="fas fa-map"></i>
-                <select id="region_select" class="auth-select" style="padding-left:48px;" required>
-                  <option value="" disabled selected>Select region...</option>
-                </select>
+            <div class="form-grid-2">
+              <div class="auth-form-group">
+                <label for="region_select">Region *</label>
+                <div class="auth-input-wrapper" id="regionFieldContainer">
+                  <i class="fas fa-map"></i>
+                  <select id="region_select" class="auth-select" style="padding-left:48px;" required>
+                    <option value="" disabled selected>Select region...</option>
+                  </select>
+                </div>
+                <input type="hidden" name="region" id="region" value="<?php echo htmlspecialchars($_POST['region'] ?? ''); ?>" />
               </div>
-              <input type="hidden" name="region" id="region" value="<?php echo htmlspecialchars($_POST['region'] ?? ''); ?>" />
+
+              <div class="auth-form-group">
+                <label for="province">Province *</label>
+                <div class="auth-input-wrapper">
+                  <i class="fas fa-map-location-dot"></i>
+                  <input type="text" id="province" name="province" class="auth-input" placeholder="e.g. Rizal" value="<?php echo htmlspecialchars($_POST['province'] ?? ''); ?>" required />
+                </div>
+              </div>
             </div>
 
             <div class="form-grid-2">
@@ -280,14 +288,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                   </select>
                 </div>
                 <input type="hidden" name="barangay" id="barangay" value="<?php echo htmlspecialchars($_POST['barangay'] ?? ''); ?>" />
-              </div>
-            </div>
-
-            <div class="auth-form-group">
-              <label for="province">Province (Optional)</label>
-              <div class="auth-input-wrapper">
-                <i class="fas fa-map-location-dot"></i>
-                <input type="text" id="province" name="province" class="auth-input" placeholder="e.g. Rizal (leave blank if same as City)" value="<?php echo htmlspecialchars($_POST['province'] ?? ''); ?>" />
               </div>
             </div>
 
