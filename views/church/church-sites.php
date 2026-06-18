@@ -6,15 +6,14 @@
 require_once '../../db.php';
 session_start();
 
-// Security and Role Check
+// auth / role check
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'church_leader') {
     header("Location: ../../login.php");
     exit;
 }
 
-// ──────────────────────────────────────────
-// FETCH CHURCH SITE FOR LOGGED IN LEADER
-// ──────────────────────────────────────────
+// get site info
+
 $stmtSite = $pdo->prepare("SELECT * FROM church_sites WHERE church_leader_id = ?");
 $stmtSite->execute([$_SESSION['user_id']]);
 $mySite = $stmtSite->fetch();

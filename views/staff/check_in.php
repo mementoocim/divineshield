@@ -35,9 +35,7 @@ function renderErrorCard($title, $message) {
     <?php
 }
 
-// ─────────────────────────────────────────────────────
-// MAIN LOGIC
-// ─────────────────────────────────────────────────────
+// main logic
 
 $token = trim($_GET['token'] ?? '');
 

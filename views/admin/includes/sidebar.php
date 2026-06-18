@@ -1,10 +1,10 @@
 <?php
 /**
- * Shared Admin Sidebar Navigation Template
+ * admin sidebar navigation
  */
 $currentPage = basename($_SERVER['PHP_SELF']);
 ?>
-<!-- SIDEBAR NAVIGATION -->
+<!-- sidebar navigation -->
 <aside class="admin-sidebar">
   <div class="sidebar-header">
     <a href="dashboard.php" class="nav-brand" style="pointer-events: none;">
@@ -19,7 +19,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
   </div>
 
   <nav class="sidebar-menu" id="adminSidebarMenu">
-    <!-- CORE -->
+<!-- core -->
     <div class="sidebar-section-label" style="margin-top:0;">Core</div>
     <a href="dashboard.php" class="sidebar-link <?php echo $currentPage === 'dashboard.php' ? 'active' : ''; ?>">
       <i class="fas fa-chart-pie"></i>
@@ -29,8 +29,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
       <i class="fas fa-chart-line"></i>
       <span>Analytics</span>
     </a>
-
-    <!-- ADMINISTRATION -->
+<!-- administration -->
     <div class="sidebar-section-label">Administration</div>
     <a href="church_sites.php" class="sidebar-link <?php echo $currentPage === 'church_sites.php' ? 'active' : ''; ?>">
       <i class="fas fa-church"></i>
@@ -40,8 +39,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
       <i class="fas fa-user-gear"></i>
       <span>Staff / Encoders</span>
     </a>
-
-    <!-- BENEFICIARIES & PROGRAMS -->
+<!-- beneficiaries & programs -->
     <div class="sidebar-section-label">Program & Registry</div>
     <a href="children_registry.php" class="sidebar-link <?php echo $currentPage === 'children_registry.php' ? 'active' : ''; ?>">
       <i class="fas fa-child"></i>
@@ -55,8 +53,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
       <i class="fas fa-utensils"></i>
       <span>Feeding Programs</span>
     </a>
-
-    <!-- TOOLS & SYSTEM -->
+<!-- tools & system -->
     <div class="sidebar-section-label">Tools & Security</div>
     <a href="reports.php" class="sidebar-link <?php echo $currentPage === 'reports.php' ? 'active' : ''; ?>">
       <i class="fas fa-file-invoice"></i>
@@ -73,10 +70,6 @@ $currentPage = basename($_SERVER['PHP_SELF']);
     <a href="attendance_monitoring.php" class="sidebar-link <?php echo $currentPage === 'attendance_monitoring.php' ? 'active' : ''; ?>">
       <i class="fas fa-calendar-check"></i>
       <span>Attendance Monitor</span>
-    </a>
-    <a href="security.php" class="sidebar-link <?php echo $currentPage === 'security.php' ? 'active' : ''; ?>">
-      <i class="fas fa-shield-halved"></i>
-      <span>Security</span>
     </a>
     <a href="settings.php" class="sidebar-link <?php echo $currentPage === 'settings.php' ? 'active' : ''; ?>">
       <i class="fas fa-sliders"></i>
@@ -100,13 +93,13 @@ $currentPage = basename($_SERVER['PHP_SELF']);
 document.addEventListener("DOMContentLoaded", function() {
     const sidebarMenu = document.getElementById("adminSidebarMenu");
     if (sidebarMenu) {
-        // Restore scroll position
+        // put scroll back
         const scrollPos = sessionStorage.getItem("admin_sidebar_scroll");
         if (scrollPos) {
             sidebarMenu.scrollTop = parseInt(scrollPos, 10);
         }
 
-        // Save scroll position when a link is clicked
+        // save scroll offset
         const links = sidebarMenu.querySelectorAll(".sidebar-link");
         links.forEach(link => {
             link.addEventListener("click", function() {
@@ -115,7 +108,7 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    // Logout sweet alert confirmation
+    // sweetalert on logout click
     const logoutBtn = document.querySelector('.logout-btn-trigger');
     if (logoutBtn) {
         logoutBtn.addEventListener('click', function(e) {

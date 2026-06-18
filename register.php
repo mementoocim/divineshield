@@ -18,6 +18,12 @@ if (isset($_SESSION['user_id'])) {
     }
     exit;
 }
+$allowReg = getSystemConfig($pdo, 'allow_public_registration', '1');
+if ($allowReg !== '1') {
+    $_SESSION['qr_notice'] = 'Public registration is currently disabled by the administrator.';
+    header("Location: login.php");
+    exit;
+}
 
 $error = '';
 $success = '';
@@ -52,9 +58,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'Passwords do not match.';
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $error = 'Please enter a valid email address.';
-    } elseif (strlen($password) < 6) {
-        $error = 'Password must be at least 6 characters.';
     } else {
+        // Enforce password complexity policies dynamically
+        $minLen = (int)getSystemConfig($pdo, 'pw_min_length', '8');
+        $reqNum = getSystemConfig($pdo, 'pw_req_number', '1') === '1';
+        $reqSpec = getSystemConfig($pdo, 'pw_req_special', '1') === '1';
+        $reqCase = getSystemConfig($pdo, 'pw_req_case', '1') === '1';
+
+        if (strlen($password) < $minLen) {
+            $error = "Password must be at least $minLen characters long.";
+        } elseif ($reqNum && !preg_match('/[0-9]/', $password)) {
+            $error = 'Password must contain at least one number.';
+        } elseif ($reqCase && (!preg_match('/[A-Z]/', $password) || !preg_match('/[a-z]/', $password))) {
+            $error = 'Password must contain both uppercase and lowercase letters.';
+        } elseif ($reqSpec && !preg_match('/[^A-Za-z0-9]/', $password)) {
+            $error = 'Password must contain at least one special character.';
+        }
+    }
+
+    if (empty($error)) {
         try {
             $stmt = $pdo->prepare("SELECT id FROM users WHERE username = ?");
             $stmt->execute([$username]);
@@ -74,9 +96,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $pdo->beginTransaction();
 
                 $passwordHash = password_hash($password, PASSWORD_DEFAULT);
+                $requireApproval = getSystemConfig($pdo, 'require_admin_approval', '1');
+                $initialStatus = ($requireApproval === '1') ? 'pending' : 'active';
 
-                $stmt = $pdo->prepare("INSERT INTO users (username, password_hash, role, position_title, first_name, middle_name, last_name, email, phone, admin_message, status) VALUES (?, ?, 'church_leader', ?, ?, ?, ?, ?, ?, ?, 'pending')");
-                $stmt->execute([$username, $passwordHash, $positionTitle, $firstName, empty($middleName) ? null : $middleName, $lastName, $email, $phone, $adminMessage]);
+                $stmt = $pdo->prepare("INSERT INTO users (username, password_hash, role, position_title, first_name, middle_name, last_name, email, phone, admin_message, status) VALUES (?, ?, 'church_leader', ?, ?, ?, ?, ?, ?, ?, ?)");
+                $stmt->execute([$username, $passwordHash, $positionTitle, $firstName, empty($middleName) ? null : $middleName, $lastName, $email, $phone, $adminMessage, $initialStatus]);
 
                 $leaderId = $pdo->lastInsertId();
 
@@ -86,11 +110,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt->execute([$leaderId, $churchName, $streetAddress, $region, $provVal, $city, $barangay, $phone]);
 
                 $leaderName = trim($firstName . ' ' . $lastName);
-                logAudit($pdo, $leaderId, 'USER_REGISTER', "Pastor $leaderName registered church site: $churchName (Pending approval)");
+                logAudit($pdo, $leaderId, 'USER_REGISTER', "Pastor $leaderName registered church site: $churchName (" . ($initialStatus === 'active' ? 'Automatically approved' : 'Pending approval') . ")");
 
                 $pdo->commit();
 
-                // Notify admin of the new pending registration
+                // Notify admin of the new registration
                 sendAdminNewRegistrationEmail(
                     $firstName,
                     $lastName,
@@ -106,7 +130,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $adminMessage
                 );
 
-                $success = 'Your registration was submitted successfully! Please wait for administrator approval.';
+                if ($initialStatus === 'active') {
+                    $success = 'Your registration was successful and approved automatically! You can now log in.';
+                } else {
+                    $success = 'Your registration was submitted successfully! Please wait for administrator approval.';
+                }
                 $startStep = 1;
                 $_POST = [];
             }
@@ -180,11 +208,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <form action="register.php" method="POST" id="wizardForm" autocomplete="off">
           
-          <!-- ==========================================
-               STEP 1: MINISTRY INFO PANEL
-               ========================================== -->
+          <!-- step 1: ministry info panel -->
           <div class="wizard-panel active" id="panel1">
-            <h3 class="auth-card-title"><i class="fas fa-church"></i> Ministry Information</h3>
+            <h3 class="auth-card-title">Ministry Information</h3>
             <p style="color:var(--gray-400); font-size:0.85rem; margin-bottom: 20px;">
               Tell us about the church or feeding site you represent.
             </p>
@@ -270,11 +296,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
           </div>
 
-          <!-- ==========================================
-               STEP 2: PERSONAL DETAILS PANEL
-               ========================================== -->
+          <!-- step 2: personal details panel -->
           <div class="wizard-panel" id="panel2">
-            <h3 class="auth-card-title"><i class="fas fa-user-circle"></i> Personal &amp; Contact Details</h3>
+            <h3 class="auth-card-title">Personal &amp; Contact Details</h3>
             <p style="color:var(--gray-400); font-size:0.85rem; margin-bottom: 20px;">
               Provide contact details as the main system administrator point of contact.
             </p>
@@ -336,11 +360,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
           </div>
 
-          <!-- ==========================================
-               STEP 3: ACCOUNT SETUP PANEL
-               ========================================== -->
+          <!-- step 3: account setup panel -->
           <div class="wizard-panel" id="panel3">
-            <h3 class="auth-card-title"><i class="fas fa-key"></i> Account Setup</h3>
+            <h3 class="auth-card-title">Account Setup</h3>
             <p style="color:var(--gray-400); font-size:0.85rem; margin-bottom: 20px;">
               Choose your username and create a secure password.
             </p>

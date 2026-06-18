@@ -1,6 +1,6 @@
 <?php
-// Session and Role Verification must be handled in the main page before including this.
-// Fetch admin profile picture for topbar
+// check auth and role must be handled in the main page before including this.
+// get profile pic for navbar
 $stmtAdmin = $pdo->prepare("SELECT profile_picture, first_name, last_name FROM users WHERE id = ?");
 $stmtAdmin->execute([$_SESSION['user_id']]);
 $adminData = $stmtAdmin->fetch(PDO::FETCH_ASSOC);
@@ -18,6 +18,7 @@ if (empty($adminFullName)) {
   <title><?php echo isset($pageTitle) ? htmlspecialchars($pageTitle) : 'Admin Portal'; ?> – DivineShield</title>
   <link rel="icon" type="image/png" href="../../assets/images/mainpi-logo.png" />
   <link rel="stylesheet" href="../../assets/css/style.css?v=15" />
+  <link rel="stylesheet" href="../../assets/css/filtering_global.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -55,13 +56,11 @@ if (empty($adminFullName)) {
 </head>
 <body>
   <div class="admin-layout">
-    
-    <!-- SIDEBAR NAVIGATION -->
+<!-- sidebar navigation -->
     <?php include 'includes/sidebar.php'; ?>
 
     <main class="admin-main">
-      
-      <!-- TOP NAVIGATION BAR -->
+<!-- top navigation bar -->
       <header class="admin-topbar">
         <div class="topbar-title">
           <?php echo isset($pageTitle) ? htmlspecialchars($pageTitle) : 'Admin Dashboard'; ?>

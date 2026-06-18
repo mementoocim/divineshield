@@ -6,13 +6,13 @@
 require_once '../../db.php';
 session_start();
 
-// Security and Role Check
+// auth / role check
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
     header("Location: ../../login.php");
     exit;
 }
 
-// Fetch admin profile picture for topbar
+// get profile pic for navbar
 $stmtAdmin = $pdo->prepare("SELECT profile_picture FROM users WHERE id = ?");
 $stmtAdmin->execute([$_SESSION['user_id']]);
 $adminProfilePic = $stmtAdmin->fetchColumn();
@@ -83,9 +83,8 @@ if (isset($_SESSION['error_msg'])) {
     unset($_SESSION['error_msg']);
 }
 
-// ──────────────────────────────────────────
-// HANDLE ACTIONS: APPROVE & REJECT LEADERS
-// ──────────────────────────────────────────
+// handle actions: APPROVE & REJECT LEADERS
+
 $action = $_GET['action'] ?? '';
 $id = intval($_GET['id'] ?? 0);
 
@@ -153,10 +152,9 @@ if ($action === 'reject_leader' && $id > 0) {
     exit;
 }
 
-// ──────────────────────────────────────────
-// ──────────────────────────────────────────
+
 // HANDLE CHILD ACTIONS: APPROVE, REJECT, REVIEW
-// ──────────────────────────────────────────
+
 if ($action === 'approve_child' && $id > 0) {
     try {
         // Fetch child submission
@@ -258,9 +256,8 @@ if ($action === 'review_child' && $id > 0) {
     }
 }
 
-// ──────────────────────────────────────────
 // 1. FETCH DETAILS IF IN VIEW MODE
-// ──────────────────────────────────────────
+
 $viewSite = null;
 $siteChildren = [];
 
@@ -283,9 +280,8 @@ if ($action === 'view' && $id > 0) {
     }
 }
 
-// ──────────────────────────────────────────
 // 2. FETCH ALL REGISTERED CHURCH SITES & LEADERS
-// ──────────────────────────────────────────
+
 $search = trim($_GET['search'] ?? '');
 $regionFilter = $_GET['region'] ?? '';
 
@@ -317,9 +313,8 @@ $stmtSites = $pdo->prepare($siteQuery);
 $stmtSites->execute($siteParams);
 $allSites = $stmtSites->fetchAll();
 
-// ──────────────────────────────────────────
 // 3. FETCH PENDING CHURCH LEADER ACCOUNTS
-// ──────────────────────────────────────────
+
 $pendingQuery = "SELECT u.*, cs.id AS site_id, cs.church_name, cs.address, cs.region, cs.province, cs.city_municipality, cs.barangay, cs.contact_number 
                  FROM users u 
                  LEFT JOIN church_sites cs ON u.id = cs.church_leader_id 
@@ -344,9 +339,8 @@ $stmtPending = $pdo->prepare($pendingQuery);
 $stmtPending->execute($pendingParams);
 $pendingLeaders = $stmtPending->fetchAll();
 
-// ──────────────────────────────────────────
 // 4. FETCH REJECTED CHURCH LEADER ACCOUNTS
-// ──────────────────────────────────────────
+
 $rejectedQuery = "SELECT u.*, cs.id AS site_id, cs.church_name, cs.address, cs.region, cs.province, cs.city_municipality, cs.barangay, cs.contact_number 
                   FROM users u 
                   LEFT JOIN church_sites cs ON u.id = cs.church_leader_id 
@@ -417,7 +411,7 @@ include 'includes/header.php';
               
               <div style="flex:1.2; min-width:200px;">
                 <label style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">Search</label>
-                <input type="text" name="search" class="auth-input" placeholder="Search site, leader name, username..." value="<?php echo htmlspecialchars($search); ?>" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px;">
+                <input type="text" name="search" class="auth-input filter-input" placeholder="Search site, leader name, username..." value="<?php echo htmlspecialchars($search); ?>" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px;">
               </div>
 
               <div style="flex:1; min-width:150px;">
@@ -446,9 +440,7 @@ include 'includes/header.php';
           </section>
         <?php endif; ?>
 
-        <!-- ==========================================
-             VIEW SINGLE CHURCH SITE DETAILS CARD
-             ========================================== -->
+        <!-- view single church site details card -->
         <?php if ($viewSite): ?>
           <section class="dashboard-card detail-card">
             <div class="detail-card-header">
@@ -552,8 +544,7 @@ include 'includes/header.php';
                     <?php endif; ?>
                   </button>
                 </div>
-
-                <!-- APPROVED CHILDREN PANEL -->
+<!-- approved children panel -->
                 <div id="child-tab-approved" class="child-tab-panel active">
                   <?php if (empty($approvedChildren)): ?>
                     <div class="empty-state" style="padding: 40px; text-align: center;">
@@ -591,8 +582,7 @@ include 'includes/header.php';
                     </div>
                   <?php endif; ?>
                 </div>
-
-                <!-- PENDING CHILDREN PANEL -->
+<!-- pending children panel -->
                 <div id="child-tab-pending" class="child-tab-panel" style="display:none;">
                   <?php if (empty($pendingChildren)): ?>
                     <div class="empty-state" style="padding: 40px; text-align: center;">
@@ -641,8 +631,7 @@ include 'includes/header.php';
                     </div>
                   <?php endif; ?>
                 </div>
-
-                <!-- REJECTED CHILDREN PANEL -->
+<!-- rejected children panel -->
                 <div id="child-tab-rejected" class="child-tab-panel" style="display:none;">
                   <?php if (empty($rejectedChildren)): ?>
                     <div class="empty-state" style="padding: 40px; text-align: center;">
@@ -688,9 +677,7 @@ include 'includes/header.php';
         <?php if (!$viewSite): ?>
           <!-- TAB PANEL: PENDING LEADERS -->
           <div id="tab-pending" class="tab-panel">
-            <!-- ==========================================
-                 PENDING CHURCH LEADER REGISTRATIONS CARD
-                 ========================================== -->
+            <!-- pending church leader registrations card -->
             <?php if (empty($pendingLeaders)): ?>
               <div class="dashboard-card">
                 <div class="empty-state" style="padding: 40px; text-align: center;">
@@ -763,9 +750,7 @@ include 'includes/header.php';
 
           <!-- TAB PANEL: REGISTERED SITES -->
           <div id="tab-registered" class="tab-panel active">
-            <!-- ==========================================
-                 REGISTERED CHURCH SITES LISTING CARD
-                 ========================================== -->
+            <!-- registered church sites listing card -->
             <section class="dashboard-card">
             <div class="dashboard-card-header">
               <div class="dashboard-card-title">Registered Church Sites &amp; Leaders
@@ -833,7 +818,7 @@ include 'includes/header.php';
 
         <!-- TAB PANEL: REJECTED LEADERS -->
         <div id="tab-rejected" class="tab-panel">
-          <!-- REJECTED CHURCH LEADERS CARD -->
+<!-- rejected church leaders card -->
           <?php if (empty($rejectedLeaders)): ?>
             <div class="dashboard-card">
               <div class="empty-state" style="padding: 40px; text-align: center;">

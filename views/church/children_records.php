@@ -12,7 +12,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'church_leader') {
 
 $pageTitle = "Children Records";
 
-// Fetch church leader's site ID
+// get site id for leader
 $stmtSite = $pdo->prepare("SELECT id FROM church_sites WHERE church_leader_id = ?");
 $stmtSite->execute([$_SESSION['user_id']]);
 $church_site_id = $stmtSite->fetchColumn();
@@ -21,7 +21,7 @@ if (!$church_site_id) {
     $church_site_id = 0;
 }
 
-// Get filters
+// load filters
 $search = trim($_GET['search'] ?? '');
 $statusFilter = $_GET['status'] ?? '';
 $genderFilter = $_GET['gender'] ?? '';
@@ -69,7 +69,7 @@ include 'includes/header.php';
     
     <div style="flex:1.2; min-width:200px;">
       <label style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">Search</label>
-      <input type="text" name="search" class="auth-input" placeholder="Search by name..." value="<?php echo htmlspecialchars($search); ?>" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px;">
+      <input type="text" name="search" class="auth-input filter-input" placeholder="Search by name..." value="<?php echo htmlspecialchars($search); ?>" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px;">
     </div>
 
     <div style="flex:0.8; min-width:120px;">

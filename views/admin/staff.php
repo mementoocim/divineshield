@@ -6,13 +6,13 @@
 require_once '../../db.php';
 session_start();
 
-// Security and Role Check
+// auth / role check
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
     header("Location: ../../login.php");
     exit;
 }
 
-// Fetch admin profile picture for topbar
+// get profile pic for navbar
 $stmtAdmin = $pdo->prepare("SELECT profile_picture FROM users WHERE id = ?");
 $stmtAdmin->execute([$_SESSION['user_id']]);
 $adminProfilePic = $stmtAdmin->fetchColumn();
@@ -29,9 +29,8 @@ if (isset($_SESSION['error_msg'])) {
     unset($_SESSION['error_msg']);
 }
 
-// ──────────────────────────────────────────
-// HANDLE ACTIONS: CREATE, TOGGLE STATUS, DELETE
-// ──────────────────────────────────────────
+// handle actions: CREATE, TOGGLE STATUS, DELETE
+
 $action = $_GET['action'] ?? '';
 $id = intval($_GET['id'] ?? 0);
 
@@ -149,9 +148,8 @@ if ($action === 'delete_staff' && $id > 0) {
     exit;
 }
 
-// ──────────────────────────────────────────
-// FETCH ALL STAFF USERS
-// ──────────────────────────────────────────
+// fetch all staff users
+
 $search = trim($_GET['search'] ?? '');
 $statusFilter = $_GET['status'] ?? '';
 
@@ -198,9 +196,7 @@ include 'includes/header.php';
           </div>
         <?php endif; ?>
 
-        <!-- ==========================================
-             ADD NEW STAFF FORM CARD (TOGGLED)
-             ========================================== -->
+        <!-- add new staff form card (toggled) -->
         <?php if ($action === 'add'): ?>
           <section class="dashboard-card detail-card" style="border-color:rgba(59,130,246,0.3); margin-bottom:32px;">
             <div class="detail-card-header">
@@ -276,7 +272,7 @@ include 'includes/header.php';
             
             <div style="flex:1.2; min-width:200px;">
               <label style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">Search</label>
-              <input type="text" name="search" class="auth-input" placeholder="Search by name, username, email..." value="<?php echo htmlspecialchars($search); ?>" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px;">
+              <input type="text" name="search" class="auth-input filter-input" placeholder="Search by name, username, email..." value="<?php echo htmlspecialchars($search); ?>" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px;">
             </div>
 
             <div style="flex:0.8; min-width:150px;">
@@ -302,9 +298,7 @@ include 'includes/header.php';
         </section>
         <?php endif; ?>
 
-        <!-- ==========================================
-             STAFF REGISTRY LISTING CARD
-             ========================================== -->
+        <!-- staff registry listing card -->
         <section class="dashboard-card">
           <div class="dashboard-card-header">
             <div class="dashboard-card-title">Encoder Staff Registry

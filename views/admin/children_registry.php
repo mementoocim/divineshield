@@ -6,7 +6,7 @@
 require_once '../../db.php';
 session_start();
 
-// Security and Role Check
+// auth / role check
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
     header("Location: ../../login.php");
     exit;
@@ -31,7 +31,7 @@ include 'includes/header.php';
     if (!$child) {
         echo '<div class="dashboard-card"><h3 style="color:var(--white);">Child record not found.</h3><a href="children_registry.php" class="btn btn-outline btn-sm" style="margin-top:15px;">Back to Registry</a></div>';
     } else {
-        // Fetch Assessment History
+        // get assessment history
         $stmtHist = $pdo->prepare("SELECT na.*, u.first_name, u.last_name 
                                    FROM nutritional_assessments na 
                                    JOIN users u ON na.encoder_id = u.id
@@ -42,12 +42,11 @@ include 'includes/header.php';
         
         $age = date_diff(date_create($child['birthdate']), date_create('today'))->y;
     ?>
-    <!-- BACK BUTTON ROW -->
+<!-- back button row -->
     <div style="margin-bottom: 20px;">
         <a href="children_registry.php" class="btn btn-outline btn-sm"><i class="fas fa-arrow-left"></i> Back to Registry</a>
     </div>
-
-    <!-- CHILD DETAIL CARD -->
+<!-- child detail card -->
     <section class="dashboard-card detail-card" style="margin-bottom: 24px;">
         <div class="detail-card-header">
             <div class="detail-card-title">Beneficiary Profile: <?php echo htmlspecialchars($child['first_name'] . ' ' . $child['last_name']); ?></div>
@@ -89,8 +88,7 @@ include 'includes/header.php';
             </div>
         </div>
     </section>
-
-    <!-- NUTRITIONAL GROWTH LOGS CARD -->
+<!-- nutritional growth logs card -->
     <div class="dashboard-card">
         <div class="dashboard-card-header">
             <h3 class="dashboard-card-title">Nutritional Assessment History</h3>
@@ -149,7 +147,7 @@ include 'includes/header.php';
 
 <?php else: ?>
     <?php
-    // Get filters
+    // load filters
     $search = trim($_GET['search'] ?? '');
     $siteFilter = $_GET['site_id'] ?? '';
     $statusFilter = $_GET['status'] ?? '';
@@ -215,7 +213,7 @@ include 'includes/header.php';
         
         <div style="flex:1.2; min-width:200px;">
           <label style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">Search</label>
-          <input type="text" name="search" class="auth-input" placeholder="Search by name or site..." value="<?php echo htmlspecialchars($search); ?>" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px;">
+          <input type="text" name="search" class="auth-input filter-input" placeholder="Search by name or site..." value="<?php echo htmlspecialchars($search); ?>" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px;">
         </div>
 
         <div style="flex:1; min-width:150px;">
@@ -261,8 +259,7 @@ include 'includes/header.php';
         </div>
       </form>
     </section>
-
-    <!-- MAIN REGISTRY CARD -->
+<!-- main registry card -->
     <div class="dashboard-card">
         <div class="dashboard-card-header">
             <h3 class="dashboard-card-title">Children Registry</h3>

@@ -6,7 +6,7 @@
 require_once '../../db.php';
 session_start();
 
-// Security and Role Check
+// auth / role check
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'church_leader') {
   header("Location: ../../login.php");
   exit;
@@ -24,18 +24,16 @@ if (isset($_SESSION['error_msg'])) {
   unset($_SESSION['error_msg']);
 }
 
-// ──────────────────────────────────────────
-// FETCH CHURCH SITE FOR LOGGED IN LEADER
-// ──────────────────────────────────────────
+// get site info
+
 $stmtSite = $pdo->prepare("SELECT * FROM church_sites WHERE church_leader_id = ?");
 $stmtSite->execute([$_SESSION['user_id']]);
 $mySite = $stmtSite->fetch();
 
 $church_site_id = $mySite ? $mySite['id'] : 0;
 
-// ──────────────────────────────────────────
-// FETCH METRICS FOR LEADER DASHBOARD
-// ──────────────────────────────────────────
+// fetch metrics for leader dashboard
+
 $stmt = $pdo->prepare("SELECT COUNT(*) FROM children_submissions WHERE church_leader_id = ?");
 $stmt->execute([$_SESSION['user_id']]);
 $totalSubmissions = $stmt->fetchColumn();
@@ -52,9 +50,8 @@ $stmt = $pdo->prepare("SELECT COUNT(*) FROM children_submissions WHERE church_le
 $stmt->execute([$_SESSION['user_id']]);
 $rejectedCount = $stmt->fetchColumn();
 
-// ──────────────────────────────────────────
-// FETCH ANNOUNCEMENTS FROM ADMIN
-// ──────────────────────────────────────────
+// fetch announcements from admin
+
 $stmtAnnouncements = $pdo->prepare("SELECT a.*, u.username AS sender_name 
                                     FROM announcements a 
                                     JOIN users u ON a.sender_id = u.id 
@@ -64,9 +61,8 @@ $stmtAnnouncements = $pdo->prepare("SELECT a.*, u.username AS sender_name
 $stmtAnnouncements->execute();
 $announcements = $stmtAnnouncements->fetchAll();
 
-// ──────────────────────────────────────────
-// FETCH FEEDING SCHEDULES FOR THIS SITE
-// ──────────────────────────────────────────
+// fetch feeding schedules for this site
+
 $schedules = [];
 if ($church_site_id > 0) {
   $stmtSchedules = $pdo->prepare("SELECT * FROM feeding_programs WHERE church_site_id = ? AND scheduled_date >= CURRENT_DATE ORDER BY scheduled_date ASC, scheduled_time ASC LIMIT 5");
@@ -74,9 +70,8 @@ if ($church_site_id > 0) {
   $schedules = $stmtSchedules->fetchAll();
 }
 
-// ──────────────────────────────────────────
-// FETCH CHILD SUBMISSIONS LIST
-// ──────────────────────────────────────────
+// fetch child submissions list
+
 $mySubmissions = [];
 $stmtSubs = $pdo->prepare("SELECT * FROM children_submissions WHERE church_leader_id = ? ORDER BY created_at DESC");
 $stmtSubs->execute([$_SESSION['user_id']]);

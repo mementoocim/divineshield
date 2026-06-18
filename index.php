@@ -11,7 +11,7 @@
 </head>
 <body>
 
-  <!-- ═══════════════════════════════════════════════════ NAVBAR ══ -->
+  <!-- navbar -->
   <nav class="navbar" id="navbar">
     <div class="nav-container">
       <a href="#home" class="nav-brand">
@@ -37,7 +37,7 @@
     </div>
   </nav>
 
-  <!-- ═══════════════════════════════════════════════════ HERO ══ -->
+  <!-- hero -->
   <section class="hero" id="home">
     <div class="hero-bg-grid"></div>
     <div class="hero-container">
@@ -94,7 +94,7 @@
     </div>
   </section>
 
-  <!-- ══════════════════════════════════════════════════ TRUST BAR ══ -->
+  <!-- trust bar -->
   <div class="trust-bar">
     <div class="trust-container">
       <div class="trust-item"><i class="fab fa-google"></i> Google Cloud Platform</div>
@@ -106,7 +106,7 @@
     </div>
   </div>
 
-  <!-- ════════════════════════════════════════════════════ ABOUT ══ -->
+  <!-- about -->
   <section class="about section" id="about">
     <div class="section-container">
       <div class="about-grid">
@@ -169,7 +169,7 @@
     </div>
   </section>
 
-  <!-- ══════════════════════════════════════════════ PROGRAMS ══ -->
+  <!-- programs -->
   <section class="programs section" id="programs">
     <div class="section-container">
       <div class="section-header center">
@@ -249,7 +249,7 @@
     </div>
   </section>
 
-  <!-- ══════════════════════════════════════════ SYSTEM OVERVIEW ══ -->
+  <!-- system overview -->
   <section class="section" id="overview" style="background:#f8fafc;">
     <div class="section-container">
       <div class="section-header center">
@@ -425,7 +425,7 @@
     </div>
   </section>
 
-  <!-- ══════════════════════════════════════════════ SECURITY ══ -->
+  <!-- security -->
   <section class="section" id="security" style="background:#0f172a;">
     <div class="section-container">
       <div class="section-header center">
@@ -472,7 +472,7 @@
     </div>
   </section>
 
-  <!-- ══════════════════════════════════════════════════ FOOTER ══ -->
+  <!-- footer -->
   <footer style="background:#020617;padding:40px 24px 28px;text-align:center;">
     <div style="max-width:900px;margin:0 auto;">
       <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:16px;">

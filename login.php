@@ -1,6 +1,6 @@
 <?php
 /**
- * DivineShield - Multi-Role & Two-Step Login Portal
+ * login portal
  */
 
 require_once 'db.php';
@@ -78,51 +78,64 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (empty($username) || empty($password)) {
             $error = 'Both fields are required.';
         } else {
-            // Find user
-            $stmt = $pdo->prepare("SELECT * FROM users WHERE username = ?");
-            $stmt->execute([$username]);
-            $user = $stmt->fetch();
+            // Check lockout threshold dynamically
+            $ip = $_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN';
+            $lockoutThreshold = (int)getSystemConfig($pdo, 'lockout_threshold', '5');
 
-            if ($user && password_verify($password, $user['password_hash'])) {
-                // Credentials match!
-                
-                // Account status check
-                if ($user['status'] === 'pending') {
-                    $error = 'Your account is currently pending administrator activation.';
-                    logAudit($pdo, $user['id'], 'LOGIN_BLOCKED', 'Login attempt blocked: account status pending');
-                } elseif ($user['status'] === 'inactive') {
-                    $error = 'Your account is disabled. Contact your administrator.';
-                    logAudit($pdo, $user['id'], 'LOGIN_BLOCKED', 'Login attempt blocked: account status inactive');
-                } else {
-                    // Active account
-                    if ($user['role'] === 'admin') {
-                        // Admin needs Step 2 verification (MFA PIN)
-                        $_SESSION['temp_admin_auth'] = true;
-                        $_SESSION['temp_admin_id']   = $user['id'];
-                        
-                        logAudit($pdo, $user['id'], 'LOGIN_STEP1_SUCCESS', 'Credentials correct. Displaying Admin PIN verification screen.');
-                        
-                        // Reload page to show PIN verification form
-                        header("Location: login.php");
-                        exit;
-                    } else {
-                        // Staff or Church Leader log in directly
-                        $_SESSION['user_id']   = $user['id'];
-                        $_SESSION['username']  = $user['username'];
-                        $_SESSION['role']      = $user['role'];
-                        $userFullName = trim($user['first_name'] . ' ' . ($user['middle_name'] ? $user['middle_name'] . ' ' : '') . $user['last_name']);
-                        $_SESSION['full_name'] = $userFullName;
+            $stmtLock = $pdo->prepare("SELECT COUNT(*) FROM audit_logs WHERE action = 'LOGIN_FAILED' AND ip_address = ? AND created_at > DATE_SUB(NOW(), INTERVAL 15 MINUTE)");
+            $stmtLock->execute([$ip]);
+            $failedAttempts = (int)$stmtLock->fetchColumn();
 
-                        logAudit($pdo, $user['id'], 'LOGIN_SUCCESS', "User logged in with role: {$user['role']}");
-
-                        redirectDashboard($user['role']);
-                    }
-                }
+            if ($failedAttempts >= $lockoutThreshold) {
+                $error = "Too many failed login attempts. Your IP has been temporarily locked out.";
+                logAudit($pdo, null, 'LOGIN_BLOCKED', "IP address $ip temporarily locked out due to $failedAttempts failed attempts");
             } else {
-                $error = 'Invalid username or password.';
-                // Log failed attempt if user was found
-                $failedUserId = $user ? $user['id'] : null;
-                logAudit($pdo, $failedUserId, 'LOGIN_FAILED', "Failed login attempt for username: $username");
+                // Find user
+                $stmt = $pdo->prepare("SELECT * FROM users WHERE username = ?");
+                $stmt->execute([$username]);
+                $user = $stmt->fetch();
+
+                if ($user && password_verify($password, $user['password_hash'])) {
+                    // Credentials match!
+                    
+                    // Account status check
+                    if ($user['status'] === 'pending') {
+                        $error = 'Your account is currently pending administrator activation.';
+                        logAudit($pdo, $user['id'], 'LOGIN_BLOCKED', 'Login attempt blocked: account status pending');
+                    } elseif ($user['status'] === 'inactive') {
+                        $error = 'Your account is disabled. Contact your administrator.';
+                        logAudit($pdo, $user['id'], 'LOGIN_BLOCKED', 'Login attempt blocked: account status inactive');
+                    } else {
+                        // Active account
+                        if ($user['role'] === 'admin') {
+                            // Admin needs Step 2 verification (MFA PIN)
+                            $_SESSION['temp_admin_auth'] = true;
+                            $_SESSION['temp_admin_id']   = $user['id'];
+                            
+                            logAudit($pdo, $user['id'], 'LOGIN_STEP1_SUCCESS', 'Credentials correct. Displaying Admin PIN verification screen.');
+                            
+                            // Reload page to show PIN verification form
+                            header("Location: login.php");
+                            exit;
+                        } else {
+                            // Staff or Church Leader log in directly
+                            $_SESSION['user_id']   = $user['id'];
+                            $_SESSION['username']  = $user['username'];
+                            $_SESSION['role']      = $user['role'];
+                            $userFullName = trim($user['first_name'] . ' ' . ($user['middle_name'] ? $user['middle_name'] . ' ' : '') . $user['last_name']);
+                            $_SESSION['full_name'] = $userFullName;
+
+                            logAudit($pdo, $user['id'], 'LOGIN_SUCCESS', "User logged in with role: {$user['role']}");
+
+                            redirectDashboard($user['role']);
+                        }
+                    }
+                } else {
+                    $error = 'Invalid username or password.';
+                    // Log failed attempt if user was found
+                    $failedUserId = $user ? $user['id'] : null;
+                    logAudit($pdo, $failedUserId, 'LOGIN_FAILED', "Failed login attempt for username: $username");
+                }
             }
         }
     }
@@ -183,10 +196,8 @@ function redirectDashboard($role) {
       <div class="auth-card">
         
         <?php if (!$showPinVerification): ?>
-          <!-- ==========================================
-               STEP 1: CREDENTIALS FORM (ALL ROLES)
-               ========================================== -->
-          <h2 class="auth-card-title"><i class="fas fa-lock"></i> Sign In to Portal</h2>
+          <!-- step 1: credentials form (all roles) -->
+          <h2 class="auth-card-title">Sign In to Portal</h2>
 
           <?php if (!empty($error)): ?>
             <div class="auth-alert auth-alert-danger">
@@ -249,9 +260,7 @@ function redirectDashboard($role) {
 
 
         <?php else: ?>
-          <!-- ==========================================
-               STEP 2: 4-DIGIT PIN MFA FORM (ADMINS ONLY)
-               ========================================== -->
+          <!-- step 2: 4-digit pin mfa form (admins only) -->
           <h2 class="auth-card-title">Two-Factor PIN Verification</h2>
           <p style="color:var(--gray-300); font-size:0.875rem; margin-bottom: 20px; line-height: 1.5;">
             An administrator login requires a secondary security PIN. Please enter your 4-digit security PIN below:
@@ -314,59 +323,77 @@ function redirectDashboard($role) {
   </div>
 
 <?php if (!empty($qrNotice)): ?>
-<!-- QR Attendance Toast Notification -->
-<div id="qr-toast" style="
+<!-- QR Attendance Modal Notification -->
+<div id="qr-toast-backdrop" style="
     position: fixed;
-    bottom: 28px;
-    left: 50%;
-    transform: translateX(-50%) translateY(100px);
-    background: linear-gradient(135deg, rgba(30,41,59,0.97), rgba(15,23,42,0.97));
-    border: 1px solid rgba(59,130,246,0.35);
-    color: #e2e8f0;
-    padding: 14px 48px 14px 18px;
-    border-radius: 12px;
-    font-size: 0.875rem;
-    font-family: 'Inter', sans-serif;
-    max-width: 360px;
-    width: calc(100% - 48px);
-    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-    z-index: 9999;
-    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px);
+    z-index: 9998;
+    transition: opacity 0.3s ease;
     opacity: 0;
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
 ">
-    <i class="fas fa-qrcode" style="color:#60a5fa; font-size:1.2rem; flex-shrink:0; margin-top:1px;"></i>
-    <div>
-        <div style="font-weight:700; color:#fff; margin-bottom:3px;">Login Required</div>
-        <div style="color:#94a3b8; font-size:0.82rem;"><?php echo htmlspecialchars($qrNotice); ?></div>
-    </div>
-    <button onclick="dismissToast()" style="
-        position:absolute; top:10px; right:12px;
-        background:none; border:none; color:#64748b;
-        font-size:1rem; cursor:pointer; padding:2px 4px;
-        line-height:1; transition:color 0.2s;
-    " onmouseover="this.style.color='#e2e8f0'" onmouseout="this.style.color='#64748b'">
-        <i class="fas fa-xmark"></i>
-    </button>
+  <!-- Toast Modal itself -->
+  <div id="qr-toast" style="
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.85);
+      background: linear-gradient(135deg, rgba(30,41,59,0.98), rgba(15,23,42,0.98));
+      border: 1px solid rgba(59,130,246,0.35);
+      color: #e2e8f0;
+      padding: 24px 30px;
+      border-radius: 16px;
+      font-size: 0.95rem;
+      font-family: 'Inter', sans-serif;
+      max-width: 400px;
+      width: calc(100% - 48px);
+      box-shadow: 0 16px 48px rgba(0,0,0,0.7);
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+      opacity: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 16px;
+  ">
+      <div style="background: rgba(59,130,246,0.1); width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+          <i class="fas fa-qrcode" style="color:#60a5fa; font-size:1.8rem;"></i>
+      </div>
+      <div>
+          <div style="font-weight:700; color:#fff; font-size:1.2rem; margin-bottom:8px;">System Notification</div>
+          <div style="color:#94a3b8; font-size:0.9rem; line-height:1.5;"><?php echo htmlspecialchars($qrNotice); ?></div>
+      </div>
+      <button onclick="dismissToast()" class="btn btn-primary" style="margin-top: 8px; width: 100%; height: 44px; display: inline-flex; align-items: center; justify-content: center; font-weight: 600;">
+          Got it
+      </button>
+  </div>
 </div>
 <script>
+    const backdrop = document.getElementById('qr-toast-backdrop');
     const toast = document.getElementById('qr-toast');
-    // Slide in
+    
+    // Show modal & backdrop
     requestAnimationFrame(() => {
         setTimeout(() => {
-            toast.style.transform = 'translateX(-50%) translateY(0)';
+            backdrop.style.opacity = '1';
+            toast.style.transform = 'translate(-50%, -50%) scale(1)';
             toast.style.opacity = '1';
-        }, 200);
+        }, 100);
     });
-    // Auto-dismiss after 5 seconds
-    const autoDismiss = setTimeout(dismissToast, 5000);
+
+    const autoDismiss = setTimeout(dismissToast, 10000);
     function dismissToast() {
         clearTimeout(autoDismiss);
-        toast.style.transform = 'translateX(-50%) translateY(100px)';
+        backdrop.style.opacity = '0';
+        toast.style.transform = 'translate(-50%, -50%) scale(0.85)';
         toast.style.opacity = '0';
-        setTimeout(() => toast.remove(), 400);
+        setTimeout(() => {
+            backdrop.remove();
+        }, 300);
     }
 </script>
 <?php endif; ?>

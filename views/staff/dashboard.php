@@ -6,7 +6,7 @@
 require_once '../../db.php';
 session_start();
 
-// Session and Role Verification
+// check auth and role
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'staff') {
     header("Location: ../../login.php");
     exit;
@@ -14,13 +14,13 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'staff') {
 
 $pageTitle = "Dashboard Overview";
 
-// FETCH METRICS FOR STAFF DASHBOARD
-// Active Child Beneficiaries Count
+// get dashboard metrics
+// active count
 $stmt = $pdo->query("SELECT COUNT(*) FROM children WHERE status = 'active'");
 $childCount = $stmt->fetchColumn();
 
-// Pending Child Beneficiary Submissions
-// To avoid missing tables error, check if children_submissions table exists, else set to 0.
+// pending submissions count
+// check if submissions table exists to avoid errors
 $pendingChildCount = 0;
 $recentPendingChildren = [];
 try {
@@ -34,7 +34,7 @@ try {
                          ORDER BY s.created_at DESC LIMIT 5");
     $recentPendingChildren = $stmt->fetchAll();
 } catch (PDOException $e) {
-    // Tables might not be created yet, silently ignore for dashboard
+    // suppress database errors if tables missing
 }
 
 include 'includes/header.php';

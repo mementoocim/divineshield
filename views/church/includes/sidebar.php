@@ -3,7 +3,7 @@
  * Shared Church Leader Sidebar Navigation Template
  */
 ?>
-<!-- SIDEBAR NAVIGATION -->
+<!-- sidebar navigation -->
 <aside class="admin-sidebar">
   <div class="sidebar-header">
     <a href="dashboard.php" class="nav-brand" style="pointer-events: none;">
@@ -29,14 +29,13 @@
   ?>
 
   <nav class="sidebar-menu" id="churchSidebarMenu">
-    <!-- CORE -->
+<!-- core -->
     <div class="sidebar-section-label" style="margin-top:0;">Core</div>
     <a href="dashboard.php" class="sidebar-link <?php echo $isDashboard ? 'active' : ''; ?>" id="menu-dashboard">
       <i class="fas fa-chart-pie"></i>
       <span>Dashboard</span>
     </a>
-
-    <!-- PROGRAM -->
+<!-- program -->
     <div class="sidebar-section-label">Program</div>
     <a href="submit-child.php" class="sidebar-link <?php echo $isSubmit ? 'active' : ''; ?>" id="menu-submit">
       <i class="fas fa-child-reaching"></i>
@@ -54,8 +53,7 @@
       <i class="fas fa-utensils"></i>
       <span>Feeding Programs</span>
     </a>
-
-    <!-- SITE -->
+<!-- site -->
     <div class="sidebar-section-label">Site</div>
     <a href="church-sites.php" class="sidebar-link <?php echo $isSite ? 'active' : ''; ?>" id="menu-site">
       <i class="fas fa-church"></i>
@@ -75,13 +73,13 @@
 document.addEventListener("DOMContentLoaded", function() {
     const sidebarMenu = document.getElementById("churchSidebarMenu");
     if (sidebarMenu) {
-        // Restore scroll position
+        // put scroll back
         const scrollPos = sessionStorage.getItem("church_sidebar_scroll");
         if (scrollPos) {
             sidebarMenu.scrollTop = parseInt(scrollPos, 10);
         }
 
-        // Save scroll position when a link is clicked
+        // save scroll offset
         const links = sidebarMenu.querySelectorAll(".sidebar-link");
         links.forEach(link => {
             link.addEventListener("click", function() {
@@ -90,7 +88,7 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    // Logout sweet alert confirmation
+    // sweetalert on logout click
     const logoutBtn = document.querySelector('.logout-btn-trigger');
     if (logoutBtn) {
         logoutBtn.addEventListener('click', function(e) {

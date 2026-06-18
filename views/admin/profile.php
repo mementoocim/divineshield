@@ -6,7 +6,7 @@
 require_once '../../db.php';
 session_start();
 
-// Security and Role Check
+// auth / role check
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
     header("Location: ../../login.php");
     exit;
@@ -24,9 +24,8 @@ if (isset($_SESSION['error_msg'])) {
     unset($_SESSION['error_msg']);
 }
 
-// ──────────────────────────────────────────
-// HANDLE ACTIONS: POST UPDATES
-// ──────────────────────────────────────────
+// handle actions: POST UPDATES
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     // 1. UPDATE PROFILE DETAILS
@@ -177,9 +176,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// ──────────────────────────────────────────
-// FETCH CURRENT ADMIN USER ROW
-// ──────────────────────────────────────────
+// fetch current admin user row
+
 $stmtUser = $pdo->prepare("SELECT * FROM users WHERE id = ?");
 $stmtUser->execute([$_SESSION['user_id']]);
 $adminUser = $stmtUser->fetch();

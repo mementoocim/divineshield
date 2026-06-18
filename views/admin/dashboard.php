@@ -6,20 +6,18 @@
 require_once '../../db.php';
 session_start();
 
-// Session and Role Verification
+// check auth and role
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
     header("Location: ../../login.php");
     exit;
 }
 
-// Fetch admin profile picture for topbar
+// get profile pic for navbar
 $stmtAdmin = $pdo->prepare("SELECT profile_picture FROM users WHERE id = ?");
 $stmtAdmin->execute([$_SESSION['user_id']]);
 $adminProfilePic = $stmtAdmin->fetchColumn();
 
-// ──────────────────────────────────────────
 // 1. FETCH METRICS FOR STAT CARDS
-// ──────────────────────────────────────────
 
 // Active Staff Count
 $stmt = $pdo->query("SELECT COUNT(*) FROM users WHERE role = 'staff' AND status = 'active'");
@@ -33,7 +31,7 @@ $leaderCount = $stmt->fetchColumn();
 $stmt = $pdo->query("SELECT COUNT(*) FROM church_sites");
 $siteCount = $stmt->fetchColumn();
 
-// Active Child Beneficiaries Count
+// active count
 $stmt = $pdo->query("SELECT COUNT(*) FROM children WHERE status = 'active'");
 $childCount = $stmt->fetchColumn();
 
@@ -41,16 +39,14 @@ $childCount = $stmt->fetchColumn();
 $stmt = $pdo->query("SELECT COUNT(*) FROM users WHERE role = 'church_leader' AND status = 'pending'");
 $pendingLeaderCount = $stmt->fetchColumn();
 
-// Pending Child Beneficiary Submissions
+// pending submissions count
 $stmt = $pdo->query("SELECT COUNT(*) FROM children_submissions WHERE submission_status = 'pending'");
 $pendingChildCount = $stmt->fetchColumn();
 
 // Total Pending Count (combined)
 $totalPendingCount = $pendingLeaderCount + $pendingChildCount;
 
-// ──────────────────────────────────────────
 // 2. FETCH RECENT PENDING ITEMS FOR SIDE DISPLAY
-// ──────────────────────────────────────────
 
 // Recent Pending Leaders
 $stmt = $pdo->query("SELECT u.id, cs.id AS site_id, u.username, u.first_name, u.last_name, u.email, u.created_at 
@@ -68,9 +64,8 @@ $stmt = $pdo->query("SELECT s.id, s.first_name, s.last_name, s.suggested_status,
                      ORDER BY s.created_at DESC LIMIT 3");
 $recentPendingChildren = $stmt->fetchAll();
 
-// ──────────────────────────────────────────
 // 3. FETCH RECENT AUDIT LOGS
-// ──────────────────────────────────────────
+
 $stmt = $pdo->query("SELECT a.*, u.username FROM audit_logs a LEFT JOIN users u ON a.user_id = u.id ORDER BY a.created_at DESC LIMIT 5");
 $recentLogs = $stmt->fetchAll();
 

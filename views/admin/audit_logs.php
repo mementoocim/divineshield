@@ -6,20 +6,19 @@
 require_once '../../db.php';
 session_start();
 
-// Security and Role Check
+// auth / role check
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
     header("Location: ../../login.php");
     exit;
 }
 
-// Fetch admin profile picture for topbar
+// get profile pic for navbar
 $stmtAdmin = $pdo->prepare("SELECT profile_picture FROM users WHERE id = ?");
 $stmtAdmin->execute([$_SESSION['user_id']]);
 $adminProfilePic = $stmtAdmin->fetchColumn();
 
-// ──────────────────────────────────────────
-// FETCH UNIQUE FILTERS FOR DROPDOWNS
-// ──────────────────────────────────────────
+// fetch unique filters for dropdowns
+
 // 1. Fetch unique action codes
 $stmtActions = $pdo->query("SELECT DISTINCT action FROM audit_logs ORDER BY action ASC");
 $uniqueActions = $stmtActions->fetchAll(PDO::FETCH_COLUMN);
@@ -28,9 +27,8 @@ $uniqueActions = $stmtActions->fetchAll(PDO::FETCH_COLUMN);
 $stmtUsers = $pdo->query("SELECT DISTINCT u.id, u.username FROM audit_logs a JOIN users u ON a.user_id = u.id ORDER BY u.username ASC");
 $uniqueUsers = $stmtUsers->fetchAll();
 
-// ──────────────────────────────────────────
-// BUILD FILTER QUERY & PAGINATION
-// ──────────────────────────────────────────
+// build filter query & pagination
+
 $whereClauses = [];
 $queryParams = [];
 
@@ -183,8 +181,7 @@ include 'includes/header.php';
                 </tbody>
               </table>
             </div>
-
-            <!-- PAGINATION LINKS -->
+<!-- pagination links -->
             <?php if ($totalPages > 1): ?>
               <div style="display:flex; justify-content:space-between; align-items:center; margin-top:24px; border-top:1px solid rgba(255,255,255,0.08); padding-top:16px;">
                 <span style="font-size:0.8rem; color:var(--gray-400);">

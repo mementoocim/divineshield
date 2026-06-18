@@ -6,7 +6,7 @@
 require_once '../../db.php';
 session_start();
 
-// Security and Role Check
+// auth / role check
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'church_leader') {
     header("Location: ../../login.php");
     exit;
@@ -24,18 +24,16 @@ if (isset($_SESSION['error_msg'])) {
     unset($_SESSION['error_msg']);
 }
 
-// ──────────────────────────────────────────
-// FETCH CHURCH SITE FOR LOGGED IN LEADER
-// ──────────────────────────────────────────
+// get site info
+
 $stmtSite = $pdo->prepare("SELECT * FROM church_sites WHERE church_leader_id = ?");
 $stmtSite->execute([$_SESSION['user_id']]);
 $mySite = $stmtSite->fetch();
 
 $church_site_id = $mySite ? $mySite['id'] : 0;
 
-// ──────────────────────────────────────────
-// HANDLE SUBMIT BENEFICIARY POST ACTION
-// ──────────────────────────────────────────
+// handle child submission
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_child'])) {
     $firstName = trim($_POST['first_name'] ?? '');
     $middleName = trim($_POST['middle_name'] ?? '');
@@ -55,12 +53,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_child'])) {
                 throw new Exception("Your church site profile could not be found. Please contact an administrator.");
             }
 
-            // Calculate BMI
+            // calc bmi
             $heightInM = $height / 100;
             $bmi = $weight / ($heightInM * $heightInM);
             $bmi = round($bmi, 2);
 
-            // Determine suggested qualification status based on BMI
+            // check bmi status
             if ($bmi < 15.0) {
                 $bmiStatus = 'Severely Underweight';
                 $suggestedStatus = 'qualified';
@@ -99,7 +97,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_child'])) {
 
             $subId = $pdo->lastInsertId();
 
-            // Log Audit event
+            // log audit
             logAudit($pdo, $_SESSION['user_id'], 'CHILD_SUBMITTED', "Pastor submitted beneficiary request: $firstName $lastName (ID: $subId) for Site ID: $church_site_id");
 
             $_SESSION['success_msg'] = "Child submission for $firstName $lastName has been successfully submitted and queued for review!";

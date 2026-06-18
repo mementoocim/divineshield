@@ -39,7 +39,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'get_logs') {
   exit;
 }
 
-// Fetch admin profile picture for topbar
+// get profile pic for navbar
 $stmtAdmin = $pdo->prepare("SELECT profile_picture FROM users WHERE id = ?");
 $stmtAdmin->execute([$_SESSION['user_id']]);
 $adminProfilePic = $stmtAdmin->fetchColumn();
@@ -57,9 +57,8 @@ if (isset($_SESSION['error_msg'])) {
   unset($_SESSION['error_msg']);
 }
 
-// ──────────────────────────────────────────
-// HANDLE ACTIONS: RENEW QR TOKEN
-// ──────────────────────────────────────────
+// handle actions: RENEW QR TOKEN
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['renew_token'])) {
   try {
     $token = bin2hex(random_bytes(16));

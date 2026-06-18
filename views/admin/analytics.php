@@ -6,20 +6,18 @@
 require_once '../../db.php';
 session_start();
 
-// Security and Role Check
+// auth / role check
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
     header("Location: ../../login.php");
     exit;
 }
 
-// Fetch admin profile picture for topbar
+// get profile pic for navbar
 $stmtAdmin = $pdo->prepare("SELECT profile_picture FROM users WHERE id = ?");
 $stmtAdmin->execute([$_SESSION['user_id']]);
 $adminProfilePic = $stmtAdmin->fetchColumn();
 
-// ──────────────────────────────────────────
-// PHP DATA PREPARATION FOR KEY METRICS
-// ──────────────────────────────────────────
+// php data preparation for key metrics
 
 // 1. Total Registered Children (Active)
 $stmtTotalChildren = $pdo->query("SELECT COUNT(*) FROM children WHERE status = 'active'");
@@ -46,9 +44,8 @@ $totalSites = intval($stmtTotalSites->fetchColumn());
 $stmtPendingSub = $pdo->query("SELECT COUNT(*) FROM children_submissions WHERE submission_status = 'pending'");
 $pendingSubmissions = intval($stmtPendingSub->fetchColumn());
 
-// ──────────────────────────────────────────
 // CHART 1: Beneficiaries by Region/Province
-// ──────────────────────────────────────────
+
 $stmtRegion = $pdo->query("
     SELECT cs.region, COUNT(c.id) as count 
     FROM children c 
@@ -65,9 +62,8 @@ while ($row = $stmtRegion->fetch()) {
     $regionCounts[] = intval($row['count']);
 }
 
-// ──────────────────────────────────────────
 // CHART 2: Current BMI Status Distribution
-// ──────────────────────────────────────────
+
 // Combines latest nutritional assessment, falling back to initial bmi status if no assessments yet.
 $stmtBMI = $pdo->query("
     SELECT COALESCE(latest_na.bmi_status, sub.initial_bmi_status) as status_name, COUNT(c.id) as count
@@ -106,9 +102,8 @@ while ($row = $stmtBMI->fetch()) {
     $bmiColors[] = $bmiColorMap[$statusName] ?? 'rgb(100, 116, 139)'; // Slate fallback
 }
 
-// ──────────────────────────────────────────
 // CHART 3: Monthly Submissions Trend (Last 6 Months)
-// ──────────────────────────────────────────
+
 $months = [];
 for ($i = 5; $i >= 0; $i--) {
     $monthKey = date('Y-m', strtotime("-$i months"));
@@ -136,9 +131,8 @@ foreach ($months as $m) {
     $trendCounts[] = $m['count'];
 }
 
-// ──────────────────────────────────────────
 // CHART 4: Age Group Distribution
-// ──────────────────────────────────────────
+
 $stmtAge = $pdo->query("
     SELECT 
         CASE 
@@ -168,79 +162,6 @@ include 'includes/header.php';
 
 <style>
   /* Localized Dashboard Styles */
-  .analytics-kpi-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 20px;
-    margin-bottom: 24px;
-  }
-  
-  .kpi-card {
-    background: rgba(30, 41, 59, 0.45);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 16px;
-    padding: 22px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    position: relative;
-    overflow: hidden;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  
-  .kpi-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0) 100%);
-    pointer-events: none;
-  }
-  
-  .kpi-card:hover {
-    transform: translateY(-4px);
-    border-color: rgba(255, 255, 255, 0.15);
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
-  }
-  
-  .kpi-icon-wrapper {
-    width: 52px;
-    height: 52px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.4rem;
-  }
-  
-  .kpi-details {
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .kpi-value {
-    font-size: 1.8rem;
-    font-weight: 700;
-    color: var(--white);
-    line-height: 1.1;
-    font-family: var(--font-head);
-  }
-  
-  .kpi-label {
-    font-size: 0.78rem;
-    font-weight: 600;
-    color: var(--gray-400);
-    margin-top: 3px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-  
-  .kpi-subtext {
-    font-size: 0.75rem;
-    color: var(--gray-500);
-    margin-top: 2px;
-  }
 
   .charts-grid-2 {
     display: grid;
@@ -296,56 +217,56 @@ include 'includes/header.php';
   }
 </style>
 
-<!-- KPI Cards Roster Grid -->
-<div class="analytics-kpi-grid">
+<!-- Stats Metric Grid -->
+<section class="stats-grid">
   <!-- KPI 1: Active Beneficiaries -->
-  <div class="kpi-card">
-    <div class="kpi-icon-wrapper" style="background: rgba(59, 130, 246, 0.15); color: var(--blue-400);">
-      <i class="fas fa-children"></i>
+  <div class="stat-box">
+    <div class="stat-box-info">
+      <h4>Active Registry</h4>
+      <div class="stat-val"><?php echo number_format($totalChildren); ?></div>
+      <p style="font-size:0.75rem; color:var(--gray-500); margin-top:4px;">Verified Beneficiaries</p>
     </div>
-    <div class="kpi-details">
-      <span class="kpi-value"><?php echo number_format($totalChildren); ?></span>
-      <span class="kpi-label">Active Registry</span>
-      <span class="kpi-subtext">Verified Beneficiaries</span>
+    <div class="stat-box-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--blue-400);">
+      <i class="fas fa-children"></i>
     </div>
   </div>
 
   <!-- KPI 2: Submissions Ratio -->
-  <div class="kpi-card">
-    <div class="kpi-icon-wrapper" style="background: rgba(16, 185, 129, 0.15); color: var(--teal-400);">
-      <i class="fas fa-clipboard-check"></i>
+  <div class="stat-box">
+    <div class="stat-box-info">
+      <h4>Qualified vs Disq</h4>
+      <div class="stat-val"><?php echo $qualifiedSubmissions; ?> / <?php echo $disqualifiedSubmissions; ?></div>
+      <p style="font-size:0.75rem; color:var(--gray-500); margin-top:4px;">From <?php echo number_format($totalSubmissions); ?> Submissions</p>
     </div>
-    <div class="kpi-details">
-      <span class="kpi-value"><?php echo $qualifiedSubmissions; ?> / <?php echo $disqualifiedSubmissions; ?></span>
-      <span class="kpi-label">Qualified vs Disq</span>
-      <span class="kpi-subtext">From <?php echo number_format($totalSubmissions); ?> Submissions</span>
+    <div class="stat-box-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--teal-400);">
+      <i class="fas fa-clipboard-check"></i>
     </div>
   </div>
 
   <!-- KPI 3: Church Sites -->
-  <div class="kpi-card">
-    <div class="kpi-icon-wrapper" style="background: rgba(139, 92, 246, 0.15); color: var(--purple-400);">
-      <i class="fas fa-church"></i>
+  <div class="stat-box">
+    <div class="stat-box-info">
+      <h4>Church Sites</h4>
+      <div class="stat-val"><?php echo number_format($totalSites); ?></div>
+      <p style="font-size:0.75rem; color:var(--gray-500); margin-top:4px;">Registered nationwide</p>
     </div>
-    <div class="kpi-details">
-      <span class="kpi-value"><?php echo number_format($totalSites); ?></span>
-      <span class="kpi-label">Church Sites</span>
-      <span class="kpi-subtext">Registered nationwide</span>
+    <div class="stat-box-icon" style="background: rgba(139, 92, 246, 0.15); color: var(--purple-400);">
+      <i class="fas fa-church"></i>
     </div>
   </div>
 
   <!-- KPI 4: Pending Submissions -->
-  <div class="kpi-card" <?php echo $pendingSubmissions > 0 ? 'style="border-color: rgba(245, 158, 11, 0.35);"' : ''; ?>>
-    <div class="kpi-icon-wrapper" style="background: rgba(245, 158, 11, 0.15); color: var(--yellow-400);">
+  <div class="stat-box" <?php echo $pendingSubmissions > 0 ? 'style="border-color: rgba(245, 158, 11, 0.35); background: rgba(245, 158, 11, 0.04);"' : ''; ?>>
+    <div class="stat-box-info">
+      <h4>Pending Reviews</h4>
+      <div class="stat-val" style="<?php echo $pendingSubmissions > 0 ? 'color: var(--yellow-400); text-shadow: 0 0 10px rgba(245,158,11,0.3);' : ''; ?>"><?php echo number_format($pendingSubmissions); ?></div>
+      <p style="font-size:0.75rem; color:var(--gray-500); margin-top:4px;">Awaiting Staff action</p>
+    </div>
+    <div class="stat-box-icon" style="<?php echo $pendingSubmissions > 0 ? 'color: var(--yellow-400); background: rgba(245, 158, 11, 0.15);' : 'background: rgba(245, 158, 11, 0.15); color: var(--yellow-400);'; ?>">
       <i class="fas fa-clock <?php echo $pendingSubmissions > 0 ? 'fa-spin' : ''; ?>" style="animation-duration: 4s;"></i>
     </div>
-    <div class="kpi-details">
-      <span class="kpi-value" style="<?php echo $pendingSubmissions > 0 ? 'color: var(--yellow-400); text-shadow: 0 0 10px rgba(245,158,11,0.3);' : ''; ?>"><?php echo number_format($pendingSubmissions); ?></span>
-      <span class="kpi-label">Pending Reviews</span>
-      <span class="kpi-subtext">Awaiting Staff action</span>
-    </div>
   </div>
-</div>
+</section>
 
 <!-- Primary Chart Grid (Bar + Donut) -->
 <div class="charts-grid-2">

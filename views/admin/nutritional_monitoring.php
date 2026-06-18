@@ -1,6 +1,6 @@
 <?php
 /**
- * DivineShield - Administrator Nutritional Monitoring (Read-Only)
+ * nutritional info (read-only)
  */
 require_once '../../db.php';
 session_start();
@@ -12,7 +12,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
 
 $pageTitle = "Nutritional Monitoring";
 
-// Fetch admin profile picture for topbar
+// get profile pic for navbar
 $stmtAdmin = $pdo->prepare("SELECT profile_picture FROM users WHERE id = ?");
 $stmtAdmin->execute([$_SESSION['user_id']]);
 $adminProfilePic = $stmtAdmin->fetchColumn();
@@ -25,7 +25,7 @@ if (isset($_SESSION['error_msg'])) { $error = $_SESSION['error_msg']; unset($_SE
 $action = $_GET['action'] ?? 'list';
 $child_id = intval($_GET['child_id'] ?? 0);
 
-// Block write/record attempts
+// block writes (read-only)
 if ($action === 'record' || $_SERVER['REQUEST_METHOD'] === 'POST') {
     $_SESSION['error_msg'] = "Access denied: Administrators have view-only access to nutritional growth recording.";
     header("Location: nutritional_monitoring.php");
@@ -48,7 +48,7 @@ include 'includes/header.php';
 
 <?php if ($action === 'history' && $child_id > 0): ?>
     <?php
-    // Fetch Child Info
+    // get child data
     $stmt = $pdo->prepare("SELECT c.*, cs.church_name 
                            FROM children c 
                            JOIN church_sites cs ON c.church_site_id = cs.id
@@ -59,7 +59,7 @@ include 'includes/header.php';
     if (!$child) {
         echo "<div class='dashboard-card'><h3 style='color:var(--white);'>Child record not found.</h3><a href='nutritional_monitoring.php' class='btn btn-outline btn-sm' style='margin-top:15px;'>Back to List</a></div>";
     } else {
-        // Fetch Assessment History
+        // get assessment history
         $stmtHist = $pdo->prepare("SELECT na.*, u.first_name, u.last_name, u.role
                                    FROM nutritional_assessments na 
                                    JOIN users u ON na.encoder_id = u.id
@@ -134,7 +134,7 @@ include 'includes/header.php';
 
 <?php else: ?>
     <?php
-    // Get filters
+    // load filters
     $search = trim($_GET['search'] ?? '');
     $siteFilter = $_GET['site_id'] ?? '';
     $statusFilter = $_GET['bmi_status'] ?? '';
@@ -200,7 +200,7 @@ include 'includes/header.php';
         
         <div style="flex:1.2; min-width:200px;">
           <label style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">Search</label>
-          <input type="text" name="search" class="auth-input" placeholder="Search by name or site..." value="<?php echo htmlspecialchars($search); ?>" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px;">
+          <input type="text" name="search" class="auth-input filter-input" placeholder="Search by name or site..." value="<?php echo htmlspecialchars($search); ?>" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px;">
         </div>
 
         <div style="flex:1; min-width:150px;">

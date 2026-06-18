@@ -1,18 +1,18 @@
 <?php
 /**
- * DivineShield - Feeding Programs Management
+ * feeding programs
  */
 
 require_once '../../db.php';
 session_start();
 
-// Security and Role Check
+// auth / role check
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
     header("Location: ../../login.php");
     exit;
 }
 
-// Fetch admin profile picture for topbar
+// get profile pic for navbar
 $stmtAdmin = $pdo->prepare("SELECT profile_picture FROM users WHERE id = ?");
 $stmtAdmin->execute([$_SESSION['user_id']]);
 $adminProfilePic = $stmtAdmin->fetchColumn();
@@ -32,11 +32,9 @@ if (isset($_SESSION['error_msg'])) {
 $action = $_GET['action'] ?? '';
 $id = intval($_GET['id'] ?? 0);
 
-// ──────────────────────────────────────────
-// HANDLE ACTIONS: COMPLETE, CANCEL, ADD, SAVE ATTENDANCE
-// ──────────────────────────────────────────
+// action handlers
 
-// 1. Mark feeding program as Completed
+// 1. mark completed
 if ($action === 'complete' && $id > 0) {
     try {
         $stmt = $pdo->prepare("SELECT title FROM feeding_programs WHERE id = ?");
@@ -59,7 +57,7 @@ if ($action === 'complete' && $id > 0) {
     exit;
 }
 
-// 2. Cancel a feeding program
+// 2. cancel session
 if ($action === 'cancel' && $id > 0) {
     try {
         $stmt = $pdo->prepare("SELECT title FROM feeding_programs WHERE id = ?");
@@ -82,7 +80,7 @@ if ($action === 'cancel' && $id > 0) {
     exit;
 }
 
-// 3. Create Feeding Program (POST Handler)
+// 3. handle program creation
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_program'])) {
     $churchSiteId = intval($_POST['church_site_id'] ?? 0);
     $title        = trim($_POST['title'] ?? '');
@@ -108,7 +106,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_program'])) {
     }
 }
 
-// 4. Save/Update Manual Attendance (POST Handler)
+// 4. save attendance
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_attendance']) && $id > 0) {
     $attendanceData = $_POST['attendance'] ?? []; // Array of [child_id => status]
     try {
@@ -150,11 +148,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_attendance']) &&
     }
 }
 
-// ──────────────────────────────────────────
-// FETCH NECESSARY DATA FOR RENDERING
-// ──────────────────────────────────────────
+// fetch necessary data for rendering
 
-// A. View mode detail fetching
+// view details
 $viewProgram = null;
 $childrenList = [];
 if ($action === 'view' && $id > 0) {
@@ -183,11 +179,11 @@ if ($action === 'view' && $id > 0) {
     }
 }
 
-// B. Fetch all active church sites for dropdown
+// get active sites
 $stmtSites = $pdo->query("SELECT id, church_name FROM church_sites ORDER BY church_name ASC");
 $churchSites = $stmtSites->fetchAll();
 
-// C. Status tabs filter and list query
+// status and search query
 $status_filter = $_GET['status'] ?? 'all';
 $search = trim($_GET['search'] ?? '');
 $siteFilter = $_GET['site_id'] ?? '';
@@ -257,9 +253,7 @@ include 'includes/header.php';
   </div>
 <?php endif; ?>
 
-<!-- ──────────────────────────────────────────
-     ACTION: ADD FEEDING PROGRAM FORM
-     ────────────────────────────────────────── -->
+<!-- action: add feeding program form -->
 <?php if ($action === 'add'): ?>
   <section class="dashboard-card detail-card" style="border-color:rgba(59,130,246,0.3); margin-bottom:32px;">
     <div class="detail-card-header">
@@ -311,16 +305,13 @@ include 'includes/header.php';
     </form>
   </section>
 
-<!-- ──────────────────────────────────────────
-     ACTION: VIEW DETAILS AND ATTENDANCE
-     ────────────────────────────────────────── -->
+<!-- action: view details and attendance -->
 <?php elseif ($action === 'view' && $viewProgram): ?>
-  <!-- BACK BUTTON ROW -->
+<!-- back button row -->
   <div style="margin-bottom: 20px;">
     <a href="feeding_programs.php" class="btn btn-outline btn-sm"><i class="fas fa-arrow-left"></i> Back to Feeding Programs</a>
   </div>
-
-  <!-- PROGRAM SPECIFICS CARD -->
+<!-- program specifics card -->
   <section class="dashboard-card detail-card" style="margin-bottom:24px;">
     <div class="detail-card-header">
       <div class="detail-card-title">Feeding Session Detail: <?php echo htmlspecialchars($viewProgram['title']); ?></div>
@@ -365,8 +356,7 @@ include 'includes/header.php';
       </div>
     <?php endif; ?>
   </section>
-
-  <!-- ATTENDANCE REGISTRY CARD -->
+<!-- attendance registry card -->
   <section class="dashboard-card">
     <div class="dashboard-card-header">
       <div class="dashboard-card-title">Attendance Registry (<?php echo count($childrenList); ?> Active Enrolled Children)</div>
@@ -428,9 +418,7 @@ include 'includes/header.php';
     <?php endif; ?>
   </section>
 
-<!-- ──────────────────────────────────────────
-     DEFAULT LIST VIEW
-     ────────────────────────────────────────── -->
+<!-- default list view -->
 <?php else: ?>
 
   <!-- Pill Tabs & Top Buttons Row -->
@@ -464,7 +452,7 @@ include 'includes/header.php';
       
       <div style="flex:1.2; min-width:200px;">
         <label style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">Search</label>
-        <input type="text" name="search" class="auth-input" placeholder="Search title or site..." value="<?php echo htmlspecialchars($search); ?>" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px;">
+        <input type="text" name="search" class="auth-input filter-input" placeholder="Search title or site..." value="<?php echo htmlspecialchars($search); ?>" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px;">
       </div>
 
       <div style="flex:1; min-width:150px;">
@@ -481,12 +469,12 @@ include 'includes/header.php';
 
       <div style="flex:0.8; min-width:140px;">
         <label style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">Start Date</label>
-        <input type="date" name="date_start" class="auth-input" value="<?php echo htmlspecialchars($dateStart); ?>" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px;">
+        <input type="date" name="date_start" class="auth-input filter-input" value="<?php echo htmlspecialchars($dateStart); ?>" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px;">
       </div>
 
       <div style="flex:0.8; min-width:140px;">
         <label style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">End Date</label>
-        <input type="date" name="date_end" class="auth-input" value="<?php echo htmlspecialchars($dateEnd); ?>" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px;">
+        <input type="date" name="date_end" class="auth-input filter-input" value="<?php echo htmlspecialchars($dateEnd); ?>" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px;">
       </div>
 
       <div style="display:flex; gap:10px; width:auto;">
@@ -501,8 +489,7 @@ include 'includes/header.php';
       </div>
     </form>
   </section>
-
-  <!-- MAIN LISTING CARD -->
+<!-- main listing card -->
   <div class="dashboard-card">
     <div class="dashboard-card-header">
       <h3 class="dashboard-card-title">Feeding Program Roster</h3>

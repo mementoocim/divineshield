@@ -15,7 +15,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
   </div>
 
   <nav class="sidebar-menu" id="staffSidebarMenu">
-    <!-- CORE -->
+<!-- core -->
     <div class="sidebar-section-label" style="margin-top:0;">Core</div>
     <a href="dashboard.php" class="sidebar-link <?php echo $currentPage === 'dashboard.php' ? 'active' : ''; ?>">
       <i class="fas fa-chart-pie"></i>
@@ -29,9 +29,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
       <i class="fas fa-calendar-check"></i>
       <span>My Attendance</span>
     </a>
-
-
-    <!-- SYSTEM -->
+<!-- system -->
     <div class="sidebar-section-label">Account</div>
     <a href="profile.php" class="sidebar-link <?php echo $currentPage === 'profile.php' ? 'active' : ''; ?>">
       <i class="fas fa-user-pen"></i>
@@ -51,13 +49,13 @@ $currentPage = basename($_SERVER['PHP_SELF']);
 document.addEventListener("DOMContentLoaded", function() {
     const sidebarMenu = document.getElementById("staffSidebarMenu");
     if (sidebarMenu) {
-        // Restore scroll position
+        // put scroll back
         const scrollPos = sessionStorage.getItem("staff_sidebar_scroll");
         if (scrollPos) {
             sidebarMenu.scrollTop = parseInt(scrollPos, 10);
         }
 
-        // Save scroll position when a link is clicked
+        // save scroll offset
         const links = sidebarMenu.querySelectorAll(".sidebar-link");
         links.forEach(link => {
             link.addEventListener("click", function() {
@@ -66,7 +64,7 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    // Logout sweet alert confirmation
+    // sweetalert on logout click
     const logoutBtn = document.querySelector('.logout-btn-trigger');
     if (logoutBtn) {
         logoutBtn.addEventListener('click', function(e) {

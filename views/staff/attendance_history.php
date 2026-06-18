@@ -5,7 +5,7 @@
 require_once '../../db.php';
 session_start();
 
-// Security and Role Check
+// auth / role check
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'staff') {
     header("Location: ../../login.php");
     exit;
@@ -14,12 +14,12 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'staff') {
 $pageTitle = "My Attendance Logs";
 $userId = $_SESSION['user_id'];
 
-// Fetch staff profile picture for topbar
+// get profile picture
 $stmtStaff = $pdo->prepare("SELECT profile_picture FROM users WHERE id = ?");
 $stmtStaff->execute([$userId]);
 $staffProfilePic = $stmtStaff->fetchColumn();
 
-// Fetch check-in logs
+// get logs
 $dateStart = $_GET['date_start'] ?? '';
 $dateEnd = $_GET['date_end'] ?? '';
 
@@ -92,12 +92,12 @@ include 'includes/header.php';
     
     <div style="flex:1; min-width:140px;">
       <label style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">Start Date</label>
-      <input type="date" name="date_start" class="auth-input" value="<?php echo htmlspecialchars($dateStart); ?>" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px;">
+      <input type="date" name="date_start" class="auth-input filter-input" value="<?php echo htmlspecialchars($dateStart); ?>" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px;">
     </div>
 
     <div style="flex:1; min-width:140px;">
       <label style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">End Date</label>
-      <input type="date" name="date_end" class="auth-input" value="<?php echo htmlspecialchars($dateEnd); ?>" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px;">
+      <input type="date" name="date_end" class="auth-input filter-input" value="<?php echo htmlspecialchars($dateEnd); ?>" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px;">
     </div>
 
     <div style="display:flex; gap:10px; width:auto;">

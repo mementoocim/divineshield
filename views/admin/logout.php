@@ -1,13 +1,13 @@
 <?php
 /**
- * DivineShield - Secure Admin Logout Handler
+ * logout handler
  */
 session_start();
 
-// Unset all session variables
+// clear session variables
 $_SESSION = [];
 
-// Destroy session cookie if set
+// clear session cookie
 if (ini_get("session.use_cookies")) {
     $params = session_get_cookie_params();
     setcookie(session_name(), '', time() - 42000,
@@ -16,9 +16,9 @@ if (ini_get("session.use_cookies")) {
     );
 }
 
-// Destroy session
+// kill session
 session_destroy();
 
-// Redirect to login page
+// send to login
 header("Location: ../../login.php");
 exit;

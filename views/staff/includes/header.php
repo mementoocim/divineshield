@@ -1,6 +1,6 @@
 <?php
-// Session and Role Verification must be handled in the main page before including this.
-// Fetch staff profile picture for topbar
+// check auth and role must be handled in the main page before including this.
+// get profile picture
 $stmtStaff = $pdo->prepare("SELECT profile_picture, first_name, last_name, role FROM users WHERE id = ?");
 $stmtStaff->execute([$_SESSION['user_id']]);
 $staffData = $stmtStaff->fetch(PDO::FETCH_ASSOC);
@@ -18,6 +18,7 @@ if (empty($staffFullName)) {
   <title><?php echo isset($pageTitle) ? htmlspecialchars($pageTitle) : 'Staff Portal'; ?> – DivineShield</title>
   <link rel="icon" type="image/png" href="../../assets/images/mainpi-logo.png" />
   <link rel="stylesheet" href="../../assets/css/style.css?v=16" />
+  <link rel="stylesheet" href="../../assets/css/filtering_global.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -58,13 +59,11 @@ if (empty($staffFullName)) {
   <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
   <div class="admin-layout">
-
-    <!-- SIDEBAR NAVIGATION -->
+<!-- sidebar navigation -->
     <?php include 'sidebar.php'; ?>
 
     <main class="admin-main">
-
-      <!-- TOP NAVIGATION BAR -->
+<!-- top navigation bar -->
       <header class="admin-topbar">
         <div style="display:flex; align-items:center; flex:1; min-width:0;">
           <!-- Hamburger button (visible on mobile only) -->
@@ -116,17 +115,17 @@ if (empty($staffFullName)) {
     sidebar.classList.contains('sidebar-open') ? closeSidebar() : openSidebar();
   });
 
-  // Close on backdrop tap
+  // close when tapping outside
   backdrop.addEventListener('click', closeSidebar);
 
-  // Close on nav link click (auto-navigate)
+  // close menu on link click
   document.querySelectorAll('.admin-sidebar .sidebar-link').forEach(function(link) {
     link.addEventListener('click', function() {
       if (window.innerWidth <= 768) closeSidebar();
     });
   });
 
-  // Close drawer if window is resized to desktop
+  // close drawer on desktop resize
   window.addEventListener('resize', function() {
     if (window.innerWidth > 768) closeSidebar();
   });

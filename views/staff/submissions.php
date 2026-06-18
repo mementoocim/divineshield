@@ -6,7 +6,7 @@
 require_once '../../db.php';
 session_start();
 
-// Security and Role Check
+// auth / role check
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'staff') {
     header("Location: ../../login.php");
     exit;
@@ -23,9 +23,7 @@ if (isset($_SESSION['error_msg'])) { $error = $_SESSION['error_msg']; unset($_SE
 $action = $_GET['action'] ?? 'list';
 $id = intval($_GET['id'] ?? 0);
 
-// ──────────────────────────────────────────
-// HANDLE ACTIONS
-// ──────────────────────────────────────────
+// handle actions
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['approve_submission'])) {
@@ -103,9 +101,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// ──────────────────────────────────────────
-// RENDER VIEWS
-// ──────────────────────────────────────────
+// render views
 
 include 'includes/header.php';
 ?>
@@ -240,7 +236,7 @@ include 'includes/header.php';
     $search = trim($_GET['search'] ?? '');
     $siteFilter = $_GET['site_id'] ?? '';
 
-    // Fetch all church sites for filter dropdown
+    // get sites for filter
     $stmtSites = $pdo->query("SELECT id, church_name FROM church_sites ORDER BY church_name ASC");
     $churchSites = $stmtSites->fetchAll(PDO::FETCH_ASSOC);
 
@@ -289,7 +285,7 @@ include 'includes/header.php';
         
         <div style="flex:1.2; min-width:200px;">
           <label style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">Search</label>
-          <input type="text" name="search" class="auth-input" placeholder="Search child name..." value="<?php echo htmlspecialchars($search); ?>" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px;">
+          <input type="text" name="search" class="auth-input filter-input" placeholder="Search child name..." value="<?php echo htmlspecialchars($search); ?>" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px;">
         </div>
 
         <div style="flex:1; min-width:150px;">
