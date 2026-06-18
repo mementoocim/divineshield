@@ -221,6 +221,7 @@ function sendAdminNewRegistrationEmail(
     $portalUrl = $protocol . '://' . $host . $folder . '/views/admin/dashboard.php';
 
     $mail->addAddress('balmacedamico028@gmail.com', 'DivineShield Administrator');
+    $mail->addAddress('maramagkimberly98@gmail.com', 'DivineShield Administrator');
     $mail->Subject = $subject;
     $mail->Body = '
         <!DOCTYPE html>

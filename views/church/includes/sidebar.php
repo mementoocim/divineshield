@@ -8,7 +8,7 @@
   <div class="sidebar-header">
     <a href="dashboard.php" class="nav-brand" style="pointer-events: none;">
       <div class="logo-mark small img-wrap" style="background: transparent; box-shadow: none; border: none; overflow: visible;">
-        <img src="../../assets/images/DivineShieldLogo.png" alt="DivineShield Logo" style="height: 32px; width: 32px; object-fit: contain;">
+        <img src="../../assets/images/DivineShieldLogo.png" alt="DivineShield Logo" style="height: 50px; width: 50px; object-fit: contain;">
       </div>
       <div class="brand-text">
         <span class="brand-main">DivineShield</span>
