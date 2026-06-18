@@ -241,7 +241,7 @@ include 'includes/header.php';
                                     <label>BMI Nutritional Classification</label>
                                     <span id="bmi_status_live_val" style="font-weight:700;">Normal</span>
                                 </div>
-                                <div class="detail-item">
+                                <div class="detail-item" style="display:none;">
                                     <label>Suggested System Status</label>
                                     <span id="suggested_badge" class="badge">
                                         <span id="suggested_status_live_val"

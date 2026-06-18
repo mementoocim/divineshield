@@ -53,6 +53,10 @@ $currentPage = basename($_SERVER['PHP_SELF']);
       <i class="fas fa-utensils"></i>
       <span>Feeding Programs</span>
     </a>
+    <a href="manna_inventory.php" class="sidebar-link <?php echo $currentPage === 'manna_inventory.php' ? 'active' : ''; ?>">
+      <i class="fas fa-boxes-stacked"></i>
+      <span>MannaPack Inventory</span>
+    </a>
 <!-- tools & system -->
     <div class="sidebar-section-label">Tools & Security</div>
     <a href="reports.php" class="sidebar-link <?php echo $currentPage === 'reports.php' ? 'active' : ''; ?>">
