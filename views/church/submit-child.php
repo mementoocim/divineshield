@@ -177,7 +177,7 @@ include 'includes/header.php';
                                 </div>
                             </div>
                             <div class="auth-form-group">
-                                <label for="birthdate">Birthdate *</label>
+                                <label for="birthdate">Birthdate * <span id="calculated-age" style="color: var(--blue-400); font-weight: normal; margin-left: 8px; font-size: 0.8rem;"></span></label>
                                 <div class="auth-input-wrapper">
                                     <input type="date" id="birthdate" name="birthdate" class="auth-input"
                                         style="padding-left:16px;" required />
@@ -314,6 +314,54 @@ include 'includes/header.php';
         if (weightInput && heightInput) {
             weightInput.addEventListener('input', calculateLiveBMI);
             heightInput.addEventListener('input', calculateLiveBMI);
+        }
+
+        const birthdateInput = document.getElementById('birthdate');
+        const calculatedAgeSpan = document.getElementById('calculated-age');
+
+        function updateCalculatedAge() {
+            const dobValue = birthdateInput.value;
+            if (!dobValue) {
+                calculatedAgeSpan.textContent = '';
+                return;
+            }
+            const dob = new Date(dobValue);
+            const today = new Date();
+            
+            let ageYears = today.getFullYear() - dob.getFullYear();
+            let ageMonths = today.getMonth() - dob.getMonth();
+            let ageDays = today.getDate() - dob.getDate();
+            
+            if (ageDays < 0) {
+                ageMonths--;
+                const prevMonth = new Date(today.getFullYear(), today.getMonth(), 0);
+                ageDays += prevMonth.getDate();
+            }
+            
+            if (ageMonths < 0) {
+                ageYears--;
+                ageMonths += 12;
+            }
+
+            if (isNaN(ageYears) || ageYears < 0) {
+                calculatedAgeSpan.textContent = '(Invalid Date)';
+                return;
+            }
+
+            let ageText = '';
+            if (ageYears > 0) {
+                ageText = `(${ageYears} yr${ageYears > 1 ? 's' : ''} ${ageMonths} mo${ageMonths !== 1 ? 's' : ''} old)`;
+            } else if (ageMonths > 0) {
+                ageText = `(${ageMonths} mo${ageMonths > 1 ? 's' : ''} ${ageDays} day${ageDays !== 1 ? 's' : ''} old)`;
+            } else {
+                ageText = `(${ageDays} day${ageDays !== 1 ? 's' : ''} old)`;
+            }
+            calculatedAgeSpan.textContent = ageText;
+        }
+
+        if (birthdateInput) {
+            birthdateInput.addEventListener('change', updateCalculatedAge);
+            birthdateInput.addEventListener('input', updateCalculatedAge);
         }
     </script>
 </body>
