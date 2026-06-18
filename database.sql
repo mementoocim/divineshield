@@ -249,6 +249,7 @@ CREATE TABLE `children` (
   `middle_name` varchar(50) DEFAULT NULL,
   `gender` enum('male','female') NOT NULL,
   `birthdate` date NOT NULL,
+  `age` int(11) DEFAULT NULL,
   `guardian_name` varchar(100) NOT NULL,
   `status` enum('active','graduated','inactive') DEFAULT 'active',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
@@ -277,6 +278,7 @@ CREATE TABLE `children_submissions` (
   `middle_name` varchar(50) DEFAULT NULL,
   `gender` enum('male','female') NOT NULL,
   `birthdate` date NOT NULL,
+  `age` int(11) DEFAULT NULL,
   `guardian_name` varchar(100) NOT NULL,
   `guardian_relationship` varchar(50) NOT NULL,
   `initial_weight` decimal(5,2) NOT NULL,

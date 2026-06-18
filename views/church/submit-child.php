@@ -73,10 +73,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_child'])) {
                 $suggestedStatus = 'disqualified';
             }
 
+            // Calculate age at submission
+            $dob = new DateTime($birthdate);
+            $today = new DateTime('today');
+            $age = $dob->diff($today)->y;
+
             // Insert child submission
             $stmtInsert = $pdo->prepare("INSERT INTO children_submissions 
-                (church_site_id, church_leader_id, first_name, last_name, middle_name, gender, birthdate, guardian_name, guardian_relationship, initial_weight, initial_height, initial_bmi, initial_bmi_status, suggested_status, submission_status) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')");
+                (church_site_id, church_leader_id, first_name, last_name, middle_name, gender, birthdate, age, guardian_name, guardian_relationship, initial_weight, initial_height, initial_bmi, initial_bmi_status, suggested_status, submission_status) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')");
 
             $stmtInsert->execute([
                 $church_site_id,
@@ -86,6 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_child'])) {
                 empty($middleName) ? null : $middleName,
                 $gender,
                 $birthdate,
+                $age,
                 $guardian,
                 $relationship,
                 $weight,

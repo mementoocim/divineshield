@@ -174,7 +174,7 @@ if ($action === 'approve_child' && $id > 0) {
             $stmtCheck->execute([$id]);
             if (!$stmtCheck->fetch()) {
                 // Insert into official children registry
-                $stmtInsert = $pdo->prepare("INSERT INTO children (submission_id, church_site_id, first_name, last_name, middle_name, gender, birthdate, guardian_name, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active')");
+                $stmtInsert = $pdo->prepare("INSERT INTO children (submission_id, church_site_id, first_name, last_name, middle_name, gender, birthdate, age, guardian_name, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'active')");
                 $stmtInsert->execute([
                     $id,
                     $submission['church_site_id'],
@@ -183,6 +183,7 @@ if ($action === 'approve_child' && $id > 0) {
                     $submission['middle_name'],
                     $submission['gender'],
                     $submission['birthdate'],
+                    $submission['age'],
                     $submission['guardian_name']
                 ]);
             }

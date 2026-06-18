@@ -42,11 +42,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmtUp->execute([$encoder_id, $sub_id]);
                 
                 // 2. Insert to children registry
-                $stmtChild = $pdo->prepare("INSERT INTO children (submission_id, church_site_id, first_name, last_name, middle_name, gender, birthdate, guardian_name, status) 
-                                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active')");
+                $stmtChild = $pdo->prepare("INSERT INTO children (submission_id, church_site_id, first_name, last_name, middle_name, gender, birthdate, age, guardian_name, status) 
+                                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'active')");
                 $stmtChild->execute([
                     $sub_id, $sub['church_site_id'], $sub['first_name'], $sub['last_name'], $sub['middle_name'], 
-                    $sub['gender'], $sub['birthdate'], $sub['guardian_name']
+                    $sub['gender'], $sub['birthdate'], $sub['age'], $sub['guardian_name']
                 ]);
                 $child_id = $pdo->lastInsertId();
                 
