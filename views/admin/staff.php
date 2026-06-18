@@ -46,49 +46,65 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_staff'])) {
 
     if (empty($username) || empty($password) || empty($firstName) || empty($lastName) || empty($email)) {
         $error = "All fields marked with an asterisk (*) are required.";
-    } elseif (strlen($password) < 6) {
-        $error = "Password must be at least 6 characters long.";
     } else {
-        try {
-            // Check username uniqueness
-            $stmt = $pdo->prepare("SELECT id FROM users WHERE username = ?");
-            $stmt->execute([$username]);
-            if ($stmt->fetch()) {
-                $error = "Username is already taken by another account.";
-            } else {
-                // Check email uniqueness
-                $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ?");
-                $stmt->execute([$email]);
+        // Enforce password complexity from system settings
+        $minLen  = (int)getSystemConfig($pdo, 'pw_min_length', '8');
+        $reqNum  = getSystemConfig($pdo, 'pw_req_number',  '1') === '1';
+        $reqCase = getSystemConfig($pdo, 'pw_req_case',    '1') === '1';
+        $reqSpec = getSystemConfig($pdo, 'pw_req_special', '1') === '1';
+
+        if (strlen($password) < $minLen) {
+            $error = "Password must be at least {$minLen} characters long.";
+        } elseif ($reqNum && !preg_match('/[0-9]/', $password)) {
+            $error = 'Password must contain at least one number.';
+        } elseif ($reqCase && (!preg_match('/[A-Z]/', $password) || !preg_match('/[a-z]/', $password))) {
+            $error = 'Password must contain both uppercase and lowercase letters.';
+        } elseif ($reqSpec && !preg_match('/[^A-Za-z0-9]/', $password)) {
+            $error = 'Password must contain at least one special character (e.g. @, #, $, !).';
+        }
+
+        if (empty($error)) {
+            try {
+                // Check username uniqueness
+                $stmt = $pdo->prepare("SELECT id FROM users WHERE username = ?");
+                $stmt->execute([$username]);
                 if ($stmt->fetch()) {
-                    $error = "Email address is already registered.";
+                    $error = "Username is already taken by another account.";
                 } else {
-                    // Hash Password
-                    $passwordHash = password_hash($password, PASSWORD_BCRYPT);
-                    
-                    // Insert User
-                    $stmtInsert = $pdo->prepare("INSERT INTO users (username, password_hash, role, first_name, middle_name, last_name, email, phone, status) VALUES (?, ?, 'staff', ?, ?, ?, ?, ?, 'active')");
-                    $stmtInsert->execute([
-                        $username,
-                        $passwordHash,
-                        $firstName,
-                        empty($middleName) ? null : $middleName,
-                        $lastName,
-                        $email,
-                        empty($phone) ? null : $phone
-                    ]);
-                    
-                    $newStaffId = $pdo->lastInsertId();
-                    
-                    // Log Audit
-                    logAudit($pdo, $_SESSION['user_id'], 'STAFF_CREATED', "Created new encoder staff account: @$username (ID: $newStaffId)");
-                    
-                    $_SESSION['success_msg'] = "Encoder staff account @$username has been successfully created!";
-                    header("Location: staff.php");
-                    exit;
+                    // Check email uniqueness
+                    $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ?");
+                    $stmt->execute([$email]);
+                    if ($stmt->fetch()) {
+                        $error = "Email address is already registered.";
+                    } else {
+                        // Hash Password
+                        $passwordHash = password_hash($password, PASSWORD_BCRYPT);
+                        
+                        // Insert User
+                        $stmtInsert = $pdo->prepare("INSERT INTO users (username, password_hash, role, first_name, middle_name, last_name, email, phone, status) VALUES (?, ?, 'staff', ?, ?, ?, ?, ?, 'active')");
+                        $stmtInsert->execute([
+                            $username,
+                            $passwordHash,
+                            $firstName,
+                            empty($middleName) ? null : $middleName,
+                            $lastName,
+                            $email,
+                            empty($phone) ? null : $phone
+                        ]);
+                        
+                        $newStaffId = $pdo->lastInsertId();
+                        
+                        // Log Audit
+                        logAudit($pdo, $_SESSION['user_id'], 'STAFF_CREATED', "Created new encoder staff account: @$username (ID: $newStaffId)");
+                        
+                        $_SESSION['success_msg'] = "Encoder staff account @$username has been successfully created!";
+                        header("Location: staff.php");
+                        exit;
+                    }
                 }
+            } catch (Exception $e) {
+                $error = "Database error: " . $e->getMessage();
             }
-        } catch (Exception $e) {
-            $error = "Database error: " . $e->getMessage();
         }
     }
 }
@@ -178,7 +194,7 @@ $staffList = $stmtStaff->fetchAll();
 
 ?>
 <?php
-$pageTitle = "Staff &amp; Encoders Management";
+$pageTitle = "Staff & Encoders Management";
 include 'includes/header.php';
 ?>
         
@@ -240,7 +256,18 @@ include 'includes/header.php';
                 <div class="auth-form-group">
                   <label for="password">Default Password *</label>
                   <div class="auth-input-wrapper">
-                    <input type="password" id="password" name="password" class="auth-input" style="padding-left:16px;" placeholder="Min. 6 characters" required />
+                  <?php
+                  $minLenHint  = (int)getSystemConfig($pdo, 'pw_min_length', '8');
+                  $reqNumHint  = getSystemConfig($pdo, 'pw_req_number',  '1') === '1';
+                  $reqCaseHint = getSystemConfig($pdo, 'pw_req_case',    '1') === '1';
+                  $reqSpecHint = getSystemConfig($pdo, 'pw_req_special', '1') === '1';
+                  $hints = ["Min. {$minLenHint} characters"];
+                  if ($reqNumHint)  $hints[] = 'number';
+                  if ($reqCaseHint) $hints[] = 'upper & lowercase';
+                  if ($reqSpecHint) $hints[] = 'special char';
+                  $hintStr = implode(', ', $hints);
+                  ?>
+                    <input type="password" id="password" name="password" class="auth-input" style="padding-left:16px;" placeholder="<?php echo htmlspecialchars($hintStr); ?>" required />
                   </div>
                 </div>
               </div>
