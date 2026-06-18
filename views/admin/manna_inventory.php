@@ -122,10 +122,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'distr
 $churchSites = $pdo->query("SELECT id, church_name, barangay FROM church_sites ORDER BY church_name ASC")
                     ->fetchAll(PDO::FETCH_ASSOC);
 
+$existingDonors = $pdo->query("SELECT DISTINCT donor_name FROM manna_restock_log WHERE donor_name IS NOT NULL AND donor_name != '' ORDER BY donor_name ASC")->fetchAll(PDO::FETCH_COLUMN);
+
 $activeTab = $_GET['tab'] ?? 'distribution';
 
 // Filter inputs
 $filterSite   = isset($_GET['site_id']) ? intval($_GET['site_id']) : 0;
+$filterDonor  = isset($_GET['donor_name']) ? trim($_GET['donor_name']) : '';
 $filterSearch = isset($_GET['search']) ? trim($_GET['search']) : '';
 
 // 1. Distribution Log with filters
@@ -160,6 +163,10 @@ $restockQuery = "
     WHERE 1=1
 ";
 $restockParams = [];
+if (!empty($filterDonor)) {
+    $restockQuery .= " AND rl.donor_name = ? ";
+    $restockParams[] = $filterDonor;
+}
 if (!empty($filterSearch)) {
     $restockQuery .= " AND (rl.donor_name LIKE ? OR rl.notes LIKE ?) ";
     $restockParams[] = "%$filterSearch%";
@@ -261,8 +268,13 @@ include 'includes/header.php';
                 <div class="auth-form-group" style="margin-bottom:16px;">
                     <label for="donor_name">Donor Name *</label>
                     <div class="auth-input-wrapper">
-                        <input type="text" id="donor_name" name="donor_name" class="auth-input"
-                            style="padding-left:16px;" placeholder="e.g. Gawad Kalinga Foundation" required />
+                        <input type="text" id="donor_name" name="donor_name" class="auth-input" list="donors_list"
+                            style="padding-left:16px;" placeholder="Select or type donor name..." required />
+                        <datalist id="donors_list">
+                            <?php foreach ($existingDonors as $donor): ?>
+                                <option value="<?php echo htmlspecialchars($donor); ?>">
+                            <?php endforeach; ?>
+                        </datalist>
                     </div>
                 </div>
 
@@ -462,6 +474,21 @@ include 'includes/header.php';
         <?php foreach ($churchSites as $site): ?>
           <option value="<?php echo $site['id']; ?>" <?php echo $filterSite === (int)$site['id'] ? 'selected' : ''; ?>>
             <?php echo htmlspecialchars($site['church_name']); ?>
+          </option>
+        <?php endforeach; ?>
+      </select>
+    </div>
+    <?php endif; ?>
+
+    <?php if ($activeTab === 'restock'): ?>
+    <!-- Select Dropdown Filter -->
+    <div style="flex:1; min-width:150px;">
+      <label style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">Donor</label>
+      <select name="donor_name" class="auth-input" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px; padding:0 12px; color:var(--white);">
+        <option value="">-- All Donors --</option>
+        <?php foreach ($existingDonors as $donor): ?>
+          <option value="<?php echo htmlspecialchars($donor); ?>" <?php echo $filterDonor === $donor ? 'selected' : ''; ?>>
+            <?php echo htmlspecialchars($donor); ?>
           </option>
         <?php endforeach; ?>
       </select>
