@@ -259,11 +259,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
               </div>
 
               <div class="auth-form-group">
-                <label for="province">Province *</label>
-                <div class="auth-input-wrapper">
+                <label for="province_select">Province *</label>
+                <div class="auth-input-wrapper" id="provinceFieldContainer">
                   <i class="fas fa-map-location-dot"></i>
-                  <input type="text" id="province" name="province" class="auth-input" placeholder="e.g. Rizal" value="<?php echo htmlspecialchars($_POST['province'] ?? ''); ?>" required />
+                  <select id="province_select" class="auth-select" style="padding-left:48px;" required disabled>
+                    <option value="" disabled selected>Select province...</option>
+                  </select>
                 </div>
+                <input type="hidden" name="province" id="province" value="<?php echo htmlspecialchars($_POST['province'] ?? ''); ?>" />
               </div>
             </div>
 
@@ -446,6 +449,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     function saveFormData() {
       if (isRestoring) return;
       const regionSelect = document.getElementById("region_select");
+      const provinceSelect = document.getElementById("province_select");
       const citySelect = document.getElementById("city_select");
       const barangaySelect = document.getElementById("barangay_select");
 
@@ -455,7 +459,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         church_name: document.getElementById("church_name").value,
         position_title: document.getElementById("position_title").value,
         street_address: document.getElementById("street_address").value,
-        province: document.getElementById("province").value,
         first_name: document.getElementById("first_name").value,
         middle_name: document.getElementById("middle_name").value,
         last_name: document.getElementById("last_name").value,
@@ -467,11 +470,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
       if (isOfflineMode) {
         data.region = regionSelect ? regionSelect.value : "";
+        data.province = provinceSelect ? provinceSelect.value : "";
         data.city = citySelect ? citySelect.value : "";
         data.barangay = barangaySelect ? barangaySelect.value : "";
       } else {
         data.region_code = regionSelect ? regionSelect.value : "";
         data.region_name = document.getElementById("region") ? document.getElementById("region").value : "";
+        data.province_code = provinceSelect ? provinceSelect.value : "";
+        data.province_name = document.getElementById("province") ? document.getElementById("province").value : "";
         data.city_code = citySelect ? citySelect.value : "";
         data.city_name = document.getElementById("city") ? document.getElementById("city").value : "";
         data.barangay_code = barangaySelect ? barangaySelect.value : "";
@@ -490,7 +496,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         document.getElementById("church_name").value = data.church_name || "";
         document.getElementById("position_title").value = data.position_title || "";
         document.getElementById("street_address").value = data.street_address || "";
-        document.getElementById("province").value = data.province || "";
+        if (document.getElementById("province")) {
+          document.getElementById("province").value = data.province || data.province_name || "";
+        }
         document.getElementById("first_name").value = data.first_name || "";
         document.getElementById("middle_name").value = data.middle_name || "";
         document.getElementById("last_name").value = data.last_name || "";
@@ -517,6 +525,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (data.isOfflineMode) {
           enableOfflineFallback();
           document.getElementById("region_select").value = data.region || "";
+          document.getElementById("province_select").value = data.province || "";
           document.getElementById("city_select").value = data.city || "";
           document.getElementById("barangay_select").value = data.barangay || "";
         } else {
@@ -525,17 +534,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             regionSelect.value = data.region_code;
             document.getElementById("region").value = data.region_name || "";
 
-            await loadCities(data.region_code);
-            const citySelect = document.getElementById("city_select");
-            if (data.city_code) {
-              citySelect.value = data.city_code;
-              document.getElementById("city").value = data.city_name || "";
+            await loadProvinces(data.region_code);
+            const provinceSelect = document.getElementById("province_select");
+            if (data.province_code) {
+              provinceSelect.value = data.province_code;
+              document.getElementById("province").value = data.province_name || "";
 
-              await loadBarangays(data.city_code);
-              const barangaySelect = document.getElementById("barangay_select");
-              if (data.barangay_code) {
-                barangaySelect.value = data.barangay_code;
-                document.getElementById("barangay").value = data.barangay_name || "";
+              await loadCities(data.province_code, data.region_code);
+              const citySelect = document.getElementById("city_select");
+              if (data.city_code) {
+                citySelect.value = data.city_code;
+                document.getElementById("city").value = data.city_name || "";
+
+                await loadBarangays(data.city_code);
+                const barangaySelect = document.getElementById("barangay_select");
+                if (data.barangay_code) {
+                  barangaySelect.value = data.barangay_code;
+                  document.getElementById("barangay").value = data.barangay_name || "";
+                }
+              }
+            } else {
+              // NCR / fallback with empty province code
+              await loadCities("", data.region_code);
+              const citySelect = document.getElementById("city_select");
+              if (data.city_code) {
+                citySelect.value = data.city_code;
+                document.getElementById("city").value = data.city_name || "";
+
+                await loadBarangays(data.city_code);
+                const barangaySelect = document.getElementById("barangay_select");
+                if (data.barangay_code) {
+                  barangaySelect.value = data.barangay_code;
+                  document.getElementById("barangay").value = data.barangay_name || "";
+                }
               }
             }
           }
@@ -553,6 +584,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     async function initLocations() {
       const regionSelect = document.getElementById("region_select");
+      const provinceSelect = document.getElementById("province_select");
       const citySelect = document.getElementById("city_select");
       const barangaySelect = document.getElementById("barangay_select");
       
@@ -580,7 +612,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           if (matchingOpt) {
             regionSelect.value = matchingOpt.value;
             document.getElementById("region").value = prevRegion;
-            await loadCities(matchingOpt.value);
+            await loadProvinces(matchingOpt.value);
+
+            const prevProvince = "<?php echo $_POST['province'] ?? ''; ?>";
+            if (prevProvince) {
+              const matchingProvOpt = Array.from(provinceSelect.options).find(o => o.dataset.name === prevProvince || o.textContent === prevProvince);
+              if (matchingProvOpt) {
+                provinceSelect.value = matchingProvOpt.value;
+                document.getElementById("province").value = prevProvince;
+                await loadCities(matchingProvOpt.value, matchingOpt.value);
+              }
+            }
           }
         }
       } catch (err) {
@@ -593,7 +635,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         const regionCode = regionSelect.value;
         const selectedOpt = regionSelect.options[regionSelect.selectedIndex];
         document.getElementById("region").value = selectedOpt.dataset.name;
-        await loadCities(regionCode);
+        await loadProvinces(regionCode);
+        saveFormData();
+      });
+
+      provinceSelect.addEventListener("change", async () => {
+        if (isOfflineMode) return;
+        const provinceCode = provinceSelect.value;
+        const selectedOpt = provinceSelect.options[provinceSelect.selectedIndex];
+        document.getElementById("province").value = selectedOpt.dataset.name;
+        await loadCities(provinceCode);
         saveFormData();
       });
 
@@ -614,7 +665,52 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       });
     }
 
-    async function loadCities(regionCode) {
+    async function loadProvinces(regionCode) {
+      const provinceSelect = document.getElementById("province_select");
+      const citySelect = document.getElementById("city_select");
+      const barangaySelect = document.getElementById("barangay_select");
+      
+      provinceSelect.disabled = true;
+      provinceSelect.innerHTML = '<option value="" disabled selected>Loading provinces...</option>';
+      citySelect.disabled = true;
+      citySelect.innerHTML = '<option value="" disabled selected>Select city...</option>';
+      barangaySelect.disabled = true;
+      barangaySelect.innerHTML = '<option value="" disabled selected>Select barangay...</option>';
+
+      try {
+        const response = await fetch(`https://psgc.gitlab.io/api/regions/${regionCode}/provinces/`);
+        if (!response.ok) throw new Error("Provinces API failed");
+        
+        const provinces = await response.json();
+        if (provinces && provinces.length > 0) {
+          provinces.sort((a, b) => a.name.localeCompare(b.name));
+          provinceSelect.innerHTML = '<option value="" disabled selected>Select province...</option>';
+          provinces.forEach(p => {
+            const opt = document.createElement("option");
+            opt.value = p.code;
+            opt.textContent = p.name;
+            opt.dataset.name = p.name;
+            provinceSelect.appendChild(opt);
+          });
+          provinceSelect.disabled = false;
+        } else {
+          // Region has no provinces (e.g. NCR)
+          const regionSelect = document.getElementById("region_select");
+          const selectedRegionOpt = regionSelect.options[regionSelect.selectedIndex] || Array.from(regionSelect.options).find(o => o.value === regionCode);
+          const regionName = selectedRegionOpt ? selectedRegionOpt.dataset.name : "Metro Manila";
+          
+          provinceSelect.innerHTML = `<option value="${regionCode}" data-name="${regionName}" selected>${regionName}</option>`;
+          document.getElementById("province").value = regionName;
+          
+          await loadCities("", regionCode);
+        }
+      } catch (err) {
+        console.error("Error loading provinces", err);
+        enableOfflineFallback();
+      }
+    }
+
+    async function loadCities(provinceCode, regionCode = "") {
       const citySelect = document.getElementById("city_select");
       const barangaySelect = document.getElementById("barangay_select");
       
@@ -624,8 +720,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       barangaySelect.innerHTML = '<option value="" disabled selected>Select barangay...</option>';
 
       try {
-        const response = await fetch(`https://psgc.gitlab.io/api/regions/${regionCode}/cities-municipalities/`);
-        if (!response.ok) throw new Error("API failed");
+        let url;
+        if (provinceCode && provinceCode !== regionCode) {
+          url = `https://psgc.gitlab.io/api/provinces/${provinceCode}/cities-municipalities/`;
+        } else {
+          url = `https://psgc.gitlab.io/api/regions/${regionCode}/cities-municipalities/`;
+        }
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("Cities API failed");
         
         const cities = await response.json();
         cities.sort((a, b) => a.name.localeCompare(b.name));
@@ -725,6 +827,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </select>
       `;
 
+      const provinceContainer = document.getElementById("provinceFieldContainer");
+      const prevProvinceValue = (document.getElementById("province") ? document.getElementById("province").value : "") || "<?php echo $_POST['province'] ?? ''; ?>";
+      provinceContainer.innerHTML = `
+        <i class="fas fa-map-location-dot"></i>
+        <input type="text" id="province_select" name="province" class="auth-input" placeholder="e.g. Rizal" value="${prevProvinceValue}" required />
+      `;
+
       const cityContainer = document.getElementById("cityFieldContainer");
       const prevCityValue = document.getElementById("city").value || "<?php echo $_POST['city'] ?? ''; ?>";
       cityContainer.innerHTML = `
@@ -740,9 +849,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       `;
 
       const hiddenRegion = document.getElementById("region");
+      const hiddenProvince = document.getElementById("province");
       const hiddenCity = document.getElementById("city");
       const hiddenBarangay = document.getElementById("barangay");
       if (hiddenRegion) hiddenRegion.remove();
+      if (hiddenProvince) hiddenProvince.remove();
       if (hiddenCity) hiddenCity.remove();
       if (hiddenBarangay) hiddenBarangay.remove();
 
