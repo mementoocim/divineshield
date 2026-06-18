@@ -379,6 +379,25 @@ include 'includes/header.php';
 </div>
 
 
+<!-- ── View Details Modal ────────────────────────────────────────────────── -->
+<div id="detailsModal" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.65); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); align-items:center; justify-content:center; padding:20px;">
+    <div style="background:#0f172a; border:1px solid rgba(255,255,255,0.1); border-radius:20px; width:100%; max-width:500px; box-shadow:0 25px 60px rgba(0,0,0,0.5); animation:modalSlideIn 0.22s ease;">
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:22px 28px; border-bottom:1px solid rgba(255,255,255,0.07);">
+            <div>
+                <div style="font-family:var(--font-head); font-size:1.05rem; font-weight:700; color:var(--white);" id="detailsTitle">Transaction Details</div>
+                <div style="font-size:0.78rem; color:var(--gray-400); margin-top:2px;" id="detailsSubtitle">Overall Log Summary</div>
+            </div>
+            <button type="button" id="btnCloseDetails" class="btn btn-outline btn-sm"><i class="fas fa-times"></i></button>
+        </div>
+        <div style="padding:24px 28px; color:var(--white);" id="detailsBody">
+            <!-- Dynamically populated -->
+        </div>
+        <div style="padding:20px 28px; border-top:1px solid rgba(255,255,255,0.07); display:flex; justify-content:flex-end;">
+            <button type="button" id="btnCloseDetailsBottom" class="btn btn-outline" style="padding:10px 24px;">Close</button>
+        </div>
+    </div>
+</div>
+
 <!-- ── Transaction History ───────────────────────────────────────────────── -->
 <div class="pill-tabs" style="margin-bottom:20px;">
     <a href="manna_inventory.php?tab=distribution" class="pill-tab <?php echo $activeTab === 'distribution' ? 'active' : ''; ?>" style="text-decoration:none;">
@@ -420,6 +439,7 @@ include 'includes/header.php';
                             <th style="text-align:center;">Stock After</th>
                             <th>Recorded By</th>
                             <th>Notes</th>
+                            <th style="text-align:center;">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -454,8 +474,24 @@ include 'includes/header.php';
                             <td style="font-size:0.82rem;">
                                 <?php echo htmlspecialchars($log['first_name'] . ' ' . $log['last_name']); ?>
                             </td>
-                            <td class="text-muted" style="font-size:0.8rem; max-width:160px;">
+                            <td class="text-muted" style="font-size:0.8rem; max-width:160px; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">
                                 <?php echo htmlspecialchars($log['notes'] ?? '—'); ?>
+                            </td>
+                            <td style="text-align:center; white-space:nowrap;">
+                                <button type="button" class="btn btn-outline btn-sm btn-view-dist" style="padding:4px 10px; font-size:0.75rem;"
+                                    data-date="<?php echo date('M d, Y g:i A', strtotime($log['distributed_at'])); ?>"
+                                    data-site="<?php echo htmlspecialchars($log['church_name']); ?>"
+                                    data-brgy="<?php echo htmlspecialchars($log['barangay']); ?>"
+                                    data-total="<?php echo $log['total_children']; ?>"
+                                    data-qualified="<?php echo $log['qualified_children_count']; ?>"
+                                    data-disqualified="<?php echo $log['disqualified_children_count']; ?>"
+                                    data-packs="<?php echo $log['packs_distributed']; ?>"
+                                    data-before="<?php echo number_format($log['stock_before']); ?>"
+                                    data-after="<?php echo number_format($log['stock_after']); ?>"
+                                    data-by="<?php echo htmlspecialchars($log['first_name'] . ' ' . $log['last_name']); ?>"
+                                    data-notes="<?php echo htmlspecialchars($log['notes'] ?? '—'); ?>">
+                                    <i class="fas fa-eye"></i> View
+                                </button>
                             </td>
                         </tr>
                         <?php endforeach; ?>
@@ -492,6 +528,7 @@ include 'includes/header.php';
                             <th style="text-align:center;">Packs Added</th>
                             <th>Notes</th>
                             <th>Added By</th>
+                            <th style="text-align:center;">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -514,11 +551,21 @@ include 'includes/header.php';
                                     +<?php echo number_format($log['quantity_added']); ?>
                                 </span>
                             </td>
-                            <td class="text-muted" style="font-size:0.8rem; max-width:200px;">
+                            <td class="text-muted" style="font-size:0.8rem; max-width:200px; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">
                                 <?php echo htmlspecialchars($log['notes'] ?? '—'); ?>
                             </td>
                             <td style="font-size:0.82rem;">
                                 <?php echo htmlspecialchars($log['first_name'] . ' ' . $log['last_name']); ?>
+                            </td>
+                            <td style="text-align:center; white-space:nowrap;">
+                                <button type="button" class="btn btn-outline btn-sm btn-view-restock" style="padding:4px 10px; font-size:0.75rem;"
+                                    data-date="<?php echo date('M d, Y g:i A', strtotime($log['received_at'])); ?>"
+                                    data-donor="<?php echo htmlspecialchars($log['donor_name']); ?>"
+                                    data-packs="<?php echo number_format($log['quantity_added']); ?>"
+                                    data-by="<?php echo htmlspecialchars($log['first_name'] . ' ' . $log['last_name']); ?>"
+                                    data-notes="<?php echo htmlspecialchars($log['notes'] ?? '—'); ?>">
+                                    <i class="fas fa-eye"></i> View
+                                </button>
                             </td>
                         </tr>
                         <?php endforeach; ?>
@@ -562,9 +609,11 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('btnCancelRestock')  ?.addEventListener('click', () => closeModal('restockModal'));
     document.getElementById('btnCloseDistribute')?.addEventListener('click', () => closeModal('distributeModal'));
     document.getElementById('btnCancelDistribute')?.addEventListener('click', () => closeModal('distributeModal'));
+    document.getElementById('btnCloseDetails')   ?.addEventListener('click', () => closeModal('detailsModal'));
+    document.getElementById('btnCloseDetailsBottom')?.addEventListener('click', () => closeModal('detailsModal'));
 
     // Close on backdrop click
-    ['restockModal', 'distributeModal'].forEach(id => {
+    ['restockModal', 'distributeModal', 'detailsModal'].forEach(id => {
         document.getElementById(id)?.addEventListener('click', function (e) {
             if (e.target === this) closeModal(id);
         });
@@ -575,7 +624,111 @@ document.addEventListener('DOMContentLoaded', function () {
         if (e.key === 'Escape') {
             closeModal('restockModal');
             closeModal('distributeModal');
+            closeModal('detailsModal');
         }
+    });
+
+    // View Details triggers (Distribution)
+    document.querySelectorAll('.btn-view-dist').forEach(btn => {
+        btn.addEventListener('click', function () {
+            document.getElementById('detailsTitle').textContent = 'Distribution Details';
+            document.getElementById('detailsSubtitle').textContent = 'Overall details of the MannaPack distribution';
+            
+            const html = `
+                <div style="display:grid; grid-template-columns:1fr; gap:16px; font-size:0.88rem;">
+                    <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:8px;">
+                        <span style="color:var(--gray-400);">Log Type:</span>
+                        <span style="font-weight:700; color:var(--blue-400);">Distribution</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:8px;">
+                        <span style="color:var(--gray-400);">Date & Time:</span>
+                        <span style="font-weight:600;">${this.dataset.date}</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:8px;">
+                        <span style="color:var(--gray-400);">Church Site:</span>
+                        <span style="font-weight:600; text-align:right;">${this.dataset.site}<br><span style="font-size:0.75rem; color:var(--gray-400); font-weight:400;">Brgy. ${this.dataset.brgy}</span></span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:8px;">
+                        <span style="color:var(--gray-400);">Packs Distributed:</span>
+                        <span style="font-weight:700; color:var(--blue-400); font-size:1rem;">${this.dataset.packs} packs</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:8px;">
+                        <span style="color:var(--gray-400);">Stock Level Change:</span>
+                        <span style="font-weight:600;">${this.dataset.before} → ${this.dataset.after} packs</span>
+                    </div>
+                    <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); border-radius:12px; padding:12px; margin-top:4px;">
+                        <div style="font-size:0.72rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; text-align:center;">Site Stats at Time of Distribution</div>
+                        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px; text-align:center;">
+                            <div>
+                                <div style="font-weight:700; font-size:1.1rem; color:var(--white);">${this.dataset.total}</div>
+                                <div style="font-size:0.7rem; color:var(--gray-400);">Total</div>
+                            </div>
+                            <div>
+                                <div style="font-weight:700; font-size:1.1rem; color:#86efac;">${this.dataset.qualified}</div>
+                                <div style="font-size:0.7rem; color:var(--gray-400);">Qualified</div>
+                            </div>
+                            <div>
+                                <div style="font-weight:700; font-size:1.1rem; color:#fca5a5;">${this.dataset.disqualified}</div>
+                                <div style="font-size:0.7rem; color:var(--gray-400);">Disqualified</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:8px;">
+                        <span style="color:var(--gray-400);">Recorded By:</span>
+                        <span style="font-weight:600;">${this.dataset.by}</span>
+                    </div>
+                    <div>
+                        <span style="color:var(--gray-400); display:block; margin-bottom:4px;">Notes:</span>
+                        <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:8px; padding:10px 14px; font-size:0.8rem; line-height:1.4; color:var(--gray-300); min-height:48px; word-break:break-word;">
+                            ${this.dataset.notes}
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('detailsBody').innerHTML = html;
+            openModal('detailsModal');
+        });
+    });
+
+    // View Details triggers (Restock)
+    document.querySelectorAll('.btn-view-restock').forEach(btn => {
+        btn.addEventListener('click', function () {
+            document.getElementById('detailsTitle').textContent = 'Restock Details';
+            document.getElementById('detailsSubtitle').textContent = 'Overall details of the MannaPack replenishment';
+            
+            const html = `
+                <div style="display:grid; grid-template-columns:1fr; gap:16px; font-size:0.88rem;">
+                    <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:8px;">
+                        <span style="color:var(--gray-400);">Log Type:</span>
+                        <span style="font-weight:700; color:var(--teal-400);">Restock (Donor Donation)</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:8px;">
+                        <span style="color:var(--gray-400);">Date & Time Received:</span>
+                        <span style="font-weight:600;">${this.dataset.date}</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:8px;">
+                        <span style="color:var(--gray-400);">Donor Name:</span>
+                        <span style="font-weight:600; color:var(--white);">${this.dataset.donor}</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:8px;">
+                        <span style="color:var(--gray-400);">Packs Added:</span>
+                        <span style="font-weight:700; color:var(--teal-400); font-size:1rem;">+${this.dataset.packs} packs</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:8px;">
+                        <span style="color:var(--gray-400);">Recorded By:</span>
+                        <span style="font-weight:600;">${this.dataset.by}</span>
+                    </div>
+                    <div>
+                        <span style="color:var(--gray-400); display:block; margin-bottom:4px;">Notes:</span>
+                        <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:8px; padding:10px 14px; font-size:0.8rem; line-height:1.4; color:var(--gray-300); min-height:48px; word-break:break-word;">
+                            ${this.dataset.notes}
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('detailsBody').innerHTML = html;
+            openModal('detailsModal');
+        });
     });
 
     // Auto-reopen modal if POST returned an error
