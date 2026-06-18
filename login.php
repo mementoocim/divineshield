@@ -131,10 +131,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         }
                     }
                 } else {
-                    $error = 'Invalid username or password.';
                     // Log failed attempt if user was found
                     $failedUserId = $user ? $user['id'] : null;
                     logAudit($pdo, $failedUserId, 'LOGIN_FAILED', "Failed login attempt for username: $username");
+                    
+                    $remaining = $lockoutThreshold - ($failedAttempts + 1);
+                    if ($remaining > 0) {
+                        $error = "Invalid username or password. $remaining " . ($remaining === 1 ? "attempt" : "attempts") . " remaining before lockout.";
+                    } else {
+                        $error = "Invalid username or password. Your IP has now been temporarily locked out.";
+                    }
                 }
             }
         }
