@@ -451,7 +451,7 @@ include 'includes/header.php';
             <div class="detail-grid">
               <div class="detail-item">
                 <label>Pastor / Leader</label>
-                <span>Pastor <?php echo htmlspecialchars($viewSite['u_first'] . ' ' . $viewSite['u_last']); ?></span>
+                <span>Pastor <?php echo htmlspecialchars(trim($viewSite['u_first'] . (!empty($viewSite['u_middle']) ? ' ' . $viewSite['u_middle'] : '') . ' ' . $viewSite['u_last'])); ?></span>
               </div>
               <div class="detail-item">
                 <label>Position / Title</label>
@@ -710,7 +710,7 @@ include 'includes/header.php';
                     <?php foreach ($pendingLeaders as $pLeader): ?>
                       <tr>
                         <td>
-                          <strong>Pastor <?php echo htmlspecialchars($pLeader['first_name'] . ' ' . $pLeader['last_name']); ?></strong>
+                          <strong>Pastor <?php echo htmlspecialchars(trim($pLeader['first_name'] . (!empty($pLeader['middle_name']) ? ' ' . $pLeader['middle_name'] : '') . ' ' . $pLeader['last_name'])); ?></strong>
                           <div style="font-size:0.8rem; color:var(--gray-400); margin-top:2px;">
                             @<?php echo htmlspecialchars($pLeader['username']); ?> &middot; <?php echo htmlspecialchars($pLeader['email']); ?><br>
                             Phone: <?php echo htmlspecialchars($pLeader['phone'] ?? 'N/A'); ?>
@@ -787,7 +787,7 @@ include 'includes/header.php';
                           </div>
                         </td>
                         <td>
-                          <strong>Pastor <?php echo htmlspecialchars($site['u_first'] . ' ' . $site['u_last']); ?></strong>
+                          <strong>Pastor <?php echo htmlspecialchars(trim($site['u_first'] . (!empty($site['u_middle']) ? ' ' . $site['u_middle'] : '') . ' ' . $site['u_last'])); ?></strong>
                           <div style="font-size:0.8rem; color:var(--gray-400); margin-top:2px;">
                             @<?php echo htmlspecialchars($site['username']); ?>
                           </div>
@@ -851,7 +851,7 @@ include 'includes/header.php';
                     <?php foreach ($rejectedLeaders as $rLeader): ?>
                       <tr>
                         <td>
-                          <strong>Pastor <?php echo htmlspecialchars($rLeader['first_name'] . ' ' . $rLeader['last_name']); ?></strong>
+                          <strong>Pastor <?php echo htmlspecialchars(trim($rLeader['first_name'] . (!empty($rLeader['middle_name']) ? ' ' . $rLeader['middle_name'] : '') . ' ' . $rLeader['last_name'])); ?></strong>
                           <div style="font-size:0.8rem; color:var(--gray-400); margin-top:2px;">
                             @<?php echo htmlspecialchars($rLeader['username']); ?> &middot; <?php echo htmlspecialchars($rLeader['email']); ?><br>
                             Phone: <?php echo htmlspecialchars($rLeader['phone'] ?? 'N/A'); ?>
