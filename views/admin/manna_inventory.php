@@ -122,25 +122,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'distr
 $churchSites = $pdo->query("SELECT id, church_name, barangay FROM church_sites ORDER BY church_name ASC")
                     ->fetchAll(PDO::FETCH_ASSOC);
 
-
 $activeTab = $_GET['tab'] ?? 'distribution';
 
-$distributionLog = $pdo->query("
+// Filter inputs
+$filterSite   = isset($_GET['site_id']) ? intval($_GET['site_id']) : 0;
+$filterSearch = isset($_GET['search']) ? trim($_GET['search']) : '';
+
+// 1. Distribution Log with filters
+$distQuery = "
     SELECT dl.*, cs.church_name, cs.barangay, u.first_name, u.last_name
     FROM manna_distribution_log dl
     JOIN church_sites cs ON dl.church_site_id = cs.id
     JOIN users u ON dl.distributed_by = u.id
-    ORDER BY dl.distributed_at DESC
-    LIMIT 100
-")->fetchAll(PDO::FETCH_ASSOC);
+    WHERE 1=1
+";
+$distParams = [];
+if ($filterSite > 0) {
+    $distQuery .= " AND dl.church_site_id = ? ";
+    $distParams[] = $filterSite;
+}
+if (!empty($filterSearch)) {
+    $distQuery .= " AND (dl.notes LIKE ? OR cs.church_name LIKE ? OR cs.barangay LIKE ?) ";
+    $distParams[] = "%$filterSearch%";
+    $distParams[] = "%$filterSearch%";
+    $distParams[] = "%$filterSearch%";
+}
+$distQuery .= " ORDER BY dl.distributed_at DESC LIMIT 100 ";
+$stmtDist = $pdo->prepare($distQuery);
+$stmtDist->execute($distParams);
+$distributionLog = $stmtDist->fetchAll(PDO::FETCH_ASSOC);
 
-$restockLog = $pdo->query("
+// 2. Restock Log with filters
+$restockQuery = "
     SELECT rl.*, u.first_name, u.last_name
     FROM manna_restock_log rl
     JOIN users u ON rl.added_by = u.id
-    ORDER BY rl.received_at DESC
-    LIMIT 100
-")->fetchAll(PDO::FETCH_ASSOC);
+    WHERE 1=1
+";
+$restockParams = [];
+if (!empty($filterSearch)) {
+    $restockQuery .= " AND (rl.donor_name LIKE ? OR rl.notes LIKE ?) ";
+    $restockParams[] = "%$filterSearch%";
+    $restockParams[] = "%$filterSearch%";
+}
+$restockQuery .= " ORDER BY rl.received_at DESC LIMIT 100 ";
+$stmtRestock = $pdo->prepare($restockQuery);
+$stmtRestock->execute($restockParams);
+$restockLog = $stmtRestock->fetchAll(PDO::FETCH_ASSOC);
 
 $pageTitle = "MannaPack Inventory";
 include 'includes/header.php';
@@ -413,6 +441,44 @@ include 'includes/header.php';
         <?php endif; ?>
     </a>
 </div>
+
+<!-- ── Filter Bar ────────────────────────────────────────────────────────── -->
+<section class="dashboard-card" style="margin-bottom:24px; padding: 20px 28px;">
+  <form action="manna_inventory.php" method="GET" style="display:flex; flex-wrap:wrap; gap:16px; align-items:flex-end;">
+    <input type="hidden" name="tab" value="<?php echo htmlspecialchars($activeTab); ?>" />
+
+    <!-- Text / Search Input -->
+    <div style="flex:1.2; min-width:200px;">
+      <label style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">Search</label>
+      <input type="text" name="search" class="auth-input" placeholder="<?php echo $activeTab === 'distribution' ? 'Search notes, site, barangay...' : 'Search donor, notes...'; ?>" value="<?php echo htmlspecialchars($filterSearch); ?>" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px;">
+    </div>
+
+    <?php if ($activeTab === 'distribution'): ?>
+    <!-- Select Dropdown Filter -->
+    <div style="flex:1; min-width:150px;">
+      <label style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; letter-spacing:0.04em;">Church Site</label>
+      <select name="site_id" class="auth-input" style="background:rgba(15,23,42,0.8); border-color:rgba(255,255,255,0.1); height:46px; padding:0 12px; color:var(--white);">
+        <option value="">-- All Sites --</option>
+        <?php foreach ($churchSites as $site): ?>
+          <option value="<?php echo $site['id']; ?>" <?php echo $filterSite === (int)$site['id'] ? 'selected' : ''; ?>>
+            <?php echo htmlspecialchars($site['church_name']); ?>
+          </option>
+        <?php endforeach; ?>
+      </select>
+    </div>
+    <?php endif; ?>
+
+    <!-- Action Buttons Group -->
+    <div style="display:flex; gap:10px; width:auto;">
+      <button type="submit" class="btn btn-primary" style="padding:10px 20px; font-size:0.85rem; height:46px;">
+        <i class="fas fa-filter"></i> Apply Filters
+      </button>
+      <a href="manna_inventory.php?tab=<?php echo htmlspecialchars($activeTab); ?>" class="btn btn-outline" style="padding:10px 20px; font-size:0.85rem; height:46px; border-color:rgba(255,255,255,0.1); color:var(--gray-300); align-items:center; display:flex; justify-content:center; text-decoration:none;">
+        <i class="fas fa-filter-circle-xmark"></i> Clear
+      </a>
+    </div>
+  </form>
+</section>
 
 <?php if ($activeTab === 'distribution'): ?>
 <!-- Distribution Log Table -->
