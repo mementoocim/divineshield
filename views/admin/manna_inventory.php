@@ -473,7 +473,7 @@ include 'includes/header.php';
         <option value="">-- All Sites --</option>
         <?php foreach ($churchSites as $site): ?>
           <option value="<?php echo $site['id']; ?>" <?php echo $filterSite === (int)$site['id'] ? 'selected' : ''; ?>>
-            <?php echo htmlspecialchars($site['church_name']); ?>
+            <?php echo htmlspecialchars($site['church_name']); ?> - <?php echo htmlspecialchars($site['barangay']); ?>
           </option>
         <?php endforeach; ?>
       </select>
