@@ -52,11 +52,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'resto
                 ->execute([$_SESSION['user_id'], $donorName, $quantity, empty($notes) ? null : $notes, $receivedAt]);
 
             logAudit($pdo, $_SESSION['user_id'], 'MANNA_RESTOCK',
-                "Added {$quantity} MannaPack pack(s) from donor: \"{$donorName}\"");
+                "Added {$quantity} MannaPack box(es) from donor: \"{$donorName}\"");
 
             $totalReceived += $quantity;
             $currentStock  += $quantity;
-            $success = "Successfully added {$quantity} MannaPack pack(s) from donor \"{$donorName}\". Current stock: {$currentStock}.";
+            $success = "Successfully added {$quantity} MannaPack box(es) from donor \"{$donorName}\". Current stock: {$currentStock}.";
         } catch (Exception $e) {
             $error = "Failed to add stock: " . $e->getMessage();
         }
@@ -72,7 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'distr
     if ($siteId <= 0 || $packs <= 0) {
         $error = "Please select a church site and enter a valid quantity greater than 0.";
     } elseif ($packs > $currentStock) {
-        $error = "Insufficient stock. You tried to distribute {$packs} pack(s) but only {$currentStock} are available.";
+        $error = "Insufficient stock. You tried to distribute {$packs} box(es) but only {$currentStock} are available.";
     } else {
         try {
             // snapshot child counts at time of distribution
@@ -107,11 +107,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'distr
             $site = $siteInfo->fetch(PDO::FETCH_ASSOC);
 
             logAudit($pdo, $_SESSION['user_id'], 'MANNA_DISTRIBUTED',
-                "Distributed {$packs} MannaPack pack(s) to {$site['church_name']} (Brgy. {$site['barangay']}). Stock: {$stockBefore} → {$stockAfter}");
+                "Distributed {$packs} MannaPack box(es) to {$site['church_name']} (Brgy. {$site['barangay']}). Stock: {$stockBefore} → {$stockAfter}");
 
             $currentStock      = $stockAfter;
             $totalDistributed += $packs;
-            $success = "Successfully distributed {$packs} MannaPack pack(s) to {$site['church_name']}. Remaining stock: {$currentStock}.";
+            $success = "Successfully distributed {$packs} MannaPack box(es) to {$site['church_name']}. Remaining stock: {$currentStock}.";
         } catch (Exception $e) {
             $error = "Failed to record distribution: " . $e->getMessage();
         }
@@ -201,7 +201,7 @@ include 'includes/header.php';
         <div class="stat-box-info">
             <h4>Current Stock</h4>
             <div class="stat-val" style="<?php echo $currentStock == 0 ? 'color:var(--red-400);' : ($currentStock <= 20 ? 'color:var(--yellow-400);' : ''); ?>"><?php echo number_format($currentStock); ?></div>
-            <div style="font-size:0.72rem; color:var(--gray-500); margin-top:2px;">packs available</div>
+            <div style="font-size:0.72rem; color:var(--gray-500); margin-top:2px;">boxes available</div>
         </div>
         <div class="stat-box-icon" style="<?php echo $currentStock == 0 ? 'color:var(--red-400); background:rgba(239,68,68,0.1);' : ($currentStock <= 20 ? 'color:var(--yellow-400); background:rgba(245,158,11,0.1);' : ''); ?>">
             <i class="fas fa-boxes-stacked"></i>
@@ -212,7 +212,7 @@ include 'includes/header.php';
         <div class="stat-box-info">
             <h4>Total Received</h4>
             <div class="stat-val"><?php echo number_format($totalReceived); ?></div>
-            <div style="font-size:0.72rem; color:var(--gray-500); margin-top:2px;">packs all-time</div>
+            <div style="font-size:0.72rem; color:var(--gray-500); margin-top:2px;">boxes all-time</div>
         </div>
         <div class="stat-box-icon" style="color:var(--teal-400); background:rgba(20,184,166,0.1);">
             <i class="fas fa-circle-arrow-down"></i>
@@ -223,7 +223,7 @@ include 'includes/header.php';
         <div class="stat-box-info">
             <h4>Total Distributed</h4>
             <div class="stat-val"><?php echo number_format($totalDistributed); ?></div>
-            <div style="font-size:0.72rem; color:var(--gray-500); margin-top:2px;">packs all-time</div>
+            <div style="font-size:0.72rem; color:var(--gray-500); margin-top:2px;">boxes all-time</div>
         </div>
         <div class="stat-box-icon" style="color:var(--blue-400); background:rgba(59,130,246,0.1);">
             <i class="fas fa-circle-arrow-up"></i>
@@ -257,7 +257,7 @@ include 'includes/header.php';
         <div style="display:flex; align-items:center; justify-content:space-between; padding:22px 28px; border-bottom:1px solid rgba(255,255,255,0.07);">
             <div>
                 <div style="font-family:var(--font-head); font-size:1.05rem; font-weight:700; color:var(--white);">Add Stock from Donor</div>
-                <div style="font-size:0.78rem; color:var(--gray-400); margin-top:2px;">Record MannaPack packs received</div>
+                <div style="font-size:0.78rem; color:var(--gray-400); margin-top:2px;">Record MannaPack boxes received</div>
             </div>
             <button type="button" id="btnCloseRestock" class="btn btn-outline btn-sm"><i class="fas fa-times"></i></button>
         </div>
@@ -269,7 +269,7 @@ include 'includes/header.php';
                     <label for="donor_name">Donor Name *</label>
                     <div class="auth-input-wrapper">
                         <input type="text" id="donor_name" name="donor_name" class="auth-input" list="donors_list"
-                            style="padding-left:16px;" placeholder="Select or type donor name..." required />
+                            style="padding-left:16px;" placeholder="Select or type donor name..." value="Hapag-Asa" required />
                         <datalist id="donors_list">
                             <?php foreach ($existingDonors as $donor): ?>
                                 <option value="<?php echo htmlspecialchars($donor); ?>">
@@ -321,7 +321,7 @@ include 'includes/header.php';
             <div>
                 <div style="font-family:var(--font-head); font-size:1.05rem; font-weight:700; color:var(--white);">Distribute MannaPack</div>
                 <div style="font-size:0.78rem; color:var(--gray-400); margin-top:2px;">
-                    Available stock: <strong style="color:<?php echo $currentStock <= 20 ? 'var(--yellow-400)' : 'var(--teal-400)'; ?>"><?php echo number_format($currentStock); ?> packs</strong>
+                    Available stock: <strong style="color:<?php echo $currentStock <= 20 ? 'var(--yellow-400)' : 'var(--teal-400)'; ?>"><?php echo number_format($currentStock); ?> boxes</strong>
                 </div>
             </div>
             <button type="button" id="btnCloseDistribute" class="btn btn-outline btn-sm"><i class="fas fa-times"></i></button>
@@ -380,7 +380,7 @@ include 'includes/header.php';
 
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:16px;">
                     <div class="auth-form-group">
-                        <label for="packs_distributed">Packs to Distribute *</label>
+                        <label for="packs_distributed">Boxes to Distribute *</label>
                         <div class="auth-input-wrapper">
                             <input type="number" id="packs_distributed" name="packs_distributed" class="auth-input"
                                 style="padding-left:16px;" placeholder="Enter quantity" min="1"
@@ -527,7 +527,7 @@ include 'includes/header.php';
                             <th style="text-align:center;">Total</th>
                             <th style="text-align:center;">Qualified</th>
                             <th style="text-align:center;">DQ</th>
-                            <th style="text-align:center;">Packs Given</th>
+                            <th style="text-align:center;">Boxes Given</th>
                             <th style="text-align:center;">Stock Before</th>
                             <th style="text-align:center;">Stock After</th>
                             <th>Recorded By</th>
@@ -618,7 +618,7 @@ include 'includes/header.php';
                         <tr>
                             <th>Date Received</th>
                             <th>Donor Name</th>
-                            <th style="text-align:center;">Packs Added</th>
+                            <th style="text-align:center;">Boxes Added</th>
                             <th>Notes</th>
                             <th>Added By</th>
                             <th style="text-align:center;">Actions</th>
@@ -742,12 +742,12 @@ document.addEventListener('DOMContentLoaded', function () {
                         <span style="font-weight:600; text-align:right;">${this.dataset.site}<br><span style="font-size:0.75rem; color:var(--gray-400); font-weight:400;">Brgy. ${this.dataset.brgy}</span></span>
                     </div>
                     <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:8px;">
-                        <span style="color:var(--gray-400);">Packs Distributed:</span>
-                        <span style="font-weight:700; color:var(--blue-400); font-size:1rem;">${this.dataset.packs} packs</span>
+                        <span style="color:var(--gray-400);">Boxes Distributed:</span>
+                        <span style="font-weight:700; color:var(--blue-400); font-size:1rem;">${this.dataset.packs} boxes</span>
                     </div>
                     <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:8px;">
                         <span style="color:var(--gray-400);">Stock Level Change:</span>
-                        <span style="font-weight:600;">${this.dataset.before} → ${this.dataset.after} packs</span>
+                        <span style="font-weight:600;">${this.dataset.before} → ${this.dataset.after} boxes</span>
                     </div>
                     <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); border-radius:12px; padding:12px; margin-top:4px;">
                         <div style="font-size:0.72rem; text-transform:uppercase; color:var(--gray-400); font-weight:700; margin-bottom:8px; text-align:center;">Site Stats at Time of Distribution</div>
@@ -804,8 +804,8 @@ document.addEventListener('DOMContentLoaded', function () {
                         <span style="font-weight:600; color:var(--white);">${this.dataset.donor}</span>
                     </div>
                     <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:8px;">
-                        <span style="color:var(--gray-400);">Packs Added:</span>
-                        <span style="font-weight:700; color:var(--teal-400); font-size:1rem;">+${this.dataset.packs} packs</span>
+                        <span style="color:var(--gray-400);">Boxes Added:</span>
+                        <span style="font-weight:700; color:var(--teal-400); font-size:1rem;">+${this.dataset.packs} boxes</span>
                     </div>
                     <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:8px;">
                         <span style="color:var(--gray-400);">Recorded By:</span>
