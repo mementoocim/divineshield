@@ -1,6 +1,64 @@
-# Ignore user uploads
-assets/uploads/
+# ==========================================
+# Divine Shield - Git Ignore Rules
+# ==========================================
 
-# Ignore OS-specific files
+# User Uploads & Media (Preserve directory structure via .gitkeep)
+assets/uploads/**
+!assets/uploads/**/
+!assets/uploads/**/.gitkeep
+
+# Environment & Sensitive Configuration
+.env
+.env.local
+.env.*.local
+config.local.php
+*.local
+
+# Dependencies
+vendor/
+node_modules/
+composer.phar
+
+# Log & Error Files
+*.log
+error_log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Temporary & Cache Files
+tmp/
+temp/
+cache/
+*.tmp
+*.bak
+
+# Database Backups & Dumps (Retains tracking for setup files like database.sql)
+*.sql.bak
+*.sql.gz
+*.dump
+backup/
+backups/
+
+# Operating System Files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
 Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+[Dd]esktop.ini
+
+# IDEs & Editor Configuration
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+*~
